@@ -1,6 +1,7 @@
 package appstore
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -19,8 +20,8 @@ import (
 )
 
 const (
-	authRequestAttempts   = 3
-	authRetryDelay        = 10 * time.Second
+	authRequestAttempts   = 4
+	authRetryDelay        = 3 * time.Second
 	maxAuthRetryDelay     = 30 * time.Second
 	sapSetupMaxBytes      = 2 * 1024 * 1024
 	sapSetupFieldMaxBytes = 1048576
@@ -271,10 +272,16 @@ func (a *Authenticator) Authenticate(ctx context.Context, email, password, code 
 			if errors.As(err, &authErr) {
 				return Account{}, authErr
 			}
+			if pod != "" && !allowTest && requestHost == "https://buy.itunes.apple.com" {
+				requestHost = "https://" + PurchaseAPIHost(pod)
+				currentAttempt--
+				redirectAttempt++
+				lastErr = err
+				continue
+			}
 			lastErr = err
 			continue
 		}
-
 		if storeHdr := resp.Headers.Get("x-set-apple-store-front"); storeHdr != "" {
 			if parts := strings.SplitN(storeHdr, "-", 2); parts[0] != "" {
 				storeFront = parts[0]
@@ -282,6 +289,9 @@ func (a *Authenticator) Authenticate(ctx context.Context, email, password, code 
 		}
 		if p := resp.Headers.Get("pod"); p != "" {
 			pod = p
+			if !allowTest && requestHost == "https://buy.itunes.apple.com" {
+				requestHost = "https://" + PurchaseAPIHost(pod)
+			}
 		}
 
 		if isRedirectStatus(resp.Status) {
@@ -393,14 +403,18 @@ func (a *Authenticator) sendWithTransientRetry(ctx context.Context, send func() 
 		if err != nil {
 			return rawResponse{}, err
 		}
-		if !isTransientAuthStatus(resp.Status) {
+		if !isTransientAuthResponse(resp) {
 			return resp, nil
 		}
 		statuses = append(statuses, strconv.Itoa(resp.Status))
 		if len(statuses) == authRequestAttempts {
 			return rawResponse{}, &AuthError{
-				Message: fmt.Sprintf("appstore: authentication failed after %d transient responses (%s)", authRequestAttempts, strings.Join(statuses, ", ")),
+				Message: fmt.Sprintf("appstore: Apple edge refused authentication after %d attempts (HTTP %s); try again or switch network", authRequestAttempts, strings.Join(statuses, ", ")),
 			}
+		}
+
+		if a.client != nil && a.client.HTTPClient != nil {
+			a.client.HTTPClient.CloseIdleConnections()
 		}
 
 		delay := authRetryDelay << (len(statuses) - 1)
@@ -433,8 +447,18 @@ func (a *Authenticator) sendWithTransientRetry(ctx context.Context, send func() 
 	}
 }
 
-func isTransientAuthStatus(status int) bool {
-	return status == 204 || status == 404 || status == 429 || status/100 == 5
+func isTransientAuthResponse(resp rawResponse) bool {
+	if resp.Status == 204 || resp.Status == 404 || resp.Status == 429 || resp.Status/100 == 5 {
+		return true
+	}
+	// Apple's edge proxy intermittently returns 301/302 HTML without Location or 403 HTML/empty body before MZFinance.
+	if isRedirectStatus(resp.Status) && strings.TrimSpace(resp.Headers.Get("location")) == "" {
+		return true
+	}
+	if resp.Status == http.StatusForbidden && !bytes.Contains(resp.Body, []byte("<plist")) {
+		return true
+	}
+	return false
 }
 
 func isRedirectStatus(status int) bool {

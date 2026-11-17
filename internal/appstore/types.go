@@ -3,6 +3,7 @@ package appstore
 import (
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -106,17 +107,33 @@ type Client struct {
 	AuthSleep    func(ctx context.Context, d time.Duration) error
 	DownloadWait time.Duration
 }
-
-// NewClient creates a default App Store protocol client that never follows redirects automatically.
+// NewClient creates a default App Store protocol client forced to HTTP/1.1 without automatic redirects.
 func NewClient() *Client {
 	return &Client{
-		HTTPClient: &http.Client{
-			Timeout: 30 * time.Second,
-			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
+		HTTPClient: defaultAppStoreHTTPClient(),
+		UserAgent:  DefaultUserAgent,
+	}
+}
+
+func defaultAppStoreHTTPClient() *http.Client {
+	var tr *http.Transport
+	if base, ok := http.DefaultTransport.(*http.Transport); ok {
+		tr = base.Clone()
+	} else {
+		tr = &http.Transport{}
+	}
+	tr.ForceAttemptHTTP2 = false
+	tr.TLSNextProto = make(map[string]func(string, *tls.Conn) http.RoundTripper)
+	tr.TLSClientConfig = &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		NextProtos: []string{"http/1.1"},
+	}
+	return &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: tr,
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
 		},
-		UserAgent: DefaultUserAgent,
 	}
 }
 
@@ -124,12 +141,7 @@ func (c *Client) httpClient() *http.Client {
 	if c != nil && c.HTTPClient != nil {
 		return c.HTTPClient
 	}
-	return &http.Client{
-		Timeout: 30 * time.Second,
-		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
+	return defaultAppStoreHTTPClient()
 }
 
 func (c *Client) userAgent() string {

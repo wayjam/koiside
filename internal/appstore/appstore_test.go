@@ -170,6 +170,10 @@ func TestAuthenticatorSAPFlowRedirects2FAAndRetry(t *testing.T) {
 				}
 				w.WriteHeader(http.StatusNoContent)
 			case 3:
+				// Location-less 301 edge refusal must be retried transparently.
+				w.WriteHeader(http.StatusMovedPermanently)
+				_, _ = w.Write([]byte("<html>301 Moved Permanently</html>"))
+			case 4:
 				b, _ := plist.Marshal(map[string]any{
 					"accountInfo": map[string]any{
 						"appleId": "user@example.invalid",
@@ -209,21 +213,24 @@ func TestAuthenticatorSAPFlowRedirects2FAAndRetry(t *testing.T) {
 	var retries int
 	acc, err := auth.Authenticate(context.Background(), "user@example.invalid", "password", "123456", func(r AuthRetry) {
 		retries++
-		if r.Status != http.StatusNoContent {
-			t.Fatalf("expected 204 retry, got %d", r.Status)
+		if retries == 1 && r.Status != http.StatusNoContent {
+			t.Fatalf("expected first retry on 204, got %d", r.Status)
+		}
+		if retries == 2 && r.Status != http.StatusMovedPermanently {
+			t.Fatalf("expected second retry on location-less 301, got %d", r.Status)
 		}
 	})
 	if err != nil {
 		t.Fatalf("Authenticate 2FA continuation failed: %v", err)
 	}
-	if retries != 1 {
-		t.Fatalf("expected 1 retry callback, got %d", retries)
+	if retries != 2 {
+		t.Fatalf("expected 2 retry callbacks, got %d", retries)
 	}
 	if acc.Store != "143441" || acc.Pod != "25" || acc.DSID != "123" || acc.PasswordToken != "test-token" {
 		t.Fatalf("unexpected account: %+v", acc)
 	}
-	if len(signer.calls) != 4 {
-		t.Fatalf("expected 4 signatures (redirect + 2FA challenge + 204 retry + final), got %d", len(signer.calls))
+	if len(signer.calls) != 5 {
+		t.Fatalf("expected 5 signatures (redirect + 2FA challenge + 204 retry + 301 retry + final), got %d", len(signer.calls))
 	}
 
 	// Ensure credentials are never sent when SAP setup/signing fails.
