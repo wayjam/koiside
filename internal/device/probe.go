@@ -14,9 +14,10 @@ type Snapshot struct {
 	Device        Device
 	Info          Info
 	Apps          []InstalledApp
-	SideStore     *InstalledApp
-	LocalDevVPN   *InstalledApp
-	LiveContainer *InstalledApp
+	SideStore         *InstalledApp
+	SideStoreEmbedded bool
+	LocalDevVPN       *InstalledApp
+	LiveContainer     *InstalledApp
 	SideStoreDocs        []string
 	SideStoreTree        []DocEntry
 	DocsBundleID         string
@@ -131,6 +132,18 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/SideStore/Documents/ConsoleLogs"})
 			}
 			afc.Close()
+		}
+	}
+	if snap.SideStore == nil && snap.LiveContainer != nil {
+		if snap.LatestSideStoreLog != nil {
+			snap.SideStoreEmbedded = true
+		} else {
+			for _, node := range snap.SideStoreTree {
+				if node.IsDir && strings.EqualFold(node.Name, "SideStore") {
+					snap.SideStoreEmbedded = true
+					break
+				}
+			}
 		}
 	}
 	return snap, nil

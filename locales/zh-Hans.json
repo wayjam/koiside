@@ -51,11 +51,13 @@
   "deviceInstalledAppsDesc": "第一阶段只读查询已安装的侧载应用。名额与证书有效期以手机端 SideStore 为准。",
   "deviceInstalledAppsEmpty": "尚未读取到应用清单，或当前未连接已信任设备。",
   "deviceSideStoreDetected": "SideStore: 已检测到",
+  "deviceSideStoreEmbedded": "SideStore: 已内置 (LiveContainer)",
   "deviceSideStoreNotDetected": "SideStore: 未检测到",
   "deviceToolDetected": "已检测到 ({version}) · 运行状态未知",
   "@deviceToolDetected": {
     "placeholders": { "version": { "type": "String" } }
   },
+  "deviceToolEmbeddedInLC": "已内置于 LiveContainer",
   "deviceToolNotDetected": "未在已装应用中检测到",
   "deviceAppsSummary": "共读取到 {total} 个用户应用（开发/个人签名 {sideloaded} 个）",
   "@deviceAppsSummary": {
@@ -475,6 +477,7 @@
   "deviceAppsSearchPlaceholder": "搜索应用名称、Bundle ID 或 Team ID…",
   "deviceAppsNoMatch": "没有找到匹配的应用。",
   "deviceDocsTitle": "SideStore 文稿目录 (/Documents)",
+  "deviceLCDocsTitle": "LiveContainer 文稿目录 (/Documents)",
   "deviceDocsItemsCount": "{count} 项",
   "@deviceDocsItemsCount": {
     "placeholders": { "count": { "type": "int" } }
@@ -485,6 +488,7 @@
   "@routeStatusInstalled": {
     "placeholders": { "version": { "type": "String" } }
   },
+  "routeStatusEmbeddedLC": "已内置于 LiveContainer",
   "routeStatusNotInstalled": "未安装",
   "routeStatusUnknown": "状态未知",
   "routeStatusPhase2": "桌面直装",

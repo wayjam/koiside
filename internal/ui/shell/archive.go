@@ -602,12 +602,34 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 		}
 		ui.Column(c).FillWidth().Gap(6).Children(func() {
 			ui.Text(c, msg.CheckSourceLabel()).FontSize(12).Bold().TextColor(t.TextMuted)
-			seg := ui.Segmented(c.Key("source-kind-seg"), &sourceIdx,
+			sourceLabels := []string{
 				msg.CheckSourceGitHub(),
 				msg.CheckSourceSelfBuilt(),
 				msg.CheckSourceLocalUnknown(),
-			).Cursor(ui.CursorPointer).Label(msg.CheckSourceLabel())
-			if seg.Changed() {
+			}
+			seg := ui.SegmentedBase(c.Key("source-kind-seg"), &sourceIdx, len(sourceLabels))
+			seg.Track.FillWidth().Wrap().Gap(6).Label(msg.CheckSourceLabel()).Children(func() {
+				for idx, lbl := range sourceLabels {
+					selected := idx == sourceIdx
+					s := seg.Segment(idx).Padding(5, 11).Radius(8).MaxWidthPercent(100).
+						Cursor(ui.CursorPointer).Transition(colorTransition)
+					if selected {
+						s.Background(t.Selection).Border(1, accentInk(t).Alpha(0.55))
+					} else {
+						s.Background(t.Background).Border(1, t.Border)
+						if s.Hovered() {
+							s.Background(t.SurfaceHover)
+						}
+					}
+					s.Children(func() {
+						txt := ui.Text(c, lbl).FontSize(12)
+						if selected {
+							txt.Bold().TextColor(accentInk(t))
+						}
+					})
+				}
+			})
+			if seg.Track.Changed() {
 				kinds := []string{"github", "self", "local"}
 				m.sourceKind = kinds[sourceIdx]
 			}
@@ -690,6 +712,9 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 			}
 			if m.sideStoreApp != nil {
 				return msg.RouteStatusInstalled(valueOrUnknown(msg, m.sideStoreApp.Version)), t.Selection, ui.Hex("#10B981")
+			}
+			if m.sideStoreEmbedded {
+				return msg.RouteStatusEmbeddedLC(), t.Selection, ui.Hex("#10B981")
 			}
 			if t.Dark {
 				return msg.RouteStatusNotInstalled(), ui.Hex("#3A2E1B"), ui.Hex("#FCD34D")

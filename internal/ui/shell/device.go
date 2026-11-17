@@ -157,6 +157,7 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.deviceApps = nil
 		m.appsQueried = false
 		m.sideStoreApp = nil
+		m.sideStoreEmbedded = false
 		m.vpnApp = nil
 		m.lcApp = nil
 		m.lcApps = nil
@@ -176,6 +177,7 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.deviceApps = nil
 		m.appsQueried = false
 		m.sideStoreApp = nil
+		m.sideStoreEmbedded = false
 		m.vpnApp = nil
 		m.lcApp = nil
 		m.lcApps = nil
@@ -195,6 +197,19 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.deviceApps = append([]device.InstalledApp(nil), snap.Apps...)
 		m.appsQueried = snap.SessionErr == nil && len(snap.Apps) > 0
 		m.sideStoreApp = snap.SideStore
+		m.sideStoreEmbedded = snap.SideStoreEmbedded
+		if !m.sideStoreEmbedded && snap.SideStore == nil && snap.LiveContainer != nil {
+			if snap.LatestSideStoreLog != nil {
+				m.sideStoreEmbedded = true
+			} else {
+				for _, node := range snap.SideStoreTree {
+					if node.IsDir && strings.EqualFold(node.Name, "SideStore") {
+						m.sideStoreEmbedded = true
+						break
+					}
+				}
+			}
+		}
 		m.vpnApp = snap.LocalDevVPN
 		m.lcApp = snap.LiveContainer
 		m.lcApps = append([]device.LiveContainerApp(nil), snap.LiveContainerApps...)
@@ -269,6 +284,9 @@ func (m *Model) sideStoreSummaryText(msg locales.Messages) string {
 	}
 	if m.sideStoreApp != nil {
 		return msg.DeviceSideStoreDetected()
+	}
+	if m.sideStoreEmbedded {
+		return msg.DeviceSideStoreEmbedded()
 	}
 	return msg.DeviceSideStoreNotDetected()
 }
@@ -637,10 +655,16 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			ui.Column(c).Grow(1).Gap(3).Children(func() {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 					ui.Text(c, msg.DeviceSideStoreCardTitle()).Bold().FontSize(15)
-					ui.Text(c, toolStatusText(m.sideStoreApp)).FontSize(12).TextColor(t.TextMuted)
+					sideStatus := toolStatusText(m.sideStoreApp)
+					if m.appsQueried && m.sideStoreApp == nil && m.sideStoreEmbedded {
+						sideStatus = msg.DeviceToolEmbeddedInLC()
+					}
+					ui.Text(c.Key("device-sidestore-status"), sideStatus).Role(ui.RoleStatus).FontSize(12).TextColor(t.TextMuted)
 				})
 				if m.sideStoreApp != nil {
 					monoText(c, msg.LibraryBundleID()+": "+m.sideStoreApp.BundleID).FontSize(11).TextColor(t.TextMuted)
+				} else if m.sideStoreEmbedded && m.lcApp != nil {
+					monoText(c, msg.LibraryBundleID()+": "+m.lcApp.BundleID).FontSize(11).TextColor(t.TextMuted)
 				}
 				if m.usbVerified {
 					ui.Text(c, msg.DeviceSideStoreUSBReady()).FontSize(12).TextColor(accentInk(t))
@@ -733,7 +757,11 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			ui.Row(c).FillWidth().Padding(14, 18).Gap(10).AlignItems(ui.Center).Children(func() {
 				ui.Icon(c, phFolderOpen).Width(18).Height(18).TextColor(accentInk(t))
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.DeviceDocsTitle()).Bold().FontSize(14)
+					docsTitle := msg.DeviceDocsTitle()
+					if m.sideStoreApp == nil && m.lcApp != nil && m.docsBundleID == m.lcApp.BundleID {
+						docsTitle = msg.DeviceLCDocsTitle()
+					}
+					ui.Text(c, docsTitle).Bold().FontSize(14)
 					m.mu.Lock()
 					delMsg := m.docDeleteMsg
 					delErr := m.docDeleteErr

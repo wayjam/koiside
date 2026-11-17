@@ -90,9 +90,10 @@ type Model struct {
 	deviceErr     string
 	deviceApps    []device.InstalledApp
 	appsQueried   bool
-	sideStoreApp  *device.InstalledApp
-	vpnApp        *device.InstalledApp
-	lcApp              *device.InstalledApp
+	sideStoreApp      *device.InstalledApp
+	sideStoreEmbedded bool
+	vpnApp            *device.InstalledApp
+	lcApp             *device.InstalledApp
 	lcApps             []device.LiveContainerApp
 	latestSideStoreLog *device.SideStoreLogSummary
 	sideStoreDocs      []string

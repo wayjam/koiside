@@ -436,6 +436,16 @@ func (msgs Messages) DeviceSideStoreDetected() string {
 	return Catalog.Format(msgs.locale, "deviceSideStoreDetected", nil)
 }
 
+// DeviceSideStoreEmbedded says "SideStore: 已内置 (LiveContainer)"
+// in the language the app shows.
+func DeviceSideStoreEmbedded() string { return In(i18n.Locale()).DeviceSideStoreEmbedded() }
+
+// DeviceSideStoreEmbedded says "SideStore: 已内置 (LiveContainer)"
+// in the language of msgs.
+func (msgs Messages) DeviceSideStoreEmbedded() string {
+	return Catalog.Format(msgs.locale, "deviceSideStoreEmbedded", nil)
+}
+
 // DeviceSideStoreNotDetected says "SideStore: 未检测到"
 // in the language the app shows.
 func DeviceSideStoreNotDetected() string { return In(i18n.Locale()).DeviceSideStoreNotDetected() }
@@ -454,6 +464,16 @@ func DeviceToolDetected(version string) string { return In(i18n.Locale()).Device
 // in the language of msgs.
 func (msgs Messages) DeviceToolDetected(version string) string {
 	return Catalog.Format(msgs.locale, "deviceToolDetected", map[string]any{"version": version})
+}
+
+// DeviceToolEmbeddedInLC says "已内置于 LiveContainer"
+// in the language the app shows.
+func DeviceToolEmbeddedInLC() string { return In(i18n.Locale()).DeviceToolEmbeddedInLC() }
+
+// DeviceToolEmbeddedInLC says "已内置于 LiveContainer"
+// in the language of msgs.
+func (msgs Messages) DeviceToolEmbeddedInLC() string {
+	return Catalog.Format(msgs.locale, "deviceToolEmbeddedInLC", nil)
 }
 
 // DeviceToolNotDetected says "未在已装应用中检测到"
@@ -3440,6 +3460,16 @@ func (msgs Messages) DeviceDocsTitle() string {
 	return Catalog.Format(msgs.locale, "deviceDocsTitle", nil)
 }
 
+// DeviceLCDocsTitle says "LiveContainer 文稿目录 (/Documents)"
+// in the language the app shows.
+func DeviceLCDocsTitle() string { return In(i18n.Locale()).DeviceLCDocsTitle() }
+
+// DeviceLCDocsTitle says "LiveContainer 文稿目录 (/Documents)"
+// in the language of msgs.
+func (msgs Messages) DeviceLCDocsTitle() string {
+	return Catalog.Format(msgs.locale, "deviceLCDocsTitle", nil)
+}
+
 // DeviceDocsItemsCount says "{count} 项"
 // in the language the app shows.
 func DeviceDocsItemsCount(count int) string { return In(i18n.Locale()).DeviceDocsItemsCount(count) }
@@ -3470,6 +3500,16 @@ func RouteStatusInstalled(version string) string {
 // in the language of msgs.
 func (msgs Messages) RouteStatusInstalled(version string) string {
 	return Catalog.Format(msgs.locale, "routeStatusInstalled", map[string]any{"version": version})
+}
+
+// RouteStatusEmbeddedLC says "已内置于 LiveContainer"
+// in the language the app shows.
+func RouteStatusEmbeddedLC() string { return In(i18n.Locale()).RouteStatusEmbeddedLC() }
+
+// RouteStatusEmbeddedLC says "已内置于 LiveContainer"
+// in the language of msgs.
+func (msgs Messages) RouteStatusEmbeddedLC() string {
+	return Catalog.Format(msgs.locale, "routeStatusEmbeddedLC", nil)
 }
 
 // RouteStatusNotInstalled says "未安装"

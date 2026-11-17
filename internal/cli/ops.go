@@ -170,6 +170,7 @@ type DeviceStatusResult struct {
 	DeveloperModeKnown   bool                        `json:"developer_mode_known"`
 	DeveloperModeEnabled bool                        `json:"developer_mode_enabled"`
 	SideStore            *device.InstalledApp        `json:"sidestore,omitempty"`
+	SideStoreEmbedded    bool                        `json:"sidestore_embedded,omitempty"`
 	LocalDevVPN          *device.InstalledApp        `json:"localdevvpn,omitempty"`
 	LiveContainer        *device.InstalledApp        `json:"livecontainer,omitempty"`
 	USBVerified          bool                        `json:"usb_verified"`
@@ -201,9 +202,9 @@ func GetDeviceStatus(d Deps) (DeviceStatusResult, error) {
 		DeveloperModeKnown:   snap.DeveloperModeKnown,
 		DeveloperModeEnabled: snap.DeveloperModeEnabled,
 		SideStore:            snap.SideStore,
+		SideStoreEmbedded:    snap.SideStoreEmbedded,
 		LocalDevVPN:          snap.LocalDevVPN,
 		LiveContainer:        snap.LiveContainer,
-		USBVerified:          snap.USBVerified,
 		DocsBundleID:         snap.DocsBundleID,
 		Docs:                 snap.SideStoreDocs,
 		DocsTree:             snap.SideStoreTree,

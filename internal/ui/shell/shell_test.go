@@ -906,3 +906,78 @@ func TestOpenByPathModalAndOpenPaths(t *testing.T) {
 		t.Fatalf("expected modal closed and archive loaded, modal=%v files=%+v", m.openPathModal, m.archives())
 	}
 }
+
+func TestSourceKindSegmentedWrapsWithinBounds(t *testing.T) {
+	m, tt := newTest(t, false)
+	m.mu.Lock()
+	m.files = []archiveState{{
+		path:  "PiliPlus.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "PiliPlus",
+			BundleID:    "com.example.piliplus",
+			Version:     "2.2.1",
+		},
+	}}
+	m.section = "文件"
+	m.taskStage = 1
+	m.mu.Unlock()
+
+	for _, sz := range [][2]int{{960, 640}, {540, 460}} {
+		tt.SetSize(sz[0], sz[1])
+		if sz[0] < 720 {
+			m.narrowDetail = true
+			tt.Frame()
+		}
+		group, ok := tt.AccessByRole(ui.RoleRadioGroup, "文件来源备注")
+		if !ok {
+			t.Fatalf("%dx%d: source radio group missing", sz[0], sz[1])
+		}
+		for _, label := range []string{"开源项目发布包（GitHub Release）", "自己构建 / 导出的包", "本地 IPA（来源未知）"} {
+			opt, ok := tt.AccessByRole(ui.RoleRadio, label)
+			if !ok {
+				t.Fatalf("%dx%d: radio %q missing", sz[0], sz[1], label)
+			}
+			if opt.Bounds.X+opt.Bounds.W > group.Bounds.X+group.Bounds.W+1 {
+				t.Fatalf("%dx%d: option %q overflowed group: opt=%+v group=%+v", sz[0], sz[1], label, opt.Bounds, group.Bounds)
+			}
+		}
+	}
+
+	if err := tt.Click("自己构建 / 导出的包"); err != nil {
+		t.Fatal(err)
+	}
+	if m.sourceKind != "self" {
+		t.Fatalf("expected sourceKind=self after click, got %q", m.sourceKind)
+	}
+}
+
+func TestEmbeddedSideStoreInLiveContainerDetection(t *testing.T) {
+	m, tt := newTest(t, false)
+	m.SetSnapshot(device.Snapshot{
+		Device: device.Device{ID: 1, UDID: "UDID-LC", ConnectionType: "USB"},
+		Info:   device.Info{Name: "Lumia1530", Version: "27.0.1", Type: "iPhone13,3"},
+		Apps: []device.InstalledApp{
+			{BundleID: "com.kdt.livecontainer.8K49", Name: "LiveContainer", Version: "3.8.14", TeamID: "8K49", Signer: "iPhone Developer: test"},
+		},
+		LiveContainer: &device.InstalledApp{BundleID: "com.kdt.livecontainer.8K49", Name: "LiveContainer", Version: "3.8.14", TeamID: "8K49"},
+		SideStoreTree: []device.DocEntry{
+			{Name: "SideStore", Path: "/Documents/SideStore", IsDir: true},
+		},
+		DocsBundleID: "com.kdt.livecontainer.8K49",
+		USBVerified:  true,
+	}, nil)
+	tt.Frame()
+	if !tt.HasText("SideStore: 已内置 (LiveContainer)") {
+		t.Fatalf("expected embedded SideStore summary on home: %q", tt.Texts())
+	}
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if st, ok := tt.AccessByRole(ui.RoleStatus, "已内置于 LiveContainer"); !ok || st.Name != "已内置于 LiveContainer" {
+		t.Fatalf("expected embedded SideStore status, got %+v texts=%q", st, tt.Texts())
+	}
+	if !tt.HasText("LiveContainer 文稿目录 (/Documents)") {
+		t.Fatalf("expected LC docs title: %q", tt.Texts())
+	}
+}

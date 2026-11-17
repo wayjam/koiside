@@ -32,12 +32,15 @@ func (m *Model) guides(msg locales.Messages) []toolGuide {
 	m.mu.Lock()
 	queried := m.appsQueried
 	side := m.sideStoreApp
+	sideEmbedded := m.sideStoreEmbedded
 	vpn := m.vpnApp
 	lc := m.lcApp
 	m.mu.Unlock()
 	if queried {
 		if side != nil {
 			sideState = msg.DeviceToolDetected(valueOrUnknown(msg, side.Version))
+		} else if sideEmbedded {
+			sideState = msg.DeviceToolEmbeddedInLC()
 		} else {
 			sideState = msg.DeviceToolNotDetected()
 		}
