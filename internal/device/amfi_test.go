@@ -10,7 +10,7 @@ import (
 )
 
 func TestAmfiDeveloperModeAndTrustSigner(t *testing.T) {
-	run := func(reply map[string]any, fn func(s *Session) error) []byte {
+	run := func(reply map[string]any, _ func(s *Session) error) []byte {
 		conn := &fakeInstallConn{reply: encodePlistFrameBytes(reply)}
 		// Test via direct AMFI exchange on fakeInstallConn by overriding StartService via wrapper?
 		// Better: exercise the exact plist wire messages via writePlistFrame/readPlistFrame.

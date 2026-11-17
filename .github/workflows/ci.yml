@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Lint (revive)
+        run: go tool revive -config revive.toml ./...
+
+      - name: Vet
+        run: |
+          go vet ./...
+          go vet -tags e2e ./...
+
+      - name: Test
+        run: go test -count=1 ./...

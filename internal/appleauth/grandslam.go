@@ -39,7 +39,7 @@ type GrandSlamClient struct {
 }
 
 // NewGrandSlamClient builds an HTTP client that trusts system CAs + bundled Apple Root CA.
-func NewGrandSlamClient(clientInfo ClientInfo, appleRootDER []byte) (*GrandSlamClient, error) {
+func NewGrandSlamClient(clientInfo ClientInfo, _ []byte) (*GrandSlamClient, error) {
 	pool, err := x509.SystemCertPool()
 	if err != nil || pool == nil {
 		pool = x509.NewCertPool()

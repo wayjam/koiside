@@ -46,7 +46,7 @@ func TestInstallStagedPackageStreamsProgressAndHandlesErrors(t *testing.T) {
 
 	conn := &fakeInstallConn{reply: reply.Bytes()}
 	var pcts []int
-	err := InstallStagedPackage(conn, "PublicStaging/SideStore.app", func(pct int, status string) {
+	err := InstallStagedPackage(conn, "PublicStaging/SideStore.app", func(pct int, _ string) {
 		pcts = append(pcts, pct)
 	})
 	if err != nil {

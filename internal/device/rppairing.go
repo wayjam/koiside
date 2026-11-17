@@ -931,7 +931,7 @@ func uuidv3DNS(name string) string {
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", sum[0:4], sum[4:6], sum[6:8], sum[8:10], sum[10:16])
 }
 
-func isIOSBelow(ver string, maj, min int) bool {
+func isIOSBelow(ver string, maj, minor int) bool {
 	if ver == "" {
 		return false
 	}
@@ -941,5 +941,5 @@ func isIOSBelow(ver string, maj, min int) bool {
 	if len(parts) > 1 {
 		_, _ = fmt.Sscanf(parts[1], "%d", &pmin)
 	}
-	return pmaj < maj || (pmaj == maj && pmin < min)
+	return pmaj < maj || (pmaj == maj && pmin < minor)
 }

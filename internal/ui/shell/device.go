@@ -506,7 +506,7 @@ func (m *Model) docTreeView(c *ui.Context, msg locales.Messages, entries []devic
 	}
 }
 
-func isDeletableDocFile(remotePath, name string) bool {
+func isDeletableDocFile(_, name string) bool {
 	low := strings.ToLower(name)
 	if strings.HasSuffix(low, ".ipa") || strings.HasSuffix(low, ".partial") {
 		return true
@@ -1191,7 +1191,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 	})
 }
 
-func (m *Model) maintainView(c *ui.Context, msg locales.Messages, compact bool) {
+func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 	t := c.Theme()
 	m.taskHeaderAndSteps(c, msg, 5)
 

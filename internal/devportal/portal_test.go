@@ -33,7 +33,7 @@ func (staticAnisette) GetAnisetteData(context.Context, *appleauth.GrandSlamClien
 		LocalUserID:            "mdlu",
 	}, nil
 }
-func (s staticAnisette) Resync(ctx context.Context, gs *appleauth.GrandSlamClient, sim string) (appleauth.AnisetteData, error) {
+func (s staticAnisette) Resync(ctx context.Context, gs *appleauth.GrandSlamClient, _ string) (appleauth.AnisetteData, error) {
 	return s.GetAnisetteData(ctx, gs)
 }
 func (staticAnisette) Reset(context.Context) error { return nil }

@@ -50,7 +50,7 @@ func (a *AFC) WriteFile(remotePath string, body []byte) error {
 // UploadDir recursively uploads localDir to remoteDir via AFC.
 func (a *AFC) UploadDir(localDir, remoteDir string, onProgress func(uploaded, total int64)) error {
 	var total int64
-	_ = filepath.WalkDir(localDir, func(p string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(localDir, func(_ string, d fs.DirEntry, err error) error {
 		if err == nil && !d.IsDir() {
 			if info, statErr := d.Info(); statErr == nil {
 				total += info.Size()

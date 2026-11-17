@@ -269,7 +269,7 @@ func TestLoginWithAnisetteResync2FAAndAppToken(t *testing.T) {
 	gs := NewGrandSlamClientWithHTTP(gsaSrv.Client(), DefaultMacClientInfo, srvURL+"/grandslam/GsService2/lookup")
 
 	var tfaCalls int
-	acc, err := Login(context.Background(), email, password, prov, gs, func(ctx context.Context, p TwoFactorPrompt) (TwoFactorResponse, error) {
+	acc, err := Login(context.Background(), email, password, prov, gs, func(_ context.Context, _ TwoFactorPrompt) (TwoFactorResponse, error) {
 		tfaCalls++
 		if tfaCalls == 1 {
 			return TwoFactorResponse{Action: ActionSubmitCode, Code: "000000"}, nil // trigger -21669 retry
