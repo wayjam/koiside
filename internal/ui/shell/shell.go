@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 	"github.com/egoist/mygo"
@@ -63,11 +64,14 @@ type Model struct {
 	appFilter   int // 0: all, 1: sideloaded
 	docTreeOpen map[string]bool
 
-	dropped      []string
-	chosen       []string
-	saved        string
-	dialogNote   string
-	logExportMsg string
+	dropped       []string
+	chosen        []string
+	saved         string
+	dialogNote    string
+	logExportMsg  string
+	openPathModal bool
+	openPathInput string
+	openPathErr   string
 
 	inspecting    bool
 	inspectName   string
@@ -88,10 +92,12 @@ type Model struct {
 	appsQueried   bool
 	sideStoreApp  *device.InstalledApp
 	vpnApp        *device.InstalledApp
-	lcApp         *device.InstalledApp
-	sideStoreDocs  []string
-	sideStoreTree  []device.DocEntry
-	docsBundleID   string
+	lcApp              *device.InstalledApp
+	lcApps             []device.LiveContainerApp
+	latestSideStoreLog *device.SideStoreLogSummary
+	sideStoreDocs      []string
+	sideStoreTree      []device.DocEntry
+	docsBundleID       string
 	docDeleting    string
 	docDeleteMsg   string
 	docDeleteErr   string
@@ -267,6 +273,7 @@ func (m *Model) view(c *ui.Context) {
 			})
 		})
 		m.accountReturnOverlay(c, msg, true)
+		m.openPathDialog(c, msg)
 		m.accountModals(c, msg)
 		return
 	}
@@ -286,6 +293,7 @@ func (m *Model) view(c *ui.Context) {
 		})
 	}).SplitReset(216).Fill()
 	m.accountReturnOverlay(c, msg, false)
+	m.openPathDialog(c, msg)
 	m.accountModals(c, msg)
 }
 
@@ -304,9 +312,80 @@ func (m *Model) navigateToAccountForLogin(sourceKey, backSection string, backSta
 }
 
 func (m *Model) shortcuts(c *ui.Context) {
-	if c.Shortcut(ui.Cmd, ui.KeyO) {
+	if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyO) {
+		m.openPathErr = ""
+		m.openPathModal = true
+	} else if c.Shortcut(ui.Cmd, ui.KeyO) {
 		m.pickIPA()
 	}
+}
+
+// OpenPaths inspects one or more IPA files directly from disk without opening a file dialog.
+func (m *Model) OpenPaths(paths []string) {
+	var valid []string
+	for _, p := range paths {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			valid = append(valid, p)
+		}
+	}
+	if len(valid) == 0 {
+		return
+	}
+	if m.win == nil {
+		for _, p := range valid {
+			m.inspect(p)
+		}
+		m.goTaskSection("文件", 1)
+		return
+	}
+	m.inspectPathsAsync(valid)
+}
+
+func (m *Model) openPathDialog(c *ui.Context, msg locales.Messages) {
+	if !m.openPathModal {
+		return
+	}
+	t := c.Theme()
+	ui.Modal(c.Key("open-path-modal"), &m.openPathModal, func() {
+		ui.Column(c).Width(420).Gap(12).Children(func() {
+			ui.Text(c, msg.OpenPathTitle()).Bold().FontSize(16)
+			ui.Text(c, msg.OpenPathDesc()).FontSize(12).TextColor(t.TextMuted)
+			if m.openPathErr != "" {
+				ui.Text(c.Key("open-path-err"), m.openPathErr).Role(ui.RoleStatus).FontSize(11).TextColor(ui.Hex("#EF4444"))
+			}
+			input := ui.TextInput(c.Key("open-path-input"), &m.openPathInput).
+				Placeholder(msg.OpenPathPlaceholder()).FillWidth().AutoFocus().Label(msg.OpenPathTitle())
+			trySubmit := input.Submitted()
+			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
+				if uiBtn(c, "open-path-cancel", msg.LibraryCancel()).Clicked() {
+					m.openPathModal = false
+					m.openPathErr = ""
+				}
+				confirm := uiPrimaryBtn(c, "open-path-confirm", msg.OpenPathConfirm())
+				if strings.TrimSpace(m.openPathInput) == "" {
+					confirm.Disabled(true)
+				}
+				if confirm.Clicked() {
+					trySubmit = true
+				}
+			})
+			if trySubmit {
+				p := strings.TrimSpace(m.openPathInput)
+				if p != "" {
+					info, err := os.Stat(p)
+					if err != nil || info.IsDir() {
+						m.openPathErr = msg.OpenPathNotFound()
+					} else {
+						m.openPathModal = false
+						m.openPathErr = ""
+						m.openPathInput = ""
+						m.OpenPaths([]string{p})
+					}
+				}
+			}
+		})
+	})
 }
 
 func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
@@ -506,7 +585,7 @@ func (m *Model) home(c *ui.Context, msg locales.Messages) {
 			}
 		})
 		insetGroup(c, "home-continue-group", func() {
-			row := groupRow(c, "home-continue-row", name, func() {
+			row := groupRow(c, "home-continue-row", name+" · "+stageLabel, func() {
 				appIconBadge(c, file, 36)
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
 					ui.Text(c, name).Bold().FontSize(14)
@@ -541,7 +620,7 @@ func (m *Model) home(c *ui.Context, msg locales.Messages) {
 			}
 			for idx, a := range sideloaded[:limit] {
 				idx, a := idx, a
-				row := groupRow(c, fmt.Sprintf("home-maint-%d", idx), a.Name, func() {
+				row := groupRow(c, fmt.Sprintf("home-maint-%d", idx), valueOrUnknown(msg, a.Name)+" ("+a.BundleID+")", func() {
 					ui.Row(c).Width(32).Height(32).Radius(8).Background(t.Selection).Center().Children(func() {
 						ui.Icon(c, phRefresh).Width(16).Height(16).TextColor(accentInk(t))
 					})
@@ -611,8 +690,13 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 		targetDot = ui.Hex("#EF4444")
 	}
 
+	cardTitle := msg.DeviceCardTitle()
+	if connected && m.deviceInfo.Name != "" {
+		cardTitle = m.deviceInfo.Name
+	}
 	card := ui.ButtonBase(c.Key("device-card")).FillWidth().Padding(16, 20).
-		Radius(14).Background(t.Surface).Label(msg.DeviceCardTitle()).
+		Radius(14).Background(t.Surface).
+		Label(cardTitle+" · "+m.deviceStatusText(msg)+" · "+m.sideStoreSummaryText(msg)).
 		Cursor(ui.CursorPointer).Transition(colorTransition)
 	if t.Dark {
 		card.Border(1, t.Border).InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.06))
@@ -687,17 +771,17 @@ func (m *Model) recentFiles(c *ui.Context, msg locales.Messages) {
 			if name == "" {
 				name = baseName
 			}
+			sub := msg.LibraryFileInfo(baseName, valueOrUnknown(msg, file.report.Version))
+			if file.sizeBytes > 0 {
+				sub = sub + " · " + formatBytes(file.sizeBytes)
+			}
 			row := groupRow(c, fmt.Sprintf("recent-%d", i), name, func() {
 				appIconBadge(c, file, 36)
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
 					ui.Text(c, name).Bold().FontSize(14)
-					sub := msg.LibraryFileInfo(baseName, valueOrUnknown(msg, file.report.Version))
-					if file.sizeBytes > 0 {
-						sub = sub + " · " + formatBytes(file.sizeBytes)
-					}
 					monoText(c, sub).FontSize(11).TextColor(t.TextMuted)
 				})
-			}, nil)
+			}, nil).Description(sub)
 			if row.Clicked() {
 				m.selectArchiveIndex(i)
 				m.goTaskSection("文件", 1)

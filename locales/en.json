@@ -542,5 +542,27 @@
   "handoffPlacementBadgeOutside": "Target: Outside LiveContainer (Standalone)",
   "handoffSwitchToInside": "Switch to Inside LiveContainer",
   "handoffSwitchToOutside": "Switch to Outside (Standalone App)",
-  "maintainLCHint": "Running inside LiveContainer uses 0 extra standalone app slots and requires no separate refresh — simply refresh the LiveContainer host in SideStore every 7 days."
+  "maintainLCHint": "Running inside LiveContainer uses 0 extra standalone app slots and requires no separate refresh — simply refresh the LiveContainer host in SideStore every 7 days.",
+  "openPathBtn": "Open by Path…",
+  "openPathTitle": "Open IPA from Path",
+  "openPathDesc": "Enter or paste the full path to an .ipa file without opening the system file panel.",
+  "openPathPlaceholder": "/Users/.../App.ipa",
+  "openPathConfirm": "Open & Inspect",
+  "openPathNotFound": "File not found or path is a directory.",
+  "handoffVerifyLCDetected": "Detected inside LiveContainer: {name} ({bundleID} · v{version}). Tap Launch inside LiveContainer to run.",
+  "@handoffVerifyLCDetected": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "bundleID": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "deviceLatestSideStoreLog": "Latest SideStore log: {op} · {status} ({file})",
+  "@deviceLatestSideStoreLog": {
+    "placeholders": {
+      "op": { "type": "String" },
+      "status": { "type": "String" },
+      "file": { "type": "String" }
+    }
+  }
 }

@@ -4741,3 +4741,87 @@ func MaintainLCHint() string { return In(i18n.Locale()).MaintainLCHint() }
 func (msgs Messages) MaintainLCHint() string {
 	return Catalog.Format(msgs.locale, "maintainLCHint", nil)
 }
+
+// OpenPathBtn says "输入路径打开…"
+// in the language the app shows.
+func OpenPathBtn() string { return In(i18n.Locale()).OpenPathBtn() }
+
+// OpenPathBtn says "输入路径打开…"
+// in the language of msgs.
+func (msgs Messages) OpenPathBtn() string {
+	return Catalog.Format(msgs.locale, "openPathBtn", nil)
+}
+
+// OpenPathTitle says "从本地路径打开 IPA"
+// in the language the app shows.
+func OpenPathTitle() string { return In(i18n.Locale()).OpenPathTitle() }
+
+// OpenPathTitle says "从本地路径打开 IPA"
+// in the language of msgs.
+func (msgs Messages) OpenPathTitle() string {
+	return Catalog.Format(msgs.locale, "openPathTitle", nil)
+}
+
+// OpenPathDesc says "输入或粘贴 .ipa 文件的完整路径，无需弹出系统文件选择框。"
+// in the language the app shows.
+func OpenPathDesc() string { return In(i18n.Locale()).OpenPathDesc() }
+
+// OpenPathDesc says "输入或粘贴 .ipa 文件的完整路径，无需弹出系统文件选择框。"
+// in the language of msgs.
+func (msgs Messages) OpenPathDesc() string {
+	return Catalog.Format(msgs.locale, "openPathDesc", nil)
+}
+
+// OpenPathPlaceholder says "/Users/.../App.ipa"
+// in the language the app shows.
+func OpenPathPlaceholder() string { return In(i18n.Locale()).OpenPathPlaceholder() }
+
+// OpenPathPlaceholder says "/Users/.../App.ipa"
+// in the language of msgs.
+func (msgs Messages) OpenPathPlaceholder() string {
+	return Catalog.Format(msgs.locale, "openPathPlaceholder", nil)
+}
+
+// OpenPathConfirm says "打开并检查"
+// in the language the app shows.
+func OpenPathConfirm() string { return In(i18n.Locale()).OpenPathConfirm() }
+
+// OpenPathConfirm says "打开并检查"
+// in the language of msgs.
+func (msgs Messages) OpenPathConfirm() string {
+	return Catalog.Format(msgs.locale, "openPathConfirm", nil)
+}
+
+// OpenPathNotFound says "找不到该路径或路径是文件夹，请检查后重试。"
+// in the language the app shows.
+func OpenPathNotFound() string { return In(i18n.Locale()).OpenPathNotFound() }
+
+// OpenPathNotFound says "找不到该路径或路径是文件夹，请检查后重试。"
+// in the language of msgs.
+func (msgs Messages) OpenPathNotFound() string {
+	return Catalog.Format(msgs.locale, "openPathNotFound", nil)
+}
+
+// HandoffVerifyLCDetected says "已在 LiveContainer 容器内检测到：{name} ({bundleID} · v{version})。可在容器内直接点击「启动」。"
+// in the language the app shows.
+func HandoffVerifyLCDetected(name string, bundleID string, version string) string {
+	return In(i18n.Locale()).HandoffVerifyLCDetected(name, bundleID, version)
+}
+
+// HandoffVerifyLCDetected says "已在 LiveContainer 容器内检测到：{name} ({bundleID} · v{version})。可在容器内直接点击「启动」。"
+// in the language of msgs.
+func (msgs Messages) HandoffVerifyLCDetected(name string, bundleID string, version string) string {
+	return Catalog.Format(msgs.locale, "handoffVerifyLCDetected", map[string]any{"name": name, "bundleID": bundleID, "version": version})
+}
+
+// DeviceLatestSideStoreLog says "最近一次 SideStore 日志：{op} · {status} ({file})"
+// in the language the app shows.
+func DeviceLatestSideStoreLog(op string, status string, file string) string {
+	return In(i18n.Locale()).DeviceLatestSideStoreLog(op, status, file)
+}
+
+// DeviceLatestSideStoreLog says "最近一次 SideStore 日志：{op} · {status} ({file})"
+// in the language of msgs.
+func (msgs Messages) DeviceLatestSideStoreLog(op string, status string, file string) string {
+	return Catalog.Format(msgs.locale, "deviceLatestSideStoreLog", map[string]any{"op": op, "status": status, "file": file})
+}

@@ -30,7 +30,7 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 					ui.Icon(c, phAccountFill).Width(24).Height(24).TextColor(accentInk(t))
 				})
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.AccountStatusSignedIn(devSess.Email())).Bold().FontSize(15)
+					ui.Text(c.Key("account-status-title"), msg.AccountStatusSignedIn(devSess.Email())).Role(ui.RoleStatus).Bold().FontSize(15)
 					if name := devSess.FullName(); name != "" {
 						ui.Text(c, name).FontSize(12).TextColor(t.TextMuted)
 					}
@@ -39,7 +39,7 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 						if team.IsFreePersonal() {
 							kind = msg.AccountTeamFree()
 						}
-						monoText(c, fmt.Sprintf("%s · %s (%s)", msg.AccountTeamLabel(), team.Name, kind)).FontSize(11).TextColor(accentInk(t))
+						monoText(c.Key("account-team-status"), fmt.Sprintf("%s · %s (%s)", msg.AccountTeamLabel(), team.Name, kind)).Role(ui.RoleStatus).FontSize(11).TextColor(accentInk(t))
 					}
 				})
 				if uiBtn(c, "account-sign-out", msg.AccountSignOutBtn()).Clicked() {
@@ -71,9 +71,9 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 						isFreeTeam = team.IsFreePersonal()
 					}
 					if quotaKnown && isFreeTeam {
-						ui.Text(c, msg.AccountAppIDQuotaFree(int(avail), int(maxQ))).FontSize(11).TextColor(accentInk(t))
+						ui.Text(c.Key("account-appid-quota"), msg.AccountAppIDQuotaFree(int(avail), int(maxQ))).Role(ui.RoleStatus).FontSize(11).TextColor(accentInk(t))
 					} else if certsLoadedPre {
-						monoText(c, msg.AccountAppIDQuotaPaid(len(appIDs))).FontSize(11).TextColor(accentInk(t))
+						monoText(c.Key("account-appid-quota"), msg.AccountAppIDQuotaPaid(len(appIDs))).Role(ui.RoleStatus).FontSize(11).TextColor(accentInk(t))
 					}
 				})
 				refreshBtn := uiBtn(c, "account-load-certs", msg.AccountLoadCertsBtn())
@@ -302,10 +302,10 @@ func (m *Model) accountReturnOverlay(c *ui.Context, msg locales.Messages, compac
 			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Start).Children(func() {
 				if signedIn {
 					ui.Icon(c, phCheckCircleFill).Width(20).Height(20).TextColor(ui.Hex("#10B981"))
-					ui.Text(c, msg.AccountReturnBannerReady(devSess.Email())).FontSize(12).Bold().Grow(1)
+					ui.Text(c.Key("account-return-status"), msg.AccountReturnBannerReady(devSess.Email())).Role(ui.RoleStatus).FontSize(12).Bold().Grow(1)
 				} else {
 					ui.Icon(c, phInfo).Width(20).Height(20).TextColor(accentInk(t))
-					ui.Text(c, msg.AccountReturnBannerWaiting(sourceLabel)).FontSize(12).Grow(1)
+					ui.Text(c.Key("account-return-status"), msg.AccountReturnBannerWaiting(sourceLabel)).Role(ui.RoleStatus).FontSize(12).Grow(1)
 				}
 			})
 			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {

@@ -358,9 +358,15 @@ func (m *Model) filesView(c *ui.Context, msg locales.Messages, compact bool) {
 			ui.Image(c, phPackageDuotone).Width(56).Height(56).TextColor(accentInk(t))
 			ui.Text(c, msg.LibraryEmptyTitle()).FontSize(18).Bold()
 			ui.Text(c, msg.LibraryEmptySubtitle()).TextColor(t.TextMuted).FontSize(13)
-			if uiPrimaryBtn(c, "empty-import", msg.ImportIPA()).Clicked() {
-				m.pickIPA()
-			}
+			ui.Row(c).Gap(10).Children(func() {
+				if uiPrimaryBtn(c, "empty-import", msg.ImportIPA()).Clicked() {
+					m.pickIPA()
+				}
+				if uiBtn(c, "open-by-path", msg.OpenPathBtn()).Clicked() {
+					m.openPathErr = ""
+					m.openPathModal = true
+				}
+			})
 			ui.Text(c, msg.HomeImportDragHint()).FontSize(11).TextColor(t.TextMuted)
 			ui.Text(c, msg.LibraryOfflineSupported()).FontSize(12).TextColor(t.TextMuted)
 		})
@@ -396,6 +402,10 @@ func (m *Model) filesView(c *ui.Context, msg locales.Messages, compact bool) {
 				if uiBtn(c, "files-import-more", msg.ImportIPA()).FillWidth().Clicked() {
 					m.pickIPA()
 				}
+				if uiBtn(c, "open-by-path", msg.OpenPathBtn()).FillWidth().Clicked() {
+					m.openPathErr = ""
+					m.openPathModal = true
+				}
 			})
 		}
 		return
@@ -406,6 +416,10 @@ func (m *Model) filesView(c *ui.Context, msg locales.Messages, compact bool) {
 			m.archiveList(c, msg, false)
 			if uiBtn(c, "files-import-more", msg.ImportIPA()).FillWidth().Clicked() {
 				m.pickIPA()
+			}
+			if uiBtn(c, "open-by-path", msg.OpenPathBtn()).FillWidth().Clicked() {
+				m.openPathErr = ""
+				m.openPathModal = true
 			}
 		})
 		ui.Column(c).Grow(1).MinWidth(0).Gap(14).Children(func() {
@@ -564,7 +578,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				Background(t.SurfaceHover).Border(1, ui.Hex("#F59E0B")).AlignItems(ui.Center).Children(func() {
 				ui.Icon(c, phWarningFill).Width(18).Height(18).TextColor(ui.Hex("#F59E0B"))
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.CheckUncertainTitle()).Bold().FontSize(13)
+					ui.Text(c.Key("summary-banner-title"), msg.CheckUncertainTitle()).Role(ui.RoleStatus).Bold().FontSize(13)
 					ui.Text(c, msg.CheckUncertainDesc()).FontSize(12).TextColor(t.TextMuted)
 				})
 			})
@@ -573,7 +587,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				Background(t.Selection).Border(1, ui.Hex("#10B981").Alpha(0.55)).AlignItems(ui.Center).Children(func() {
 				ui.Icon(c, phCheckCircleFill).Width(18).Height(18).TextColor(ui.Hex("#10B981"))
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.CheckReadyBannerTitle()).Bold().FontSize(13)
+					ui.Text(c.Key("summary-banner-title"), msg.CheckReadyBannerTitle()).Role(ui.RoleStatus).Bold().FontSize(13)
 					ui.Text(c, msg.CheckReadyBannerDesc()).FontSize(12).TextColor(t.TextMuted)
 				})
 			})
@@ -605,11 +619,11 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 		ui.Column(c).FillWidth().Gap(9).Children(func() {
 			ui.Row(c).FillWidth().AlignItems(ui.Center).Children(func() {
 				ui.Text(c, msg.LibraryBundleID()).FontSize(13).TextColor(t.TextMuted).Width(112)
-				monoText(c, valueOrUnknown(msg, file.report.BundleID)).FontSize(13).Bold()
+				monoText(c.Key("summary-bundle-id"), valueOrUnknown(msg, file.report.BundleID)).FontSize(13).Bold()
 			})
 			ui.Row(c).FillWidth().AlignItems(ui.Center).Children(func() {
 				ui.Text(c, msg.LibraryVersion()).FontSize(13).TextColor(t.TextMuted).Width(112)
-				monoText(c, valueOrUnknown(msg, file.report.Version)).FontSize(13)
+				monoText(c.Key("summary-version"), valueOrUnknown(msg, file.report.Version)).FontSize(13)
 			})
 			if len(file.report.Components) > 0 && file.report.Components[0].MinimumOS != "" {
 				ui.Row(c).FillWidth().AlignItems(ui.Center).Children(func() {
@@ -622,7 +636,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				badgeText := statusLabel(msg, file.report)
 				badgeBg, badgeFg := statusBadgeColors(t, badgeText, msg.SeverityBlock(), msg.SeverityWarn())
 				ui.Row(c).Padding(2, 8).Radius(6).Background(badgeBg).Children(func() {
-					ui.Text(c, badgeText).FontSize(12).Bold().TextColor(badgeFg)
+					ui.Text(c.Key("summary-status-badge"), badgeText).Role(ui.RoleStatus).FontSize(12).Bold().TextColor(badgeFg)
 				})
 			})
 			if len(file.report.MachOs) > 0 {
@@ -705,7 +719,7 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 		}
 		badgeText, badgeBg, badgeFg := routeStatusBadge(id)
 		btn := ui.ButtonBase(c.Key("route-"+id)).FillWidth().Padding(14, 16).Background(bg).
-			Label(title).Cursor(ui.CursorPointer).Transition(colorTransition)
+			Label(title).Description(badgeText+" · "+desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
 		btn.Children(func() {
 			ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 				dotBorder := t.Border
@@ -755,7 +769,7 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 					bg = t.Selection
 				}
 				btn := ui.ButtonBase(c.Key("lc-place-"+id)).FillWidth().Padding(12, 16).Background(bg).
-					Label(title).Cursor(ui.CursorPointer).Transition(colorTransition)
+					Label(title).Description(desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
 				btn.Children(func() {
 					ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 						dotBorder := t.Border
@@ -892,9 +906,9 @@ func (m *Model) routePrecheckGroup(c *ui.Context, msg locales.Messages) {
 					devName = m.deviceInfo.Name
 				}
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.RoutePrecheckDeviceOK(devName)).FontSize(12).Bold()
+					ui.Text(c.Key("route-precheck-device"), msg.RoutePrecheckDeviceOK(devName)).Role(ui.RoleStatus).FontSize(12).Bold()
 					if m.devModeKnown && !m.devModeEnabled {
-						ui.Text(c, msg.DeviceDevModeOff()).FontSize(11).TextColor(ui.Hex("#F59E0B"))
+						ui.Text(c.Key("route-precheck-devmode"), msg.DeviceDevModeOff()).FontSize(11).TextColor(ui.Hex("#F59E0B"))
 					}
 				})
 				if m.devModeKnown && !m.devModeEnabled {
@@ -904,7 +918,7 @@ func (m *Model) routePrecheckGroup(c *ui.Context, msg locales.Messages) {
 				}
 			} else {
 				ui.Icon(c, phInfo).Width(16).Height(16).TextColor(t.TextMuted)
-				ui.Text(c, msg.RoutePrecheckDeviceMissing()).FontSize(12).TextColor(t.TextMuted).Grow(1)
+				ui.Text(c.Key("route-precheck-device"), msg.RoutePrecheckDeviceMissing()).Role(ui.RoleStatus).FontSize(12).TextColor(t.TextMuted).Grow(1)
 			}
 		})
 		ui.Divider(c)
@@ -913,16 +927,15 @@ func (m *Model) routePrecheckGroup(c *ui.Context, msg locales.Messages) {
 		ui.Row(c).FillWidth().Padding(10, 16).Gap(10).AlignItems(ui.Center).Children(func() {
 			if signedIn {
 				ui.Icon(c, phCheckCircleFill).Width(16).Height(16).TextColor(ui.Hex("#10B981"))
-				ui.Text(c, msg.RoutePrecheckAccountOK(accountEmail, teamKind)).FontSize(12).Grow(1)
+				ui.Text(c.Key("route-precheck-account"), msg.RoutePrecheckAccountOK(accountEmail, teamKind)).Role(ui.RoleStatus).FontSize(12).Grow(1)
 			} else {
 				ui.Icon(c, phWarningFill).Width(16).Height(16).TextColor(ui.Hex("#F59E0B"))
-				ui.Text(c, msg.RoutePrecheckAccountMissing()).FontSize(12).Grow(1)
+				ui.Text(c.Key("route-precheck-account"), msg.RoutePrecheckAccountMissing()).Role(ui.RoleStatus).FontSize(12).Grow(1)
 				if uiBtn(c, "route-signin-apple", msg.RoutePrecheckSignInBtn()).Clicked() {
 					m.navigateToAccountForLogin("task", "文件", 2)
 				}
 			}
 		})
-
 		// 3. Companion tools status (SideStore / LiveContainer / LocalDevVPN)
 		if m.hasConnectedDevice() && m.appsQueried {
 			needHost := (m.installRoute == "sidestore" && m.sideStoreApp == nil && m.lcApp == nil) ||

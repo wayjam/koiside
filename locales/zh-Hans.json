@@ -703,5 +703,27 @@
   "handoffPlacementBadgeOutside": "当前：LiveContainer 外（独立桌面 App）",
   "handoffSwitchToInside": "改到容器里面安装",
   "handoffSwitchToOutside": "改到容器外面独立安装",
-  "maintainLCHint": "你选择了在 LiveContainer 内运行：容器内的 App 不占 3 个独立名额也无需单独续签，只需每 7 天在手机 SideStore 里刷新一次 LiveContainer 宿主即可；如提示证书过期，进 LiveContainer 设置点「刷新来自 SideStore 的证书」。"
+  "maintainLCHint": "你选择了在 LiveContainer 内运行：容器内的 App 不占 3 个独立名额也无需单独续签，只需每 7 天在手机 SideStore 里刷新一次 LiveContainer 宿主即可；如提示证书过期，进 LiveContainer 设置点「刷新来自 SideStore 的证书」。",
+  "openPathBtn": "输入路径打开…",
+  "openPathTitle": "从本地路径打开 IPA",
+  "openPathDesc": "输入或粘贴 .ipa 文件的完整路径，无需弹出系统文件选择框。",
+  "openPathPlaceholder": "/Users/.../App.ipa",
+  "openPathConfirm": "打开并检查",
+  "openPathNotFound": "找不到该路径或路径是文件夹，请检查后重试。",
+  "handoffVerifyLCDetected": "已在 LiveContainer 容器内检测到：{name} ({bundleID} · v{version})。可在容器内直接点击「启动」。",
+  "@handoffVerifyLCDetected": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "bundleID": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "deviceLatestSideStoreLog": "最近一次 SideStore 日志：{op} · {status} ({file})",
+  "@deviceLatestSideStoreLog": {
+    "placeholders": {
+      "op": { "type": "String" },
+      "status": { "type": "String" },
+      "file": { "type": "String" }
+    }
+  }
 }

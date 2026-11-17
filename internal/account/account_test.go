@@ -36,3 +36,14 @@ func TestLocalManagerStorageBoundaryAndAnisetteURL(t *testing.T) {
 		t.Fatal("Store session must stay separate and signed out")
 	}
 }
+
+func TestRestoreDeveloperSessionSkipsWhenEmptyAndRestoresFromStorage(t *testing.T) {
+	store := appleauth.NewMemoryStorage()
+	mgr := NewLocalManager(store)
+	if err := mgr.RestoreDeveloperSession(t.Context()); err != nil {
+		t.Fatalf("empty restore should return nil, got %v", err)
+	}
+	if mgr.Developer().SignedIn() {
+		t.Fatal("should remain signed out with empty storage")
+	}
+}

@@ -18,6 +18,7 @@ type Manager interface {
 	Developer() DeveloperSession
 	SignInDeveloper(ctx context.Context, email, password string, savePassword bool, on2FA appleauth.TwoFactorFunc) error
 	SignInSavedDeveloper(ctx context.Context, email string, on2FA appleauth.TwoFactorFunc) error
+	RestoreDeveloperSession(ctx context.Context) error
 	SignOutDeveloper()
 	ForgetSavedAccount(email string) error
 	SavedAccounts() []string
@@ -59,6 +60,7 @@ func (Unavailable) SignInDeveloper(context.Context, string, string, bool, applea
 func (Unavailable) SignInSavedDeveloper(context.Context, string, appleauth.TwoFactorFunc) error {
 	return errors.New("account: unavailable")
 }
+func (Unavailable) RestoreDeveloperSession(context.Context) error { return nil }
 func (Unavailable) SignOutDeveloper()                  {}
 func (Unavailable) ForgetSavedAccount(string) error    { return nil }
 func (Unavailable) SavedAccounts() []string            { return nil }
@@ -204,6 +206,11 @@ func (m *LocalManager) SignInDeveloper(ctx context.Context, email, password stri
 	m.activeTeamID = activeID
 	m.mu.Unlock()
 
+	if m.storage != nil {
+		if rawSess, serErr := acc.MarshalSession(); serErr == nil {
+			_ = m.storage.Set("active_dev_session", rawSess)
+		}
+	}
 	if savePassword && m.storage != nil {
 		_ = m.storage.Set("apple_pw_"+email, []byte(password))
 		existing := loadAccountList(m.storage)
@@ -233,6 +240,59 @@ func (m *LocalManager) SignInSavedDeveloper(ctx context.Context, email string, o
 	return m.SignInDeveloper(ctx, email, string(pw), false, on2FA)
 }
 
+
+// RestoreDeveloperSession restores a persisted GrandSlam SPD session from storage
+// without prompting for a password. Returns nil if no persisted session exists.
+func (m *LocalManager) RestoreDeveloperSession(ctx context.Context) error {
+	if m.Developer().SignedIn() {
+		return nil
+	}
+	if m.storage == nil {
+		return nil
+	}
+	raw, err := m.storage.Get("active_dev_session")
+	if err != nil || len(raw) == 0 {
+		return nil
+	}
+	info, err := m.anisette.GetClientInfo(ctx)
+	if err != nil {
+		return err
+	}
+	gs, err := m.gsFactory(info)
+	if err != nil {
+		return err
+	}
+	if err := gs.EnsureBag(ctx); err != nil {
+		return err
+	}
+	acc, err := appleauth.RestoreSession(raw, m.anisette, gs)
+	if err != nil {
+		_ = m.storage.Delete("active_dev_session")
+		return err
+	}
+	devSess, err := devportal.NewSession(ctx, acc)
+	if err != nil {
+		return err
+	}
+	if m.devPortalURL != "" {
+		devSess.BaseURL = m.devPortalURL
+	}
+	teams, err := devSess.ListTeams(ctx)
+	if err != nil {
+		return err
+	}
+	activeID := ""
+	if len(teams) > 0 {
+		activeID = teams[0].TeamID
+	}
+	m.mu.Lock()
+	m.appleAccount = acc
+	m.devSession = devSess
+	m.teams = teams
+	m.activeTeamID = activeID
+	m.mu.Unlock()
+	return nil
+}
 func (m *LocalManager) SignOutDeveloper() {
 	m.mu.Lock()
 	m.appleAccount = nil
@@ -240,6 +300,9 @@ func (m *LocalManager) SignOutDeveloper() {
 	m.teams = nil
 	m.activeTeamID = ""
 	m.mu.Unlock()
+	if m.storage != nil {
+		_ = m.storage.Delete("active_dev_session")
+	}
 }
 
 func (m *LocalManager) ForgetSavedAccount(email string) error {
@@ -248,6 +311,7 @@ func (m *LocalManager) ForgetSavedAccount(email string) error {
 		return nil
 	}
 	_ = m.storage.Delete("apple_pw_" + email)
+	_ = m.storage.Delete("active_dev_session")
 	existing := loadAccountList(m.storage)
 	var kept []string
 	for _, item := range existing {

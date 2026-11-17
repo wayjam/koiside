@@ -20,6 +20,8 @@ type Snapshot struct {
 	SideStoreDocs        []string
 	SideStoreTree        []DocEntry
 	DocsBundleID         string
+	LiveContainerApps    []LiveContainerApp
+	LatestSideStoreLog   *SideStoreLogSummary
 	USBVerified          bool
 	DeveloperModeKnown   bool
 	DeveloperModeEnabled bool
@@ -105,7 +107,6 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 		afc, err := sess.VendDocuments(docsBundleID)
 		if err == nil {
 			tree, treeErr := afc.ReadDirTree("/Documents", 3)
-			afc.Close()
 			if treeErr == nil {
 				snap.SideStoreTree = tree
 				for _, node := range tree {
@@ -114,6 +115,22 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 				snap.DocsBundleID = docsBundleID
 				snap.USBVerified = true
 			}
+			if snap.LiveContainer != nil && docsBundleID == snap.LiveContainer.BundleID {
+				snap.LiveContainerApps = readLiveContainerApps(afc)
+				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/SideStore/Documents/ConsoleLogs", "/Documents/ConsoleLogs"})
+			} else {
+				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/ConsoleLogs"})
+			}
+			afc.Close()
+		}
+	}
+	if snap.LiveContainer != nil && snap.LiveContainer.BundleID != "" && snap.LiveContainer.BundleID != docsBundleID {
+		if afc, err := sess.VendDocuments(snap.LiveContainer.BundleID); err == nil {
+			snap.LiveContainerApps = readLiveContainerApps(afc)
+			if snap.LatestSideStoreLog == nil {
+				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/SideStore/Documents/ConsoleLogs"})
+			}
+			afc.Close()
 		}
 	}
 	return snap, nil

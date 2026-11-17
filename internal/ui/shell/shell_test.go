@@ -675,6 +675,7 @@ func (f *fakeAccountManager) SignInDeveloper(_ context.Context, email, _ string,
 func (f *fakeAccountManager) SignInSavedDeveloper(ctx context.Context, email string, on2FA appleauth.TwoFactorFunc) error {
 	return f.SignInDeveloper(ctx, email, "pw", false, on2FA)
 }
+func (f *fakeAccountManager) RestoreDeveloperSession(context.Context) error { return nil }
 func (f *fakeAccountManager) SignOutDeveloper()               { f.signedIn = false }
 func (f *fakeAccountManager) ForgetSavedAccount(string) error { return nil }
 func (f *fakeAccountManager) SavedAccounts() []string         { return f.saved }
@@ -865,5 +866,43 @@ func TestRoutePrecheckLoginFloatingOverlayReturnAndLCPlacement(t *testing.T) {
 	}
 	if m.lcPlacement != "outside" || !tt.HasText("改到容器里面安装") {
 		t.Fatalf("expected switch to outside in stage 4: placement=%s texts=%q", m.lcPlacement, tt.Texts())
+	}
+}
+
+func TestOpenByPathModalAndOpenPaths(t *testing.T) {
+	ipaPath := filepath.Join(t.TempDir(), "test.ipa")
+	if err := os.WriteFile(ipaPath, []byte("not-a-zip"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	m, tt := newTest(t, false)
+	if err := tt.Click("侧载任务"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("输入路径打开…"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("从本地路径打开 IPA") {
+		t.Fatalf("open-by-path modal missing: %q", tt.Texts())
+	}
+
+	// Missing file stays open with error message
+	m.openPathInput = filepath.Join(t.TempDir(), "missing.ipa")
+	tt.Frame()
+	if err := tt.Click("打开并检查"); err != nil {
+		t.Fatal(err)
+	}
+	if !m.openPathModal || !tt.HasText("找不到该路径或路径是文件夹，请检查后重试。") {
+		t.Fatalf("expected missing path error, modal=%v texts=%q", m.openPathModal, tt.Texts())
+	}
+
+	// Existing file closes modal and inspects file
+	m.openPathInput = ipaPath
+	tt.Frame()
+	if err := tt.Click("打开并检查"); err != nil {
+		t.Fatal(err)
+	}
+	if m.openPathModal || len(m.archives()) != 1 || m.archives()[0].path != ipaPath {
+		t.Fatalf("expected modal closed and archive loaded, modal=%v files=%+v", m.openPathModal, m.archives())
 	}
 }

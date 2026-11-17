@@ -19,10 +19,10 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"howett.net/plist"
 )
+var Err2FARequired = errors.New("appleauth: 2FA required")
 
 // TwoFactorAction indicates how the caller responds to an Apple 2FA prompt.
 type TwoFactorAction int
-
 const (
 	ActionSubmitCode TwoFactorAction = iota
 	ActionSendSMS
@@ -136,7 +136,7 @@ func Login(ctx context.Context, email, password string, anisette AnisetteProvide
 			st = stateNeedsDevice2FAVerify
 		case stateNeedsDevice2FAVerify:
 			if on2FA == nil {
-				return nil, errors.New("appleauth: 2FA required but no callback provided")
+				return nil, Err2FARequired
 			}
 			resp, err := on2FA(ctx, TwoFactorPrompt{
 				LastError: acc.LastError,
@@ -169,7 +169,7 @@ func Login(ctx context.Context, email, password string, anisette AnisetteProvide
 			st = nextSt
 		case stateNeedsSMS2FAVerify:
 			if on2FA == nil {
-				return nil, errors.New("appleauth: SMS 2FA required but no callback provided")
+				return nil, Err2FARequired
 			}
 			idCopy := selectedSMSID
 			resp, err := on2FA(ctx, TwoFactorPrompt{
@@ -200,7 +200,7 @@ func Login(ctx context.Context, email, password string, anisette AnisetteProvide
 			}
 		case stateNeedsUnknown2FA:
 			if on2FA == nil {
-				return nil, errors.New("appleauth: 2FA required")
+				return nil, Err2FARequired
 			}
 			resp, err := on2FA(ctx, TwoFactorPrompt{
 				LastError:     acc.LastError,
@@ -246,6 +246,39 @@ func (a *AppleAccount) FullName() string {
 	fn, _ := a.SPD["fn"].(string)
 	ln, _ := a.SPD["ln"].(string)
 	return strings.TrimSpace(fn + " " + ln)
+}
+
+type persistedSession struct {
+	Email string         `plist:"email"`
+	SPD   map[string]any `plist:"spd"`
+}
+
+// MarshalSession serializes the authenticated GrandSlam session (SPD + email, never password).
+func (a *AppleAccount) MarshalSession() ([]byte, error) {
+	if a == nil || a.Email == "" || a.SPD == nil {
+		return nil, errors.New("appleauth: incomplete session")
+	}
+	return plist.Marshal(persistedSession{Email: a.Email, SPD: a.SPD}, plist.BinaryFormat)
+}
+
+// RestoreSession reconstructs an AppleAccount from MarshalSession bytes.
+func RestoreSession(raw []byte, anisette AnisetteProvider, gs *GrandSlamClient) (*AppleAccount, error) {
+	if len(raw) == 0 {
+		return nil, errors.New("appleauth: empty session")
+	}
+	var ps persistedSession
+	if _, err := plist.Unmarshal(raw, &ps); err != nil {
+		return nil, err
+	}
+	if ps.Email == "" || ps.SPD == nil {
+		return nil, errors.New("appleauth: invalid persisted session")
+	}
+	return &AppleAccount{
+		Email:     ps.Email,
+		Anisette:  anisette,
+		GrandSlam: gs,
+		SPD:       ps.SPD,
+	}, nil
 }
 
 func (a *AppleAccount) petToken() (string, bool) {

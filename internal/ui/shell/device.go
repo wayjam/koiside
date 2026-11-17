@@ -67,6 +67,22 @@ func (m *Model) findInstalledConflict(bundleID string) (device.InstalledApp, boo
 	}
 	return device.InstalledApp{}, false
 }
+func (m *Model) findInstalledLCApp(bundleID string) (device.LiveContainerApp, bool) {
+	id := strings.TrimSpace(bundleID)
+	if id == "" {
+		return device.LiveContainerApp{}, false
+	}
+	m.mu.Lock()
+	lcApps := append([]device.LiveContainerApp(nil), m.lcApps...)
+	m.mu.Unlock()
+	for _, a := range lcApps {
+		if strings.EqualFold(a.BundleID, id) {
+			return a, true
+		}
+	}
+	return device.LiveContainerApp{}, false
+}
+
 
 // RefreshDevices runs a read-only usbmuxd/lockdown/installation_proxy probe asynchronously.
 func (m *Model) RefreshDevices() {
@@ -143,6 +159,8 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.sideStoreApp = nil
 		m.vpnApp = nil
 		m.lcApp = nil
+		m.lcApps = nil
+		m.latestSideStoreLog = nil
 		m.sideStoreDocs = nil
 		m.sideStoreTree = nil
 		m.docsBundleID = ""
@@ -160,6 +178,8 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.sideStoreApp = nil
 		m.vpnApp = nil
 		m.lcApp = nil
+		m.lcApps = nil
+		m.latestSideStoreLog = nil
 		m.sideStoreDocs = nil
 		m.sideStoreTree = nil
 		m.docsBundleID = ""
@@ -177,6 +197,8 @@ func (m *Model) SetSnapshot(snap device.Snapshot, err error) {
 		m.sideStoreApp = snap.SideStore
 		m.vpnApp = snap.LocalDevVPN
 		m.lcApp = snap.LiveContainer
+		m.lcApps = append([]device.LiveContainerApp(nil), snap.LiveContainerApps...)
+		m.latestSideStoreLog = snap.LatestSideStoreLog
 		m.sideStoreDocs = append([]string(nil), snap.SideStoreDocs...)
 		m.sideStoreTree = append([]device.DocEntry(nil), snap.SideStoreTree...)
 		m.docsBundleID = snap.DocsBundleID
@@ -625,6 +647,16 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 				} else {
 					ui.Text(c, msg.DeviceSideStoreDesc()).FontSize(12).TextColor(t.TextMuted)
 				}
+				m.mu.Lock()
+				latestLog := m.latestSideStoreLog
+				m.mu.Unlock()
+				if latestLog != nil && latestLog.Operation != "" {
+					st := latestLog.Status
+					if st == "" {
+						st = "unknown"
+					}
+					monoText(c.Key("device-latest-ss-log"), msg.DeviceLatestSideStoreLog(latestLog.Operation, st, latestLog.File)).Role(ui.RoleStatus).FontSize(11).TextColor(t.TextMuted)
+				}
 			})
 			ui.Row(c).Gap(8).Children(func() {
 				if uiBtn(c, "install-sidestore-btn", msg.ToolInstallSideStoreBtn()).Clicked() {
@@ -841,17 +873,18 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 			ui.Text(c, label).FontSize(11).Bold().TextColor(fg)
 		})
 	}
-	ui.Row(c).FillWidth().Gap(8).Children(func() {
-		statusPill(msg.HandoffStageBadgeExported(), m.exportedPath != "")
-		statusPill(msg.HandoffStageBadgeTransferred(), m.transferState == "done")
-		statusPill(msg.HandoffStageBadgeDetected(), installedOnDevice)
-		statusPill(msg.HandoffStageBadgeUserConfirmed(), m.userConfirmed)
-	})
-
 	isLC := m.installRoute == "livecontainer"
 	isLCInside := isLC && m.lcPlacement != "outside"
 	isDirectPreferred := m.installRoute == "advanced" || (isLC && m.lcPlacement == "outside")
+	lcMatch, lcInstalled := m.findInstalledLCApp(targetBundleID)
+	detectedAnywhere := installedOnDevice || (isLCInside && lcInstalled)
 
+	ui.Row(c).FillWidth().Gap(8).Children(func() {
+		statusPill(msg.HandoffStageBadgeExported(), m.exportedPath != "")
+		statusPill(msg.HandoffStageBadgeTransferred(), m.transferState == "done")
+		statusPill(msg.HandoffStageBadgeDetected(), detectedAnywhere)
+		statusPill(msg.HandoffStageBadgeUserConfirmed(), m.userConfirmed)
+	})
 	mainPane := func() {
 		if isLC {
 			ui.Row(c).FillWidth().Padding(10, 14).Gap(10).Radius(10).
@@ -896,8 +929,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 			})
 		}
 
-		readyToConfirm := m.transferState == "done" || installedOnDevice || (isLCInside && m.lcApp != nil && m.transferState == "done")
-
+		readyToConfirm := m.transferState == "done" || detectedAnywhere
 		usbBtnLabel := msg.TransferStartHandoff()
 		if isLCInside {
 			usbBtnLabel = msg.HandoffSendToLCBtn()
@@ -1024,18 +1056,23 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 					m.detectDevices()
 				}
 			})
-			if isLCInside && m.lcApp != nil {
+			if isLCInside && lcInstalled {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 					ui.Icon(c, phCheckCircleFill).Width(18).Height(18).TextColor(ui.Hex("#10B981"))
-					ui.Text(c, msg.HandoffVerifyLCReady(m.lcApp.BundleID)).FontSize(12).Grow(1)
+					ui.Text(c.Key("verify-status-text"), msg.HandoffVerifyLCDetected(valueOrUnknown(msg, lcMatch.Name), lcMatch.BundleID, valueOrUnknown(msg, lcMatch.Version))).Role(ui.RoleStatus).FontSize(12).Grow(1)
+				})
+			} else if isLCInside && m.lcApp != nil {
+				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+					ui.Icon(c, phCheckCircleFill).Width(18).Height(18).TextColor(ui.Hex("#10B981"))
+					ui.Text(c.Key("verify-status-text"), msg.HandoffVerifyLCReady(m.lcApp.BundleID)).Role(ui.RoleStatus).FontSize(12).Grow(1)
 				})
 			} else if installedOnDevice {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 					ui.Icon(c, phCheckCircleFill).Width(18).Height(18).TextColor(ui.Hex("#10B981"))
-					ui.Text(c, msg.HandoffVerifyMatch(valueOrUnknown(msg, installedMatch.Name), installedMatch.BundleID, valueOrUnknown(msg, installedMatch.Version))).FontSize(12).Grow(1)
+					ui.Text(c.Key("verify-status-text"), msg.HandoffVerifyMatch(valueOrUnknown(msg, installedMatch.Name), installedMatch.BundleID, valueOrUnknown(msg, installedMatch.Version))).Role(ui.RoleStatus).FontSize(12).Grow(1)
 				})
 			} else {
-				ui.Text(c, msg.HandoffVerifyNotFound(valueOrUnknown(msg, targetBundleID))).FontSize(12).TextColor(t.TextMuted)
+				ui.Text(c.Key("verify-status-text"), msg.HandoffVerifyNotFound(valueOrUnknown(msg, targetBundleID))).Role(ui.RoleStatus).FontSize(12).TextColor(t.TextMuted)
 			}
 			ui.Row(c).Gap(10).Children(func() {
 				if uiBtn(c, "transfer-back", msg.NavBack()).Clicked() {
