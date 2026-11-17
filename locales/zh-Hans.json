@@ -1,0 +1,707 @@
+{
+  "@@locale": "zh-Hans",
+  "appTitle": "KoiSide",
+  "appSubtitle": "Mac 原生 iPhone 应用安装助手",
+  "navHome": "首页",
+  "navLibrary": "IPA 库",
+  "navDevice": "设备",
+  "navTools": "工具",
+  "navGuide": "引导",
+  "navSettings": "设置",
+  "navBack": "返回",
+
+  "homeTitle": "准备安装",
+  "homeSubtitle": "把自己的 App 交给 iPhone。没有设备也可以先检查 IPA。",
+  "importIPA": "导入 IPA",
+  "recentFiles": "最近文件",
+  "seeAll": "全部",
+  "noRecentFiles": "还没有导入 IPA",
+  "toolsSectionTitle": "工具",
+  "toolsDetectedNote": "检测到应用不等于它正在正常运行。",
+  "homeImportDragHint": "点击选择 IPA，或直接把 .ipa 文件拖入窗口任意位置",
+
+  "deviceCardTitle": "iPhone",
+  "deviceConnectedUSB": "设备：USB 已连接",
+  "deviceConnectedUnknown": "设备：已发现，连接方式未知",
+  "deviceDisconnected": "设备：未连接",
+  "deviceQueryFailed": "设备：查询失败",
+  "deviceSideStoreSummary": "SideStore: 未知",
+  "deviceTitle": "设备",
+  "deviceSubtitle": "只读查询连接的 iOS 设备状态及已安装应用。",
+  "deviceConnectionType": "连接类型：{kind}",
+  "@deviceConnectionType": {
+    "placeholders": { "kind": { "type": "String" } }
+  },
+  "deviceModelVersion": "型号：{model} · 系统：{version}",
+  "@deviceModelVersion": {
+    "placeholders": {
+      "model": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "deviceDisconnectedTitle": "设备未连接",
+  "deviceNoIPhoneHint": "未检测到已连接的 iPhone。请使用 USB 数据线连接，解锁屏幕并信任此电脑。",
+  "deviceRefresh": "重新检测",
+  "deviceWorkOffline": "离线使用",
+  "deviceSideStoreCardTitle": "SideStore",
+  "deviceSideStoreStatusUnknown": "运行状态未知",
+  "deviceSideStoreDesc": "只读查询。未检测到 SideStore 与无法判断状态需明确区分。",
+  "deviceViewToolGuide": "查看工具指引",
+  "deviceInstalledAppsTitle": "已安装应用",
+  "deviceInstalledAppsDesc": "第一阶段只读查询已安装的侧载应用。名额与证书有效期以手机端 SideStore 为准。",
+  "deviceInstalledAppsEmpty": "尚未读取到应用清单，或当前未连接已信任设备。",
+  "deviceSideStoreDetected": "SideStore: 已检测到",
+  "deviceSideStoreNotDetected": "SideStore: 未检测到",
+  "deviceToolDetected": "已检测到 ({version}) · 运行状态未知",
+  "@deviceToolDetected": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "deviceToolNotDetected": "未在已装应用中检测到",
+  "deviceAppsSummary": "共读取到 {total} 个用户应用（开发/个人签名 {sideloaded} 个）",
+  "@deviceAppsSummary": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "sideloaded": { "type": "int" }
+    }
+  },
+  "deviceSessionLocked": "设备处于锁屏状态，请解锁 iPhone 后重新检测。",
+  "deviceSessionUntrusted": "设备尚未信任此电脑或缺少配对记录，请在手机上点“信任”。",
+  "deviceSideStoreUSBReady": "USB 文件共享就绪 · 文稿容器可访问",
+  "transferUSBVerified": "SideStore 文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。",
+
+  "transferSectionTitle": "交接准备",
+  "transferGuideTitle": "准备传输 IPA",
+  "transferGuideSubtitle": "把准备好的 IPA 交给 iPhone，然后在 SideStore 中导入与签名。",
+  "transferUSBStatusLabel": "USB 文件共享",
+  "transferUSBUnverified": "当前设备尚未验证 SideStore 容器是否可写且可见。",
+  "transferExportAlt": "导出 IPA 到 Mac",
+  "transferExportAltDesc": "保存到本地文件夹（如下载目录），再通过隔空投送或文件 App 人工导入。",
+  "transferNextSteps": "下一步操作",
+  "transferNextStep1": "1. 在 iPhone 上打开“文件”应用，确认已收到该 IPA。",
+  "transferNextStep2": "2. 请在 iPhone 上开启 LocalDevVPN（即使已连接电脑 USB 也需要开启）。",
+  "transferNextStep3": "3. 在 SideStore 中选择并导入该 IPA，完成重签与安装。",
+  "transferStartHandoff": "传送到 SideStore",
+  "transferNotStarted": "交接：未开始",
+  "transferDoneNotInstalled": "文件已传送，尚未安装",
+  "transferFailed": "交接失败",
+  "transferStatusPrefix": "交接：{status}",
+  "@transferStatusPrefix": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "transferDoneBannerTitle": "文件已传送到手机",
+  "transferDoneBannerSubtitle": "尚未确认安装",
+  "transferDoneBannerGuide": "请在 iPhone 上打开“文件”应用，然后导入到 SideStore 完成签名与安装。",
+  "transferAfterExportAction": "立即传送到 SideStore",
+
+  "libraryTitle": "IPA 库",
+  "librarySubtitle": "检查来源、加密状态、组件影响，并预览修改后导出新包。",
+  "libraryEmptyTitle": "IPA 库为空",
+  "libraryEmptySubtitle": "导入 IPA 文件以开始使用。支持离线检查与修改。",
+  "libraryOfflineSupported": "支持离线使用",
+  "libraryCheckingTitle": "正在检查 IPA…",
+  "libraryCheckingSubtitle": "正在解析 ZIP 安全边界、Info.plist、组件和 Mach-O 加密标志。",
+  "libraryCheckStep1": "检查 IPA",
+  "libraryCheckStep2": "准备修改",
+  "libraryCheckStep3": "准备就绪",
+  "libraryCancel": "取消",
+  "libraryCanceled": "已取消检查",
+  "libraryEncryptedTitle": "IPA 已加密（FairPlay）",
+  "libraryEncryptedSubtitle": "该 IPA 包含加密的 Mach-O（cryptid 1），无法在桌端或 SideStore 重签。请选择未加密的底包。",
+  "libraryChooseAnother": "选择其他 IPA",
+  "libraryViewDetails": "查看详情",
+  "libraryInspectFailed": "检查失败：{err}",
+  "@libraryInspectFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+  "libraryInspectFailedHint": "请检查该文件是否为完整、有效的 iOS 应用归档。",
+  "libraryWaitingInspect": "等待检查",
+  "libraryPrepareBtn": "准备修改与导出",
+  "libraryUnknownName": "未知名称",
+  "libraryUnknown": "未知",
+  "libraryBundleID": "Bundle ID",
+  "libraryVersion": "版本",
+  "libraryMinOS": "最低系统",
+  "libraryCompatibility": "兼容性",
+  "libraryCheckStatus": "检查状态",
+  "libraryArch": "二进制架构",
+  "librarySHA256": "SHA-256",
+  "libraryAdvanced": "高级详情",
+  "libraryToggleAdvanced": "展开/收起",
+  "libraryComponentCount": "包内组件数：{count}",
+  "@libraryComponentCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "libraryDylibCount": "动态库数量：{count}",
+  "@libraryDylibCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "libraryComponentsList": "组件清单（默认保留，可按需勾选移除）",
+  "libraryURLSchemes": "URL Scheme：{schemes}",
+  "@libraryURLSchemes": {
+    "placeholders": { "schemes": { "type": "String" } }
+  },
+  "libraryFindingsTitle": "检查记录：",
+  "libraryPreviewDiff": "查看差异",
+  "libraryRemoveComponent": "移除：{path} ({kind})",
+  "@libraryRemoveComponent": {
+    "placeholders": {
+      "path": { "type": "String" },
+      "kind": { "type": "String" }
+    }
+  },
+  "libraryFileInfo": "{filename} · {version}",
+  "@libraryFileInfo": {
+    "placeholders": {
+      "filename": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "libraryComponentsEmpty": "此归档仅包含主应用，无扩展或 Watch 组件。",
+
+  "severityBlock": "阻断",
+  "severityWarn": "警告",
+  "severityUnknown": "未知",
+  "findingFairplay": "至少一个 Mach-O 的 cryptid 为 1。它仍受 FairPlay 保护，修改或重签不能去掉这层保护。",
+  "findingCryptidMissing": "有可执行文件没有加密标志，不能判断它能否重签。",
+  "findingProvenance": "cryptid 为 0、没有独立 dylib，或哈希一致，都不能证明这是官方未修改的包。",
+  "findingDylib": "发现独立动态库（dylib）。这只说明文件存在，不能单独判定来源或是否注入。",
+  "findingRegName": "显示名包含非 ASCII 字符。签名器可能把它用作 App ID 名称并被拒绝；本工具不能把桌面名称和注册名称分开。",
+  "findingMultipleApps": "发现多个主应用。",
+  "findingNoMainApp": "没有找到主应用 Info.plist。",
+  "findingResign": "修改 plist 后原签名失效。导出的包必须重新签名后才能安装。",
+  "findingSideStoreID": "SideStore 可能给 Bundle ID 追加 Team ID。Watch 的伴随标识在签名后是否匹配，现在无法预测。",
+  "findingRemove": "移除后该组件提供的系统入口不可用。默认应保留。",
+  "findingWatch": "已按预览同步伴随标识。若签名器再次改写主标识，安装仍可能失败。",
+
+  "diffTitle": "修改差异",
+  "diffSubtitle": "在导出新 IPA 前确认元数据修改、组件改动和签名影响。源文件保持只读。",
+  "diffNoPreview": "没有可预览的检查结果",
+  "diffMetadataTitle": "应用元数据",
+  "diffDisplayName": "显示名称",
+  "diffDisplayNamePlaceholder": "输入显示名称",
+  "diffBundleID": "Bundle ID",
+  "diffBundleIDPlaceholder": "输入 Bundle ID",
+  "diffLocalizedName": "本地化显示名（可选）",
+  "diffLocalizedNamePlaceholder": "同步写入各 .lproj/InfoPlist.strings",
+  "diffResignTitle": "修改后需要重新签名",
+  "diffResignDesc": "修改会使原签名失效。SideStore 安装时需重新签名。",
+  "diffIDChangedTitle": "最终 ID 可能发生变化",
+  "diffIDChangedDesc": "SideStore 可能会追加 Team ID 前缀。",
+  "diffPreviewTitle": "预览变更",
+  "diffBefore": "修改前",
+  "diffAfter": "修改后",
+  "diffItemsTitle": "文件变更项",
+  "diffNoChanges": "还没有修改。组件和 URL Scheme 默认保留。",
+  "diffFindingsTitle": "检查提示",
+  "diffExportBtn": "导出 IPA",
+  "diffExporting": "正在导出…",
+  "diffExportSuccess": "已导出新 IPA：{path}",
+  "@diffExportSuccess": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "diffExportFailed": "导出失败：{err}",
+  "@diffExportFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+  "diffFieldComponent": "组件",
+  "diffFieldBundleID": "Bundle ID",
+  "diffFieldDisplayName": "显示名",
+  "diffFieldLocalizedName": "本地化名",
+  "diffFieldWatchID": "Watch 伴随标识",
+  "diffActionRemove": "移除",
+  "diffComponentKindApp": "主应用",
+  "diffComponentKindExt": "扩展",
+  "diffComponentKindWatch": "Watch 应用",
+  "diffComponentKindWatchExt": "Watch 扩展",
+
+  "guideStepOf": "第 {step} 步，共 {total} 步",
+  "@guideStepOf": {
+    "placeholders": {
+      "step": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "guideStep1Tab": "1. 连接设备",
+  "guideStep2Tab": "2. 准备 IPA",
+  "guideStep3Tab": "3. 传送到手机",
+  "guideStep1Title": "连接 iPhone",
+  "guideStep1Desc": "解锁手机，连接数据线，并在手机上点信任。没有设备也可以先检查 IPA。",
+  "guideStep1Waiting": "等待连接 iPhone",
+  "guideStep1Connected": "已检测到连接的 iPhone",
+  "guideStep1CableHint": "请确保数据线已牢固连接，且未处于受限配件锁定模式。",
+  "guideStep2Title": "准备并检查 IPA",
+  "guideStep2Desc": "导入你的 IPA 底包。KoiSide 会离线检查加密状态与组件关联，不会更改原包。",
+  "guideStep2Ready": "已导入 {count} 个 IPA，可进入工作台预览修改或直接准备交接。",
+  "@guideStep2Ready": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "guideStep2Empty": "当前尚未导入 IPA，你可以现在导入或稍后在首页操作。",
+  "guideStep3Title": "交接给 SideStore",
+  "guideStep3Desc": "USB 传输或导出完成后，需要在手机端打开文件并由 SideStore 签名安装与日常续签。",
+  "guideStep3Note": "USB 仅负责传文件；在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN。KoiSide 第一阶段不直接签名或安装。",
+  "guideRetry": "重新检测",
+  "guideConnectLater": "稍后连接",
+  "guideSkip": "跳过引导",
+  "guideContinue": "继续",
+  "guideFinish": "完成并前往首页",
+  "guideSkipNote": "跳过不会标记为已完成，也不会删除已导入的文件。",
+  "guideRestart": "重新进入引导",
+
+  "toolsTitle": "工具",
+  "toolsSubtitle": "安装和配置侧载所需的核心工具。官方渠道与指引。",
+  "toolsOpenGuide": "打开官方说明",
+  "toolsStatusPrefix": "状态：{state}",
+  "@toolsStatusPrefix": {
+    "placeholders": { "state": { "type": "String" } }
+  },
+  "toolSideStoreState": "运行状态未知",
+  "toolSideStoreNext": "在手机上手动导入 IPA、签名并安装。",
+  "toolVPNState": "连接状态未知",
+  "toolVPNNext": "从 App Store 安装后，按手机上的提示连接。",
+  "toolLCState": "安装状态未知",
+  "toolLCNext": "按官方说明通过 SideStore 安装；名额以实际版本为准。",
+
+  "settingsTitle": "设置",
+  "settingsSubtitle": "KoiSide 的基础偏好设置。",
+  "settingsGeneral": "通用",
+  "settingsAppearance": "外观",
+  "settingsAppearanceDesc": "界面外观默认跟随 macOS 系统设置。",
+  "settingsThemeSystem": "跟随系统",
+  "settingsThemeLight": "浅色",
+  "settingsThemeDark": "深色",
+  "settingsLanguage": "语言",
+  "settingsLanguageDesc": "切换界面显示语言（中文 / English），支持实时刷新。",
+  "settingsLangSystem": "跟随系统",
+  "settingsLangZhHans": "简体中文",
+  "settingsLangEn": "English",
+  "settingsFileLocations": "文件位置",
+  "settingsFileLocationsDesc": "本地工作目录与默认导出位置，均保留在本机 Mac。",
+  "settingsCacheDir": "本地数据目录：{path}",
+  "@settingsCacheDir": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "settingsPrivacy": "隐私与本地数据",
+  "settingsPrivacySummary": "日志仅保留在本机 Mac",
+  "settingsPrivacyDesc": "所有日志与临时解压文件均保存在本地 Mac，不包含密码或私钥，不自动向外部服务器上传。",
+  "settingsLogsTitle": "本地诊断日志（已脱敏）",
+  "settingsLogsEmpty": "当前会话暂无操作记录。",
+  "settingsExportLogs": "导出日志",
+  "settingsClearLogs": "清空",
+  "settingsSupport": "支持与引导",
+  "settingsSupportDesc": "重新打开首次引导不会清除已导入的文件、设备状态或偏好设置。",
+  "settingsAbout": "关于 KoiSide",
+  "settingsAboutDesc": "KoiSide v0.1.0 · 简洁、可信的 macOS iPhone 应用安装助手",
+
+  "dialogNoWindowOpen": "当前没有窗口，文件框未打开",
+  "dialogNoWindowSave": "当前没有窗口，保存框未打开",
+  "dialogOpenFailed": "文件框失败：{err}",
+  "@dialogOpenFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+  "dialogSaveFailed": "保存框失败：{err}",
+  "@dialogSaveFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+  "dialogOpenCanceled": "已取消选择",
+  "dialogSaveCanceled": "已取消保存",
+  "dialogWillSaveTo": "将保存到 {path}",
+  "@dialogWillSaveTo": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "dialogSelectedFiles": "已选择 {count} 个 IPA",
+  "@dialogSelectedFiles": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "dialogExportDefaultFilename": "准备好的应用.ipa",
+
+  "riskTitle": "导出后需要重新签名",
+  "riskBody": "修改会使原签名失效。SideStore 安装后的最终标识可能与预览不同。",
+  "riskAck": "知道了",
+
+  "navTask": "侧载任务",
+  "navHelpTools": "侧载帮助",
+  "needHelp": "需要帮助",
+  "backToTask": "回到侧载任务",
+  "sidebarDeviceSingle": "单台 iPhone",
+  "sidebarDeviceConnected": "{name} · {conn}",
+  "@sidebarDeviceConnected": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "conn": { "type": "String" }
+    }
+  },
+
+  "homeHeroTitle": "把想用的 App 装到 iPhone",
+  "homeHeroSubtitle": "选一份 IPA，KoiSide 会检查文件状态并帮你匹配适合的侧载路线。",
+  "homeContinueTask": "继续当前任务",
+  "homeStartNew": "侧载新的 App",
+  "homeSideloadedMaintain": "已安装侧载 App 维护",
+  "homeHelpSummaryTitle": "每次侧载都能查看步骤",
+  "homeHelpSummaryDesc": "设置、交接、找回文件与 7 天续签说明会在需要时出现。",
+  "homeOpenHelp": "打开侧载帮助",
+  "homeViewDevice": "查看设备",
+
+  "taskStage1": "1. 检查 IPA",
+  "taskStage2": "2. 选安装方式",
+  "taskStage3": "3. 准备 IPA",
+  "taskStage4": "4. 交接与安装",
+  "taskStage5": "5. 维护与续签",
+
+  "checkReadyBannerTitle": "可以继续准备",
+  "checkReadyBannerDesc": "包结构通过检查。已检查的主程序与组件中未检测到加密标志。",
+  "checkUncertainTitle": "兼容性还无法确认",
+  "checkUncertainDesc": "存在未能读取加密标志或状态不明的组件。请查看检查详情后决定是否继续或换包。",
+  "checkDamagedTitle": "无法读取此 IPA",
+  "checkDamagedDesc": "压缩包损坏或缺失主应用 Info.plist，当前文件无法继续准备。",
+  "checkSourceLabel": "文件来源备注",
+  "checkSourceGitHub": "开源项目发布包（GitHub Release）",
+  "checkSourceSelfBuilt": "自己构建 / 导出的包",
+  "checkSourceLocalUnknown": "本地 IPA（来源未知）",
+  "checkSourceNote": "来源由用户标注，静态检查不验证发布者身份。",
+  "checkChooseRouteBtn": "选择安装方式",
+
+  "routeTitle": "选择适合你的安装方式",
+  "routeSubtitle": "根据你的应用数量和已有签名条件选择路线；换一个 App 时可随时重选。",
+  "routeSideStoreTitle": "独立安装 · 免费个人签名（推荐）",
+  "routeSideStoreDesc": "适合装少量独立 App，直接从主屏幕打开。通过 SideStore 在手机上安装与每 7 天续签。",
+  "routeContainerTitle": "在 LiveContainer 里运行",
+  "routeContainerDesc": "个人免费签名名额紧张时（上限约 3 个 App ID / 应用）再考虑，从容器中启动，需核对兼容性。",
+  "routeAdvancedTitle": "桌面直接签名并安装（USB 直装）",
+  "routeAdvancedDesc": "用已登录的 Apple 账号在 Mac 上直接签名并通过 USB 安装到 iPhone，适合需要独立图标或桌面首装的场景。",
+  "routeSlotNotice": "当前设备已检测到 {count} 个开发/个人签名应用，免费个人团队同时可激活的独立应用与 App ID 名额有限。",
+  "@routeSlotNotice": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "routeLiveContainerEvalTitle": "评估 LiveContainer 是否适合",
+  "routeLiveContainerEvalDesc": "需要同时体验更多 App 且可接受从容器内启动时使用；若需要桌面独立图标或特定系统扩展，优先独立安装。",
+  "routeLiveContainerStandalone": "独立版本：已安装 SideStore 时可按官方说明导入容器宿主。",
+  "routeLiveContainerIntegrated": "与 SideStore 合装：适合节省免费个人签名名额的场景。",
+  "routeLiveContainerGuideTitle": "在 LiveContainer 中导入 IPA",
+  "routeLiveContainerSteps": "1. 按官方版本指南完成 LiveContainer 宿主配置。\n2. 将准备好的 IPA 保存到 iPhone“文件”。\n3. 打开 LiveContainer 点右上角 ＋ 导入并测试功能。\n4. 留意宿主本身的 7 天续签周期。",
+  "routeAdvancedPhaseNotice": "将使用当前已登录的 Apple 账号签发证书与描述文件并直接通过 USB 安装；免费个人账号同样受 7 天与 3 个活跃应用限制，后续可在 SideStore 续签。",
+  "routeContinueBtn": "按此路线继续",
+
+  "prepareTitle": "要修改这个 IPA 吗？",
+  "prepareSubtitle": "只想按原样安装，可以直接继续；需要多开副本或区分名称时再修改标识。",
+  "prepareKeepAsIsTitle": "按原样继续",
+  "prepareKeepAsIsDesc": "保留当前显示名称、Bundle ID 与原签名（若未加密）。",
+  "prepareKeepAsIsBtn": "按原样交接",
+  "prepareEditTitle": "修改显示名称或 Bundle ID",
+  "prepareEditDesc": "更新已有应用或另装独立副本；修改后原签名失效，需由 SideStore 重签。",
+  "prepareEditBtn": "修改并预览差异",
+  "prepareIntentTitle": "你的修改目标",
+  "prepareIntentUpdate": "更新已有 App",
+  "prepareIntentCopy": "另装副本",
+  "prepareIntentUpdateHint": "保留原 Bundle ID，注意核对手机端签名者身份。",
+  "prepareIntentCopyHint": "修改为独立 Bundle ID 以并存安装。",
+  "prepareConflictFound": "设备上已存在匹配标识：{name} ({bundleID} · v{version})。若签名者不同，直接覆盖可能失败或影响数据。",
+  "@prepareConflictFound": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "bundleID": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "prepareConflictClear": "未在当前已装列表中发现 {bundleID} 冲突。",
+  "@prepareConflictClear": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "prepareConflictUnknown": "尚未读取设备已装列表，无法核对 Bundle ID 冲突。",
+  "prepareBundleIDInvalid": "Bundle ID 格式无效，请使用反向域名格式（如 com.example.app）。",
+
+  "handoffStageTitle": "交接与安装确认",
+  "handoffStageSubtitle": "把准备好的 IPA 交给 iPhone，在 SideStore 安装后回来核对设备上的真实结果。",
+  "handoffDevicePathTitle": "iPhone 上查找路径",
+  "handoffDevicePathValue": "文件 → 浏览 → 我的 iPhone → SideStore → {filename}",
+  "@handoffDevicePathValue": {
+    "placeholders": { "filename": { "type": "String" } }
+  },
+  "handoffMacPathTitle": "Mac 导出路径",
+  "handoffVerifyTitle": "确认手机安装结果",
+  "handoffVerifyMatch": "设备已检测到匹配应用：{name} ({bundleID} · v{version})。请在手机上打开确认可正常运行。",
+  "@handoffVerifyMatch": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "bundleID": { "type": "String" },
+      "version": { "type": "String" }
+    }
+  },
+  "handoffVerifyNotFound": "暂未在设备已装列表中检测到 {bundleID}（含 Team ID 后缀）。完成 SideStore 安装后点“重新核对”。",
+  "@handoffVerifyNotFound": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "handoffVerifyCheckBtn": "刷新并核对设备",
+  "handoffUserConfirmBtn": "我已确认安装，查看续签维护",
+  "handoffStageBadgeExported": "已导出到 Mac",
+  "handoffStageBadgeTransferred": "已传到 SideStore 文稿",
+  "handoffStageBadgeDetected": "设备已检测到安装",
+  "handoffStageBadgeUserConfirmed": "用户已确认安装",
+
+  "maintainTitle": "维护与 7 天续签",
+  "maintainSubtitle": "免费个人团队签发的描述文件自签发日起有效 7 天，到期前需通过 SideStore 刷新。",
+  "maintainStepsTitle": "日常续签步骤",
+  "maintainStep1": "1. 在 iPhone 上连接稳定的 Wi-Fi。",
+  "maintainStep2": "2. 打开 LocalDevVPN 并保持开启。",
+  "maintainStep3": "3. 打开 SideStore → My Apps，点击对应 App 剩余天数按钮（或 Refresh All）。",
+  "maintainExpiryNote": "剩余天数请以手机端 SideStore My Apps 为准；第一阶段不从桌面推断或自动续签。",
+  "maintainRecoveryBtn": "刷新失败或已到期？",
+  "maintainRecoveryTitle": "SideStore 刷新失败或应用已到期",
+  "maintainRecoverySubtitle": "先确认 SideStore 本身还能否打开，再按对应路径恢复：",
+  "maintainRecoveryOpenableTitle": "SideStore 还可以打开",
+  "maintainRecoveryOpenableDesc": "确认 Wi-Fi 与 LocalDevVPN 已开启，检查 Apple 账号会话未过期后，在 My Apps 重试刷新。",
+  "maintainRecoveryExpiredTitle": "SideStore 已经打不开（超过 7 天未刷新）",
+  "maintainRecoveryExpiredDesc": "需要回到电脑使用工具重新安装 SideStore 并重签恢复，保留原有任务记录。",
+  "maintainBackToMaintain": "返回续签说明",
+
+  "helpHubTitle": "侧载帮助与配套工具",
+  "helpHubSubtitle": "按当前遇到的问题快速查找指引，或查阅 SideStore / LocalDevVPN / LiveContainer 官方文档。",
+  "helpTopicConnectTitle": "设备连不上，或未弹出“信任”",
+  "helpTopicConnectDesc": "检查数据线供电/传输、解锁 iPhone 屏幕、确认没有处于受限配件模式，再重新检测。",
+  "helpTopicSetupTitle": "SideStore 设置与恢复",
+  "helpTopicSetupDesc": "包含开启开发者模式、信任开发者证书、开启 LocalDevVPN 与首次刷新 SideStore 自身。",
+  "helpTopicMissingFileTitle": "在手机上找不到传过去的 IPA",
+  "helpTopicMissingFileDesc": "核对「我的 iPhone → SideStore」目录或 Mac 导出文件夹，必要时改用隔空投送。",
+  "helpTopicRefreshTitle": "App 快到期或刷新失败",
+  "helpTopicRefreshDesc": "查看 7 天个人签名续签清单与 SideStore 过期后的恢复入口。",
+
+  "deviceAppsFilterAll": "全部应用 ({count})",
+  "@deviceAppsFilterAll": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceAppsFilterSideloaded": "侧载与个人签名 ({count})",
+  "@deviceAppsFilterSideloaded": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceAppsSearchPlaceholder": "搜索应用名称、Bundle ID 或 Team ID…",
+  "deviceAppsNoMatch": "没有找到匹配的应用。",
+  "deviceDocsTitle": "SideStore 文稿目录 (/Documents)",
+  "deviceDocsItemsCount": "{count} 项",
+  "@deviceDocsItemsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceDocsEmpty": "目录为空",
+
+  "routeStatusInstalled": "已安装 {version}",
+  "@routeStatusInstalled": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+  "routeStatusNotInstalled": "未安装",
+  "routeStatusUnknown": "状态未知",
+  "routeStatusPhase2": "桌面直装",
+  "routeLiveContainerNotInstalledWarn": "当前手机尚未安装 LiveContainer。若免费个人签名名额不足 3 个，需先按下方步骤在手机安装 LiveContainer 宿主。",
+
+  "transferInProgress": "正在写入 SideStore 并校验哈希…",
+  "transferErrorDetail": "USB 传输失败：{err}",
+  "@transferErrorDetail": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+  "transferLiveContainerNote": "你选择了 LiveContainer 路线：可选择将 IPA 写入容器文稿并在容器内启动，或改为装在容器外面的独立应用。",
+  "maintainTargetApp": "当前维护：{name}",
+  "@maintainTargetApp": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "settingsLogsExported": "日志已导出：{path}",
+  "@settingsLogsExported": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+
+  "navAccount": "Apple 账号",
+  "accountTitle": "Apple 账号与签名凭证",
+  "accountSubtitle": "管理桌面直接签名、证书与 Anisette v3 服务连接；密码仅在你明确勾选时保存到 macOS Keychain。",
+  "accountStatusSignedIn": "已登录：{email}",
+  "@accountStatusSignedIn": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "accountStatusSignedOut": "未登录 Apple 账号",
+  "accountSignInTitle": "登录 Apple 账号",
+  "accountEmailLabel": "Apple ID 邮箱",
+  "accountEmailPlaceholder": "name@example.com",
+  "accountPasswordLabel": "密码",
+  "accountPasswordPlaceholder": "输入 Apple ID 密码",
+  "accountRememberPassword": "记住密码到 macOS Keychain（可选）",
+  "accountRememberHint": "若不勾选，密码仅用于本次登录；签名私钥与配对记录单独存放在 Keychain。",
+  "accountSignInBtn": "登录 Apple ID",
+  "accountSigningIn": "正在登录并获取开发者会话…",
+  "accountSignOutBtn": "退出登录",
+  "accountSavedAccountsTitle": "已记住的账号",
+  "accountUseSavedBtn": "一键登录",
+  "accountForgetSavedBtn": "移除",
+  "account2FATitle": "双重认证验证码",
+  "account2FADesc": "请输入受信任设备上收到的 6 位 Apple 验证码，或改用短信验证。",
+  "account2FASMSDesc": "已向尾号 {digits} 的受信任手机发送短信验证码。",
+  "@account2FASMSDesc": {
+    "placeholders": { "digits": { "type": "String" } }
+  },
+  "account2FACodePlaceholder": "6 位验证码",
+  "account2FASubmit": "验证并继续",
+  "account2FAResend": "重新发送",
+  "account2FASendSMS": "改用短信：{number}",
+  "@account2FASendSMS": {
+    "placeholders": { "number": { "type": "String" } }
+  },
+  "accountTeamLabel": "当前开发者团队",
+  "accountTeamFree": "免费个人团队",
+  "accountTeamPaid": "付费开发者团队",
+  "accountCertsTitle": "开发证书与 App ID 名额",
+  "accountLoadCertsBtn": "刷新证书与名额",
+  "accountCertEmpty": "点击“刷新证书与名额”读取 Apple Developer Portal 记录。",
+  "accountRevokeCertBtn": "吊销",
+  "accountMaxCertsTitle": "开发证书数量已达上限",
+  "accountMaxCertsDesc": "Apple 限制每个团队可同时有效的开发证书数量，选择要吊销的旧证书后继续：",
+  "accountMaxCertsRevokeContinue": "吊销所选并继续",
+  "accountAnisetteTitle": "Anisette v3 服务",
+  "accountAnisetteDesc": "仅用于生成 Apple 设备证明请求头，不发送 Apple ID 密码；可替换为自建 Anisette v3 地址。",
+  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteSaveBtn": "保存地址",
+  "accountAnisetteResetBtn": "重置设备证明状态",
+  "accountAnisetteResetDone": "Anisette 设备证明状态已清除",
+  "accountStoreBoundaryNote": "App Store 下载与开发者签名保持独立会话，不会假定共用同一认证令牌。",
+
+  "toolInstallSideStoreBtn": "安装 SideStore",
+  "toolInstallLCSSBtn": "安装 LiveContainer + SideStore",
+  "toolInstallLCBtn": "安装 LiveContainer",
+  "toolInstallLocalDevVPNBtn": "打开 App Store 安装 LocalDevVPN",
+  "toolLocalDevVPNLimitation": "LocalDevVPN 依赖 NetworkExtension，免费个人账号无法签发描述文件，需在 iPhone 上从 App Store 安装（付费开发者账号可使用本地 IPA 桌面直签）。",
+  "toolInstallNeedLogin": "请先登录 Apple 账号后再使用桌面直装。",
+  "toolInstallNeedDevice": "请先通过 USB 连接并信任 iPhone。",
+  "toolInstallRunning": "正在安装：{stage} ({pct}%)",
+  "@toolInstallRunning": {
+    "placeholders": {
+      "stage": { "type": "String" },
+      "pct": { "type": "int" }
+    }
+  },
+  "toolInstallSucceeded": "安装完成：{bundleID}",
+  "@toolInstallSucceeded": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "toolInstallFailed": "安装失败：{err}",
+  "@toolInstallFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+
+  "pairingSectionTitle": "无线刷新配对文件",
+  "pairingSectionDesc": "为 SideStore、LiveContainer 等工具生成并写入 Lockdown / RemotePairing 配对文件，同时开启 Wi-Fi 调试。",
+  "pairingOneClickBtn": "生成并写入配对文件",
+  "pairingExportBtn": "导出配对文件",
+  "pairingWriteDone": "已写入配对文件到 {target}",
+  "@pairingWriteDone": {
+    "placeholders": { "target": { "type": "String" } }
+  },
+  "pairingWriteFailed": "配对处理失败：{err}",
+  "@pairingWriteFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+
+  "transferDirectInstallTitle": "桌面签名并直接安装到 iPhone",
+  "transferDirectInstallDesc": "使用当前登录的 Apple 账号签名此 IPA 并通过 USB 安装到设备（安装后仍可在 SideStore 续签）。",
+  "transferDirectInstallBtn": "桌面签名并安装",
+
+  "deviceDevModeOn": "开发者模式：已开启",
+  "deviceDevModeOff": "开发者模式：未开启（无法启动侧载应用）",
+  "deviceDevModeUnknown": "开发者模式：未知",
+  "deviceDevModeEnableBtn": "开启开发者模式",
+  "deviceDevModeRevealed": "已在 iPhone「设置 → 隐私与安全性 → 开发者模式」显示开关；打开后请按手机提示重启并确认。",
+  "deviceDevModeFailed": "触发开发者模式失败：{err}",
+  "@deviceDevModeFailed": {
+    "placeholders": { "err": { "type": "String" } }
+  },
+
+  "postInstallChecklistTitle": "安装后在 iPhone 上的必做步骤",
+  "postInstallStepDevMode": "1. 确认已开启「设置 → 隐私与安全性 → 开发者模式」（未开启需打开并重启确认）。",
+  "postInstallStepTrust": "2. 前往「设置 → 通用 → VPN 与设备管理 → 开发者 App」，点击你的 Apple ID 并点「信任」（iOS 16+ 需由你在手机上确认，桌面工具无法绕过）。",
+  "postInstallStepRefresh": "3. 打开 LocalDevVPN 连上隧道；若使用 SideStore 独立版，选配对文件后登录 Apple ID 并刷新一次。",
+  "postInstallStepLCSS": "4. 若为 LiveContainer + SideStore：在 LiveContainer 切到内置 SideStore → 选 SideStore/Documents/PairingFile_RemoteRP.plist → 登录同一 Apple ID 并刷新 → 切回 LiveContainer「设置 → 从 SideStore 导入证书」。",
+
+  "accountReturnBannerWaiting": "你从「{from}」跳转至此。在此登录 Apple ID 后，点击「返回继续」即可回到刚才的步骤。",
+  "@accountReturnBannerWaiting": {
+    "placeholders": { "from": { "type": "String" } }
+  },
+  "accountReturnBannerReady": "已登录 {email}。点击「返回继续」即可回到刚才的侧载流程。",
+  "@accountReturnBannerReady": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "accountReturnBtn": "返回继续",
+  "accountDismissBtn": "关闭",
+  "accountReturnSourceTask": "侧载任务",
+  "accountReturnSourceDevice": "设备与工具",
+  "accountReturnSourceGuide": "首次引导",
+
+  "accountLocalKeyBadge": "本机私钥",
+  "accountCertExpires": "到期：{date}",
+  "@accountCertExpires": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "accountAppIDQuotaFree": "7 天 App ID 剩余名额：{avail} / {max}（免费账号 7 天内最多注册 {max} 个；卸载手机 App 不会提前释放，需等下方到期后自动恢复）",
+  "@accountAppIDQuotaFree": {
+    "placeholders": {
+      "avail": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "accountAppIDQuotaPaid": "已注册 App ID：{count} 个",
+  "@accountAppIDQuotaPaid": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "accountAppIDsTitle": "已注册 App ID 列表",
+  "accountAppIDExpires": "到期：{date}",
+  "@accountAppIDExpires": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "accountAppIDDeleteBtn": "删除",
+  "accountAppIDFreeDeleteHint": "免费账号的 App ID 由 Apple 按 7 天滚动锁定，无法手动提前清空。",
+
+  "deviceDocDeleteBtn": "删除",
+  "deviceDocDeleted": "已从设备删除：{name}",
+  "@deviceDocDeleted": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "routeLCPlacementTitle": "选择安装在 LiveContainer 里面还是外面",
+  "routeLCPlacementInsideTitle": "装在 LiveContainer 里面（推荐节省名额）",
+  "routeLCPlacementInsideDesc": "写入 LiveContainer 文稿并在容器内导入运行；不占用 3 个独立桌面名额，日常只需刷新 LiveContainer 宿主。",
+  "routeLCPlacementOutsideTitle": "装在 LiveContainer 外面（主屏幕独立 App）",
+  "routeLCPlacementOutsideDesc": "装成主屏幕独立图标（桌面直签安装或经 SideStore 安装），适合需要小组件、系统扩展或独立启动的应用；会占 1 个活跃名额。",
+
+  "routePrecheckTitle": "前置条件与账号检查",
+  "routePrecheckDeviceOK": "iPhone 已连接：{name}",
+  "@routePrecheckDeviceOK": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "routePrecheckDeviceMissing": "尚未连接 iPhone（仍可离线检查或导出 IPA）",
+  "routePrecheckAccountOK": "Apple 账号已登录：{email}（{teamType}）",
+  "@routePrecheckAccountOK": {
+    "placeholders": {
+      "email": { "type": "String" },
+      "teamType": { "type": "String" }
+    }
+  },
+  "routePrecheckAccountMissing": "尚未登录 Apple 账号（桌面直签或安装宿主工具需要先登录）",
+  "routePrecheckSignInBtn": "去登录 Apple 账号",
+  "routePrecheckToolsReady": "配套宿主工具已就绪",
+  "routePrecheckToolsMissing": "尚未检测到 SideStore / LiveContainer，可在此直接安装",
+  "routePrecheckVPNMissing": "未检测到 LocalDevVPN（手机无线刷新必需，App Store 可能需要非国区账号）",
+
+  "handoffSendToLCBtn": "写入 LiveContainer 文稿",
+  "handoffLCDevicePathValue": "文件 → 浏览 → 我的 iPhone → LiveContainer → {filename}",
+  "@handoffLCDevicePathValue": {
+    "placeholders": { "filename": { "type": "String" } }
+  },
+  "handoffLCStepsTitle": "在 LiveContainer 中导入并运行",
+  "handoffLCStep1": "1. 确认已开启开发者模式、信任开发者证书，且曾在 LiveContainer 设置执行「从 SideStore 导入证书」。",
+  "handoffLCStep2": "2. 打开手机上的 LiveContainer → 点左上角 ＋ →「通过 IPA 文件安装」。",
+  "handoffLCStep3": "3. 在「我的 iPhone → LiveContainer」选择 {filename}，安装后点击「启动」确认可用。",
+  "@handoffLCStep3": {
+    "placeholders": { "filename": { "type": "String" } }
+  },
+  "handoffVerifyLCReady": "LiveContainer 宿主已就绪（{bundleID}）。容器内安装的 App 不会出现在系统桌面列表中，请在 LiveContainer 内点「启动」确认可运行。",
+  "@handoffVerifyLCReady": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "handoffVerifyLCConfirmBtn": "我已在容器内启动成功，查看续签维护",
+  "handoffPlacementBadgeInside": "当前：LiveContainer 容器内",
+  "handoffPlacementBadgeOutside": "当前：LiveContainer 外（独立桌面 App）",
+  "handoffSwitchToInside": "改到容器里面安装",
+  "handoffSwitchToOutside": "改到容器外面独立安装",
+  "maintainLCHint": "你选择了在 LiveContainer 内运行：容器内的 App 不占 3 个独立名额也无需单独续签，只需每 7 天在手机 SideStore 里刷新一次 LiveContainer 宿主即可；如提示证书过期，进 LiveContainer 设置点「刷新来自 SideStore 的证书」。"
+}

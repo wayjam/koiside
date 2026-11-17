@@ -1,0 +1,20 @@
+{
+  "name": "KoiSide",
+  "slug": "koiside",
+  "identifier": "app.koiside.desktop",
+  "version": "0.1.0",
+  "main": "./cmd/koiside",
+  "i18n": {
+    "dir": "locales",
+    "source": "zh-Hans"
+  },
+  "out": "build",
+  "macos": {
+    "minimumSystemVersion": "26.0",
+    "signingIdentity": "-"
+  },
+  "linux": {
+    "webview": false,
+    "categories": ["Utility"]
+  }
+}

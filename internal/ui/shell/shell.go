@@ -1,0 +1,853 @@
+// Package shell is the phase-one native window.
+// It calls application services and owns no IPA or device protocol.
+package shell
+import (
+
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
+
+	app "koiside/internal/app"
+	"koiside/internal/appleauth"
+	"koiside/internal/device"
+	"koiside/internal/devportal"
+	"koiside/locales"
+)
+const (
+	accentLight = "#1769D2"
+	accentDark  = "#64A8FF"
+	narrowWidth = 720
+)
+
+// Model is the window state. Tests drive it without opening a window.
+type Model struct {
+	services app.Services
+	win      *mygo.Window
+
+	sidebar         float32
+	section         string
+	lastTaskSection string
+	taskStage       int // 1: Check, 2: Route, 3: Prepare, 4: Handoff/Verify, 5: Maintain
+	selected        int
+
+	sourceKind    string // "github", "self", "local"
+	installRoute  string // "sidestore", "livecontainer", "advanced"
+	lcPlacement   string // "inside", "outside"
+	prepareMode   string // "choice", "edit"
+	editIntent    string // "update", "copy"
+	recoveryMode  bool
+	userConfirmed bool
+	maintainApp   string
+
+	query             string
+	editName          string
+	editBundleID      string
+	editLocalizedName string
+	removePaths       map[string]bool
+	showAdvanced      bool
+	showEncDetails    bool
+	showLogs          bool
+	narrowDetail      bool
+	appearance        string
+	language          string
+	guideStep         int
+	helpTopic         string
+	settingsSection   string
+
+	appQuery    string
+	appFilter   int // 0: all, 1: sideloaded
+	docTreeOpen map[string]bool
+
+	dropped      []string
+	chosen       []string
+	saved        string
+	dialogNote   string
+	logExportMsg string
+
+	inspecting    bool
+	inspectName   string
+	inspectCancel context.CancelFunc
+
+	exporting    bool
+	exportMsg    string
+	exportErr    string
+	exportedPath string
+	exportCancel context.CancelFunc
+
+	files         []archiveState
+	devices       []device.Device
+	deviceInfo    device.Info
+	deviceInfoErr string
+	deviceErr     string
+	deviceApps    []device.InstalledApp
+	appsQueried   bool
+	sideStoreApp  *device.InstalledApp
+	vpnApp        *device.InstalledApp
+	lcApp         *device.InstalledApp
+	sideStoreDocs  []string
+	sideStoreTree  []device.DocEntry
+	docsBundleID   string
+	docDeleting    string
+	docDeleteMsg   string
+	docDeleteErr   string
+	usbVerified    bool
+	devModeKnown   bool
+	devModeEnabled bool
+	devModeMsg     string
+	devModeErr     string
+	deviceProbing  bool
+	sessionErr     error
+	transfer       string
+	transferState  string
+	transferErr    string
+	transferring   bool
+	transferrer   Transferrer
+
+	loginEmail        string
+	loginPassword     string
+	loginRemember     bool
+	loginBusy         bool
+	loginErr          string
+	anisetteInput     string
+	anisetteNotice    string
+	twoFactorPrompt   *appleauth.TwoFactorPrompt
+	twoFactorRespCh   chan appleauth.TwoFactorResponse
+	twoFactorCode     string
+	maxCertsList      []devportal.DevelopmentCertificate
+	maxCertsRespCh    chan []string
+	maxCertsSelected  map[string]bool
+	portalCerts       []devportal.DevelopmentCertificate
+	portalCertsLoaded bool
+	portalCertErr     string
+	portalQuotaKnown  bool
+	portalAppIDsAvail int64
+	portalAppIDsMax   int64
+	portalAppIDs      []devportal.AppID
+	appIDDeleting     string
+	certsLoading      bool
+	returnTarget      *accountReturnContext
+	toolInstalling  bool
+	toolInstallPct  int
+	toolInstallMsg  string
+	toolInstallErr  string
+	toolInstallDone bool
+	pairingBusy     bool
+	pairingMsg      string
+	pairingErr      string
+	directInstallOn bool
+	directPct       int
+	directStage     string
+	directErr       string
+	directDoneMsg   string
+
+	logs []string
+	mu   sync.Mutex
+}
+
+type accountReturnContext struct {
+	section   string
+	taskStage int
+	sourceKey string // "task", "device", "guide"
+}
+
+// New returns the phase-one window state.
+func New(services app.Services) *Model {
+	return &Model{
+		services:         services,
+		sidebar:          216,
+		section:          "准备",
+		lastTaskSection:  "文件",
+		taskStage:        1,
+		sourceKind:       "local",
+		installRoute:     "sidestore",
+		lcPlacement:      "inside",
+		prepareMode:      "choice",
+		guideStep:        1,
+		settingsSection:  "general",
+		showLogs:         true,
+		removePaths:      map[string]bool{},
+		docTreeOpen:      map[string]bool{"/Documents": true},
+		maxCertsSelected: map[string]bool{},
+	}
+}
+
+// Content is the native view. Pass it to NewWindow. Attach the created
+// window before the user can open a file dialog.
+func (m *Model) Content() mygo.Content { return ui.View(m.view) }
+
+// Attach binds the window used by file dialogs and background refresh.
+func (m *Model) Attach(win *mygo.Window) { m.win = win }
+
+// Open is the test entry. A nil window skips system dialogs.
+func Open(win *mygo.Window, services app.Services) *Model {
+	m := New(services)
+	m.Attach(win)
+	return m
+}
+
+func (m *Model) addLog(entry string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	line := fmt.Sprintf("[%s] %s", time.Now().Format("15:04:05"), entry)
+	m.logs = append(m.logs, line)
+	if len(m.logs) > 80 {
+		m.logs = m.logs[len(m.logs)-80:]
+	}
+	fmt.Fprintln(os.Stderr, line)
+}
+
+func (m *Model) openHelp(topic string) {
+	if m.isTaskSection(m.section) {
+		m.lastTaskSection = m.section
+	}
+	m.helpTopic = topic
+	m.section = "工具"
+}
+
+func (m *Model) isTaskSection(sec string) bool {
+	return sec == "文件" || sec == "差异" || sec == "交接" || sec == "维护"
+}
+
+func (m *Model) goTaskSection(sec string, stage int) {
+	m.section = sec
+	m.lastTaskSection = sec
+	if stage > 0 {
+		m.taskStage = stage
+	}
+}
+
+func (m *Model) view(c *ui.Context) {
+	dark := c.Theme().Dark
+	switch m.appearanceMode() {
+	case "light":
+		dark = false
+	case "dark":
+		dark = true
+	}
+	applyShellTheme(c, dark)
+	if c.Vibrancy() {
+		c.Root().Background(ui.Transparent)
+	}
+	msg := m.msg(c)
+	m.shortcuts(c)
+	if m.section == "检查" {
+		m.risk(c, msg)
+		return
+	}
+
+	winW, _ := c.Size()
+	compact := winW > 0 && winW < narrowWidth
+
+	attachWorkspaceDrop := func(el ui.Element) {
+		if el.FileDragOver() {
+			el.Border(2, accentInk(c.Theme())).Background(c.Theme().Selection)
+		}
+		if files := el.DroppedFiles(); len(files) > 0 {
+			m.dropped = append([]string(nil), files...)
+			m.addLog(fmt.Sprintf("dropped %d file(s)", len(files)))
+			for _, f := range files {
+				m.inspect(f)
+			}
+			m.goTaskSection("文件", 1)
+		}
+	}
+
+	if compact {
+		body := ui.Column(c).Fill().Background(c.Theme().Background)
+		attachWorkspaceDrop(body)
+		body.Children(func() {
+			m.compactTopBar(c, msg)
+			ui.Scroll(c.Key("workspace-scroll")).Grow(1).FillWidth().Padding(16, 18).Gap(14).Children(func() {
+				m.workspace(c, msg, true)
+			})
+		})
+		m.accountReturnOverlay(c, msg, true)
+		m.accountModals(c, msg)
+		return
+	}
+
+	ui.Split(c.Key("main-split"), &m.sidebar, func() {
+		m.sidebarView(c, msg)
+	}, func() {
+		right := ui.Column(c).Fill().Background(c.Theme().Background)
+		attachWorkspaceDrop(right)
+		right.Children(func() {
+			if m.section == "准备" || m.section == "" {
+				ambientGlow(c, dark)
+			}
+			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(24, 30).Gap(16).Children(func() {
+				m.workspace(c, msg, false)
+			})
+		})
+	}).SplitReset(216).Fill()
+	m.accountReturnOverlay(c, msg, false)
+	m.accountModals(c, msg)
+}
+
+func (m *Model) navigateToAccountForLogin(sourceKey, backSection string, backStage int) {
+	m.mu.Lock()
+	m.returnTarget = &accountReturnContext{
+		section:   backSection,
+		taskStage: backStage,
+		sourceKey: sourceKey,
+	}
+	m.mu.Unlock()
+	m.section = "账号"
+	if m.win != nil {
+		m.win.Invalidate()
+	}
+}
+
+func (m *Model) shortcuts(c *ui.Context) {
+	if c.Shortcut(ui.Cmd, ui.KeyO) {
+		m.pickIPA()
+	}
+}
+
+func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	ui.Column(c).FillWidth().Background(t.Surface).BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
+		Padding(10, 14).Gap(8).Children(func() {
+		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).Children(func() {
+			ui.Image(c, brandLogoSVG).Width(22).Height(22)
+			ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
+			if m.isTaskSection(m.section) && m.narrowDetail {
+				if uiBtn(c, "compact-back", "‹ "+msg.NavBack()).Clicked() {
+					m.narrowDetail = false
+				}
+			}
+		})
+		ui.ScrollHorizontal(c.Key("compact-nav-scroll")).FillWidth().Children(func() {
+			ui.Row(c).Gap(6).Children(func() {
+				navItems := []struct {
+					id    string
+					label string
+				}{
+					{"准备", msg.NavHome()},
+					{"文件", msg.NavTask()},
+					{"设备", msg.NavDevice()},
+					{"账号", msg.NavAccount()},
+					{"工具", msg.NavHelpTools()},
+					{"设置", msg.NavSettings()},
+				}
+				for _, item := range navItems {
+					active := m.section == item.id ||
+						(item.id == "文件" && m.isTaskSection(m.section)) ||
+						(item.id == "工具" && m.section == "引导")
+					btn := ui.ButtonBase(c.Key("compact-nav-"+item.id)).Padding(6, 12).Radius(8).
+						Label(item.label).Cursor(ui.CursorPointer).Transition(colorTransition)
+					if active {
+						btn.Background(t.Selection).Border(1, accentInk(t))
+					} else {
+						btn.Background(t.Background).Border(1, t.Border)
+					}
+					btn.Children(func() {
+						fg := t.Text
+						if active {
+							fg = accentInk(t)
+						}
+						ui.Text(c, item.label).FontSize(12).Bold().TextColor(fg).SingleLine()
+					})
+					if btn.Clicked() {
+						if item.id == "文件" && m.lastTaskSection != "" {
+							m.section = m.lastTaskSection
+						} else {
+							m.section = item.id
+						}
+						m.narrowDetail = false
+					}
+				}
+			})
+		})
+	})
+}
+
+func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	col := ui.Column(c).Fill().BorderEndWidth(1).BorderColor(t.Border)
+	if !c.Vibrancy() {
+		col.Background(t.Surface)
+	}
+	col.Children(func() {
+		bar := c.TitleBar()
+		topPad := float32(16)
+		if bar.Bottom > 0 {
+			topPad = bar.Bottom + 10
+		}
+		ui.Row(c).Padding(topPad, 16, 10, 16).Gap(10).AlignItems(ui.Center).DragWindow().Children(func() {
+			ui.Image(c, brandLogoSVG).Width(24).Height(24)
+			ui.Text(c, msg.AppTitle()).Bold().FontSize(16)
+		})
+		navSection := m.section
+		if m.isTaskSection(navSection) {
+			navSection = "文件"
+		} else if navSection == "引导" {
+			navSection = "工具"
+		}
+		navIcon := func(id string, regular, filled *ui.SVG) *ui.SVG {
+			if navSection == id || (id == "准备" && navSection == "") {
+				return filled
+			}
+			return regular
+		}
+		chosenNav := navSection
+		sb := ui.Sidebar(c, &chosenNav, func() {
+			ui.SidebarItem(c, "准备", navIcon("准备", phHouse, phHouseFill), msg.NavHome()).Cursor(ui.CursorPointer)
+			ui.SidebarItem(c, "文件", navIcon("文件", phStack, phStackFill), msg.NavTask()).Cursor(ui.CursorPointer)
+			ui.SidebarItem(c, "设备", navIcon("设备", phDevice, phDeviceFill), msg.NavDevice()).Cursor(ui.CursorPointer)
+			ui.SidebarItem(c, "账号", navIcon("账号", phAccount, phAccountFill), msg.NavAccount()).Cursor(ui.CursorPointer)
+			ui.SidebarItem(c, "工具", navIcon("工具", phCompass, phCompassFill), msg.NavHelpTools()).Cursor(ui.CursorPointer)
+			ui.SidebarItem(c, "设置", navIcon("设置", phGear, phGearFill), msg.NavSettings()).Cursor(ui.CursorPointer)
+		}).Grow(1).FillWidth()
+		if sb.Changed() {
+			if chosenNav == "文件" && m.isTaskSection(m.lastTaskSection) {
+				m.section = m.lastTaskSection
+			} else {
+				m.section = chosenNav
+			}
+		}
+		if c.Vibrancy() {
+			sb.Background(ui.Transparent)
+		} else {
+			sb.Background(t.Surface)
+		}
+
+		// Bottom device pin
+		ui.Column(c).FillWidth().Padding(10, 12, 12, 12).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).Children(func() {
+			pinText := msg.SidebarDeviceSingle()
+			dotColor := t.TextMuted
+			if m.hasConnectedDevice() {
+				devName := msg.DeviceCardTitle()
+				if m.deviceInfo.Name != "" {
+					devName = m.deviceInfo.Name
+				}
+				conn := "USB"
+				if len(m.devices) > 0 && m.devices[0].ConnectionType != "" {
+					conn = m.devices[0].ConnectionType
+				}
+				pinText = msg.SidebarDeviceConnected(devName, conn)
+				dotColor = ui.Hex("#10B981")
+			}
+			pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).FillWidth().Padding(7, 10).Radius(8).
+				Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
+			pinBtn.Children(func() {
+				ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+					ui.Row(c).Width(7).Height(7).Radius(4).Background(dotColor)
+					ui.Text(c, pinText).FontSize(11).Bold().TextColor(t.Text).SingleLine().Grow(1)
+				})
+			})
+			if pinBtn.Clicked() {
+				m.section = "设备"
+			}
+		})
+	})
+}
+
+func (m *Model) workspace(c *ui.Context, msg locales.Messages, compact bool) {
+	switch m.section {
+	case "工具":
+		m.tools(c, msg)
+	case "引导":
+		m.guide(c, msg)
+	case "差异":
+		m.diffView(c, msg, compact)
+	case "交接":
+		m.transferView(c, msg, compact)
+	case "维护":
+		m.maintainView(c, msg, compact)
+	case "文件":
+		m.filesView(c, msg, compact)
+	case "设备":
+		m.deviceView(c, msg)
+	case "账号":
+		m.accountView(c, msg)
+	case "设置":
+		m.settingsView(c, msg)
+	default:
+		m.home(c, msg)
+	}
+}
+
+func (m *Model) home(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	ui.Column(c).FillWidth().Gap(4).Children(func() {
+		ui.Text(c, msg.HomeHeroTitle()).FontSize(28).Bold().Balance()
+		ui.Text(c, msg.HomeHeroSubtitle()).FontSize(13).TextColor(t.TextMuted)
+	})
+
+	m.deviceCard(c, msg)
+
+	ui.Column(c).FillWidth().Gap(6).AlignItems(ui.Center).Children(func() {
+		if primaryActionButton(c, "import", msg.HomeStartNew(), phImport).Clicked() {
+			m.pickIPA()
+		}
+		ui.Text(c, msg.HomeImportDragHint()).FontSize(11).TextColor(t.TextMuted)
+	})
+
+	// Continue active task card if any IPA is loaded
+	if file, ok := m.selectedArchive(); ok {
+		baseName := filepath.Base(file.path)
+		name := file.report.DisplayName
+		if name == "" {
+			name = baseName
+		}
+		stageLabel := m.currentStageSummary(msg)
+		ui.Row(c).FillWidth().Margin(2, 0, 0, 0).AlignItems(ui.Center).Children(func() {
+			ui.Text(c, msg.HomeContinueTask()).Bold().FontSize(14).TextColor(t.TextMuted).Grow(1)
+			if len(m.archives()) == 1 {
+				if uiBtn(c, "files", msg.SeeAll()).Clicked() {
+					m.goTaskSection("文件", 1)
+				}
+			}
+		})
+		insetGroup(c, "home-continue-group", func() {
+			row := groupRow(c, "home-continue-row", name, func() {
+				appIconBadge(c, file, 36)
+				ui.Column(c).Grow(1).Gap(2).Children(func() {
+					ui.Text(c, name).Bold().FontSize(14)
+					ui.Text(c, stageLabel).FontSize(12).TextColor(accentInk(t))
+				})
+			}, func() {
+				ui.Text(c, msg.GuideContinue()).FontSize(12).Bold().TextColor(accentInk(t))
+				ui.Icon(c, phCaretRight).Width(14).Height(14).TextColor(accentInk(t))
+			})
+			if row.Clicked() {
+				if m.isTaskSection(m.lastTaskSection) {
+					m.section = m.lastTaskSection
+				} else {
+					m.section = "文件"
+				}
+				m.narrowDetail = true
+			}
+		})
+	}
+
+	m.recentFiles(c, msg)
+
+	// Sideloaded apps maintenance entry when device apps are queried
+	if sideloaded := m.sideloadedApps(); len(sideloaded) > 0 {
+		ui.Row(c).FillWidth().Margin(4, 0, 0, 0).AlignItems(ui.Center).Children(func() {
+			ui.Text(c, msg.HomeSideloadedMaintain()).Bold().FontSize(14).TextColor(t.TextMuted).Grow(1)
+		})
+		insetGroup(c, "home-maintain-group", func() {
+			limit := len(sideloaded)
+			if limit > 3 {
+				limit = 3
+			}
+			for idx, a := range sideloaded[:limit] {
+				idx, a := idx, a
+				row := groupRow(c, fmt.Sprintf("home-maint-%d", idx), a.Name, func() {
+					ui.Row(c).Width(32).Height(32).Radius(8).Background(t.Selection).Center().Children(func() {
+						ui.Icon(c, phRefresh).Width(16).Height(16).TextColor(accentInk(t))
+					})
+					ui.Column(c).Grow(1).Gap(2).Children(func() {
+						ui.Text(c, valueOrUnknown(msg, a.Name)).Bold().FontSize(13)
+						monoText(c, a.BundleID+" · v"+valueOrUnknown(msg, a.Version)).FontSize(11).TextColor(t.TextMuted)
+					})
+				}, nil)
+				if row.Clicked() {
+					m.maintainApp = valueOrUnknown(msg, a.Name)
+					m.recoveryMode = false
+					m.goTaskSection("维护", 5)
+				}
+				if idx < limit-1 {
+					ui.Divider(c)
+				}
+			}
+		})
+	}
+
+	// Contextual help shortcut card
+	insetGroup(c, "home-help-group", func() {
+		row := groupRow(c, "home-open-help", msg.HomeHelpSummaryTitle(), func() {
+			ui.Icon(c, phQuestion).Width(20).Height(20).TextColor(accentInk(t))
+			ui.Column(c).Grow(1).Gap(2).Children(func() {
+				ui.Text(c, msg.HomeHelpSummaryTitle()).Bold().FontSize(14)
+				ui.Text(c, msg.HomeHelpSummaryDesc()).FontSize(12).TextColor(t.TextMuted)
+			})
+		}, func() {
+			ui.Text(c, msg.HomeOpenHelp()).FontSize(12).Bold().TextColor(accentInk(t))
+			ui.Icon(c, phCaretRight).Width(14).Height(14).TextColor(accentInk(t))
+		})
+		if row.Clicked() {
+			m.openHelp("")
+		}
+	})
+}
+
+func (m *Model) currentStageSummary(msg locales.Messages) string {
+	switch m.taskStage {
+	case 2:
+		return msg.TaskStage2()
+	case 3:
+		return msg.TaskStage3()
+	case 4:
+		if m.transferState == "done" {
+			return msg.HandoffStageBadgeTransferred()
+		}
+		if m.exportedPath != "" {
+			return msg.HandoffStageBadgeExported()
+		}
+		return msg.TaskStage4()
+	case 5:
+		return msg.TaskStage5()
+	default:
+		return msg.TaskStage1()
+	}
+}
+
+func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	connected := m.hasConnectedDevice()
+	targetDot := t.TextMuted
+	if connected {
+		targetDot = ui.Hex("#10B981")
+	} else if m.deviceErr != "" {
+		targetDot = ui.Hex("#EF4444")
+	}
+
+	card := ui.ButtonBase(c.Key("device-card")).FillWidth().Padding(16, 20).
+		Radius(14).Background(t.Surface).Label(msg.DeviceCardTitle()).
+		Cursor(ui.CursorPointer).Transition(colorTransition)
+	if t.Dark {
+		card.Border(1, t.Border).InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.06))
+	} else {
+		card.Shadow(0, 1, 4, 0, ui.RGBA(15, 23, 42, 0.05)).Border(1, t.Border.Alpha(0.85))
+	}
+	if card.Hovered() {
+		card.Background(t.SurfaceHover)
+	}
+	card.Children(func() {
+		ui.Row(c).FillWidth().Gap(16).AlignItems(ui.Center).Children(func() {
+			ui.Image(c, phoneBadgeSVG).Width(32).Height(54)
+			ui.Column(c).Grow(1).Gap(4).Children(func() {
+				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+					title := msg.DeviceCardTitle()
+					if connected && m.deviceInfo.Name != "" {
+						title = m.deviceInfo.Name
+					}
+					ui.Text(c, title).Bold().FontSize(16)
+					dot := ui.Row(c).Width(8).Height(8).Radius(4)
+					dot.Background(dot.AnimateColor("dev-dot", targetDot, ui.Animation{Duration: 240 * time.Millisecond, Oklab: true}))
+				})
+				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+					ui.Text(c.Key("device"), m.deviceStatusText(msg)).FontSize(13).TextColor(t.TextMuted)
+					ui.Text(c, "·").FontSize(12).TextColor(t.TextMuted)
+					ui.Text(c, m.sideStoreSummaryText(msg)).FontSize(12).TextColor(t.TextMuted)
+				})
+			})
+			pose := ui.Pose{}
+			if card.Hovered() {
+				pose = ui.Pose{X: 2}
+			}
+			ui.Icon(c, phCaretRight).Width(16).Height(16).TextColor(t.TextMuted).AnimatePose(pose, ui.Snappy)
+		})
+	})
+	if card.Clicked() {
+		m.section = "设备"
+	}
+}
+
+func (m *Model) recentFiles(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	files := m.archives()
+	if len(files) == 1 {
+		// Already shown in "Continue Current Task" right above; avoid repeating the exact same item.
+		return
+	}
+	ui.Row(c).FillWidth().Margin(4, 0, 0, 0).AlignItems(ui.Center).Children(func() {
+		ui.Text(c, msg.RecentFiles()).Bold().FontSize(14).TextColor(t.TextMuted).Grow(1)
+		if uiBtn(c, "files", msg.SeeAll()).Clicked() {
+			m.goTaskSection("文件", 1)
+		}
+	})
+	if len(files) == 0 {
+		insetGroup(c, "recent-empty-group", func() {
+			ui.Row(c).FillWidth().Padding(14, 16).Gap(10).AlignItems(ui.Center).Children(func() {
+				ui.Image(c, phPackageDuotone).Width(22).Height(22).TextColor(t.TextMuted)
+				ui.Text(c, msg.NoRecentFiles()).TextColor(t.TextMuted).FontSize(13)
+			})
+		})
+		return
+	}
+	limit := len(files)
+	if limit > 3 {
+		limit = 3
+	}
+	insetGroup(c, "recent-files-group", func() {
+		for i := 0; i < limit; i++ {
+			i, file := i, files[i]
+			baseName := filepath.Base(file.path)
+			name := file.report.DisplayName
+			if name == "" {
+				name = baseName
+			}
+			row := groupRow(c, fmt.Sprintf("recent-%d", i), name, func() {
+				appIconBadge(c, file, 36)
+				ui.Column(c).Grow(1).Gap(2).Children(func() {
+					ui.Text(c, name).Bold().FontSize(14)
+					sub := msg.LibraryFileInfo(baseName, valueOrUnknown(msg, file.report.Version))
+					if file.sizeBytes > 0 {
+						sub = sub + " · " + formatBytes(file.sizeBytes)
+					}
+					monoText(c, sub).FontSize(11).TextColor(t.TextMuted)
+				})
+			}, nil)
+			if row.Clicked() {
+				m.selectArchiveIndex(i)
+				m.goTaskSection("文件", 1)
+				m.narrowDetail = true
+			}
+			if i < limit-1 {
+				ui.Divider(c)
+			}
+		}
+	})
+}
+
+func (m *Model) choiceNote(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	if m.exporting {
+		ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+			ui.Spinner(c).Label(msg.DiffExporting())
+			ui.Text(c, msg.DiffExporting()).FontSize(12).TextColor(accentInk(t))
+		})
+		return
+	}
+	if m.exportErr != "" {
+		ui.Text(c.Key("export-err"), msg.DiffExportFailed(m.exportErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+		return
+	}
+	if m.exportMsg != "" {
+		ui.Column(c.Key("export-ok-box")).FillWidth().Padding(10, 12).Gap(8).Radius(10).
+			Background(t.Selection).Border(1, ui.Hex("#10B981")).Children(func() {
+			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+				ui.Icon(c, phCheckCircleFill).Width(16).Height(16).TextColor(ui.Hex("#10B981"))
+				ui.Text(c.Key("export-ok"), m.exportMsg).FontSize(12).TextColor(t.Text).Grow(1)
+			})
+			if m.exportedPath != "" {
+				if uiBtn(c, "export-handoff-now", msg.TransferAfterExportAction()).Clicked() {
+					m.goTaskSection("交接", 4)
+				}
+			}
+		})
+		return
+	}
+	if m.dialogNote == "" && m.saved == "" && len(m.chosen) == 0 {
+		return
+	}
+	text := m.dialogNote
+	switch {
+	case m.saved != "":
+		text = msg.DialogWillSaveTo(m.saved)
+	case len(m.chosen) > 0:
+		text = msg.DialogSelectedFiles(len(m.chosen))
+	}
+	ui.Text(c.Key("choice"), text).FontSize(12).TextColor(t.TextMuted)
+}
+
+func (m *Model) ime(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	ui.Text(c, msg.DiffDisplayName()).FontSize(12).TextColor(t.TextMuted)
+	field := ui.TextInput(c.Key("display-name"), &m.query).Placeholder(msg.DiffDisplayNamePlaceholder()).FillWidth().Label(msg.DiffDisplayName())
+	if field.Composing() {
+		ui.Text(c.Key("composition"), "…")
+	}
+}
+
+func (m *Model) risk(c *ui.Context, msg locales.Messages) {
+	open := true
+	ui.Modal(c.Key("risk-dialog"), &open, func() {
+		ui.Text(c, msg.RiskTitle()).Bold()
+		ui.Text(c, msg.RiskBody())
+		if uiPrimaryBtn(c, "risk-ok", msg.RiskAck()).Clicked() {
+			m.section = "准备"
+		}
+	})
+}
+
+func (m *Model) pickIPA() {
+	if m.win == nil {
+		m.dialogNote = m.msg(nil).DialogNoWindowOpen()
+		return
+	}
+	win := m.win
+	title := m.msg(nil).ImportIPA()
+	go func() {
+		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
+			Parent:   win,
+			Title:    title,
+			Filters:  []mygo.FileFilter{{Name: "iOS App", Extensions: []string{"ipa"}}},
+			Multiple: true,
+		})
+		win.Update(func() {
+			msg := m.msg(nil)
+			switch {
+			case err != nil:
+				m.dialogNote = msg.DialogOpenFailed(err.Error())
+				m.chosen = nil
+			case len(paths) == 0:
+				m.dialogNote = msg.DialogOpenCanceled()
+				m.chosen = nil
+			default:
+				m.dialogNote = ""
+				m.chosen = append([]string(nil), paths...)
+				m.inspectPathsAsync(paths)
+			}
+		})
+	}()
+}
+
+// SaveCopy asks where to write a new IPA. Cancel leaves the path empty.
+func (m *Model) SaveCopy() {
+	if m.win == nil {
+		m.dialogNote = m.msg(nil).DialogNoWindowSave()
+		return
+	}
+	win := m.win
+	msg := m.msg(nil)
+	defaultName := msg.DialogExportDefaultFilename()
+	if file, ok := m.selectedArchive(); ok {
+		base := filepath.Base(file.path)
+		ext := filepath.Ext(base)
+		stem := base[:len(base)-len(ext)]
+		if stem != "" {
+			defaultName = stem + "-koiside.ipa"
+		}
+	}
+	go func() {
+		path, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
+			Parent:      win,
+			Title:       msg.DiffExportBtn(),
+			DefaultPath: defaultName,
+			Filters:     []mygo.FileFilter{{Name: "iOS App", Extensions: []string{"ipa"}}},
+		})
+		win.Update(func() {
+			curMsg := m.msg(nil)
+			switch {
+			case err != nil:
+				m.dialogNote = curMsg.DialogSaveFailed(err.Error())
+				m.saved = ""
+			case path == "":
+				m.dialogNote = curMsg.DialogSaveCanceled()
+				m.saved = ""
+			default:
+				m.dialogNote = ""
+				m.saved = path
+				m.exportSelectedAsync(path)
+			}
+		})
+	}()
+}
+
+func accent(dark bool) string {
+	if dark {
+		return accentDark
+	}
+	return accentLight
+}

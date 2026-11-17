@@ -1,0 +1,36 @@
+# 本地产品、设计与开发记录
+/DESIGN.md
+/PRODUCT.md
+/AGENTS.local.md
+/docs/design/
+/docs/local/
+/.impeccable/
+
+# 本地构建产物
+/build/
+/dist/
+/bin/
+*.app/
+*.dmg
+*.test
+*.out
+coverage.*
+
+# 用户提供的应用包、签名材料与设备配对文件
+*.ipa
+*.mobileprovision
+*.p12
+*.p8
+*.cer
+!internal/signing/certs/*.cer
+*.key
+*pairing*.plist
+
+# 本机配置与临时文件
+.env
+.env.*
+!.env.example
+.DS_Store
+*.swp
+*.swo
+*~
