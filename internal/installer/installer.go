@@ -87,16 +87,16 @@ type Progress func(pct int, stage string)
 
 // InstallRequest configures direct desktop sign + USB install + optional pairing injection.
 type InstallRequest struct {
-	Target      ToolTarget
+	Target       ToolTarget
 	LocalIPAPath string // required for TargetCustomIPA, optional override otherwise
-	CacheDir    string
-	Device      device.Device
-	DeviceInfo  device.Info
-	Accounts    account.Manager
-	OnMaxCerts  devportal.MaxCertsHandler
-	OnProgress  Progress
-	HTTPClient  *http.Client
-	DeviceDial  device.Dialer
+	CacheDir     string
+	Device       device.Device
+	DeviceInfo   device.Info
+	Accounts     account.Manager
+	OnMaxCerts   devportal.MaxCertsHandler
+	OnProgress   Progress
+	HTTPClient   *http.Client
+	DeviceDial   device.Dialer
 }
 
 // InstallResult summarizes a completed direct install.
@@ -109,6 +109,7 @@ type InstallResult struct {
 	DeveloperModeEnabled bool
 	SignerTrusted        bool
 }
+
 // InstallDirect downloads the official IPA (if needed), signs it with the active Apple Developer
 // session, uploads & installs over USB, and injects pairing files when installing SideStore / LC+SS.
 func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, error) {
@@ -244,6 +245,30 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 
 	report(100, "complete")
 	return res, nil
+}
+
+// InstallStoreIPA installs a pre-signed / App Store SINF IPA directly over USB without re-signing.
+func InstallStoreIPA(_ context.Context, ipaPath string, dev device.Device, dial device.Dialer, onProgress Progress) error {
+	report := func(pct int, stage string) {
+		if onProgress != nil {
+			onProgress(pct, stage)
+		}
+	}
+	if strings.TrimSpace(ipaPath) == "" {
+		return errors.New("installer: IPA path is required")
+	}
+	if dev.ID == 0 || dev.UDID == "" {
+		return errors.New("installer: no connected iPhone selected")
+	}
+	report(5, "usb_install")
+	sess, err := device.DialSession(dial, dev.ID, dev.UDID)
+	if err != nil {
+		return err
+	}
+	defer sess.Close()
+	return sess.InstallIPAFile(ipaPath, device.InstallOptions{}, func(pct int, status string) {
+		report(pct, status)
+	})
 }
 
 // PlacePairingForDevice generates/reuses Lockdown + RPPairing files and writes them via house_arrest/AFC.

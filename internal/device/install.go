@@ -137,18 +137,100 @@ func (s *Session) InstallAppDir(appDir string, onProgress InstallProgress) error
 	return InstallStagedPackage(instConn, stageDir, onProgress)
 }
 
-// InstallStagedPackage sends the Install command to installation_proxy and streams progress until Complete.
-func InstallStagedPackage(conn io.ReadWriteCloser, packagePath string, onProgress InstallProgress) error {
+// InstallOptions configures installation_proxy ClientOptions for staged packages.
+type InstallOptions struct {
+	// PackageType overrides ClientOptions["PackageType"] (e.g. "Developer"). Empty omits it (standard for Store IPAs).
+	PackageType string
+}
+
+// InstallIPAFile streams a local .ipa file to PublicStaging/<name>.ipa via com.apple.afc
+// and installs it via com.apple.mobile.installation_proxy without re-signing.
+func (s *Session) InstallIPAFile(ipaPath string, opts InstallOptions, onProgress InstallProgress) error {
+	report := func(pct int, status string) {
+		if onProgress != nil {
+			onProgress(pct, status)
+		}
+	}
+	f, err := os.Open(ipaPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	st, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	total := st.Size()
+	if total <= 0 {
+		total = 1
+	}
+
+	report(5, "Connecting to AFC")
+	afcConn, err := s.StartService("com.apple.afc")
+	if err != nil {
+		return fmt.Errorf("device: start com.apple.afc: %w", err)
+	}
+	afc := NewAFC(afcConn)
+	_ = afc.Mkdir("PublicStaging")
+	stagePath := path.Join("PublicStaging", filepath.Base(ipaPath))
+
+	report(10, "Uploading IPA")
+	uploadErr := afc.WriteReader(stagePath, f, total, func(uploaded, tot int64) {
+		if tot <= 0 {
+			tot = 1
+		}
+		pct := 10 + int(float64(uploaded)*60.0/float64(tot))
+		if pct > 70 {
+			pct = 70
+		}
+		report(pct, "Uploading IPA")
+	})
+	_ = afc.Close()
+	if uploadErr != nil {
+		return fmt.Errorf("device: upload to %s: %w", stagePath, uploadErr)
+	}
+
+	defer func() {
+		if cleanConn, cErr := s.StartService("com.apple.afc"); cErr == nil {
+			cleanAFC := NewAFC(cleanConn)
+			_ = cleanAFC.Remove(stagePath)
+			_ = cleanAFC.Close()
+		}
+	}()
+
+	report(72, "Connecting to installation_proxy")
+	instConn, err := s.StartService("com.apple.mobile.installation_proxy")
+	if err != nil {
+		return fmt.Errorf("device: start installation_proxy: %w", err)
+	}
+	defer instConn.Close()
+
+	return InstallStagedPackageWithOptions(instConn, stagePath, opts, onProgress)
+}
+
+// InstallStagedPackageWithOptions sends Install to installation_proxy with configurable ClientOptions.
+func InstallStagedPackageWithOptions(conn io.ReadWriteCloser, packagePath string, opts InstallOptions, onProgress InstallProgress) error {
+	clientOpts := map[string]any{}
+	if opts.PackageType != "" {
+		clientOpts["PackageType"] = opts.PackageType
+	}
 	req := map[string]any{
-		"Command":     "Install",
-		"PackagePath": packagePath,
-		"ClientOptions": map[string]any{
-			"PackageType": "Developer",
-		},
+		"Command":       "Install",
+		"PackagePath":   packagePath,
+		"ClientOptions": clientOpts,
 	}
 	if err := writePlistFrame(conn, req); err != nil {
 		return err
 	}
+	return watchInstallProgress(conn, onProgress)
+}
+
+// InstallStagedPackage sends the Install command to installation_proxy and streams progress until Complete.
+func InstallStagedPackage(conn io.ReadWriteCloser, packagePath string, onProgress InstallProgress) error {
+	return InstallStagedPackageWithOptions(conn, packagePath, InstallOptions{PackageType: "Developer"}, onProgress)
+}
+
+func watchInstallProgress(conn io.ReadWriteCloser, onProgress InstallProgress) error {
 	for {
 		reply, err := readPlistFrame(conn)
 		if err != nil {

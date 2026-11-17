@@ -70,6 +70,23 @@ func TestInstallStagedPackageStreamsProgressAndHandlesErrors(t *testing.T) {
 	}
 }
 
+func TestInstallStagedPackageWithOptionsOmitsPackageTypeForStore(t *testing.T) {
+	var reply bytes.Buffer
+	reply.Write(encodePlistFrameBytes(map[string]any{"PercentComplete": int64(100), "Status": "Complete"}))
+
+	conn := &fakeInstallConn{reply: reply.Bytes()}
+	err := InstallStagedPackageWithOptions(conn, "PublicStaging/StoreApp.ipa", InstallOptions{}, nil)
+	if err != nil {
+		t.Fatalf("InstallStagedPackageWithOptions failed: %v", err)
+	}
+	if !bytes.Contains(conn.written, []byte("PublicStaging/StoreApp.ipa")) {
+		t.Fatal("Install command missing PackagePath")
+	}
+	if bytes.Contains(conn.written, []byte("PackageType")) {
+		t.Fatal("Store install should not force PackageType=Developer")
+	}
+}
+
 func TestRpPairingFileAndOpackAndDetectTargets(t *testing.T) {
 	rpf, err := GenerateRpPairingFile("koiside-test")
 	if err != nil {

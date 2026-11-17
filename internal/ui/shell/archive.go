@@ -98,7 +98,6 @@ func (m *Model) removeArchiveIndex(idx int) {
 	}
 }
 
-
 func (m *Model) inspect(path string) {
 	var sizeBytes int64
 	if info, err := os.Stat(path); err == nil {
@@ -565,6 +564,62 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 	}
 
 	if hasBlockedFairPlay(file.report) {
+		if file.report.HasSinf {
+			ui.Column(c.Key("store-sinf-ipa-card")).FillWidth().Padding(20, 22).Gap(12).
+				Radius(14).Background(t.Surface).Border(1, accentInk(t).Alpha(0.55)).Children(func() {
+				ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
+					appIconBadge(c, file, 44)
+					ui.Column(c).Grow(1).Gap(2).Children(func() {
+						ui.Text(c, valueOrUnknown(msg, file.report.DisplayName)).FontSize(17).Bold()
+						monoText(c, fmt.Sprintf("%s · v%s", valueOrUnknown(msg, file.report.BundleID), valueOrUnknown(msg, file.report.Version))).FontSize(12).TextColor(t.TextMuted)
+					})
+				})
+				ui.Row(c).FillWidth().Padding(10, 14).Gap(10).Radius(10).
+					Background(t.Selection).Border(1, ui.Hex("#10B981").Alpha(0.5)).AlignItems(ui.Center).Children(func() {
+					ui.Icon(c, phCheckCircleFill).Width(18).Height(18).TextColor(ui.Hex("#10B981"))
+					ui.Column(c).Grow(1).Gap(2).Children(func() {
+						ui.Text(c, msg.StoreSinfReadyTitle()).Bold().FontSize(13)
+						ui.Text(c, msg.StoreSinfReadyDesc()).FontSize(12).TextColor(t.TextMuted)
+					})
+				})
+				m.mu.Lock()
+				busy := m.directInstallOn
+				pct := m.directPct
+				stage := m.directStage
+				dErr := m.directErr
+				dMsg := m.directDoneMsg
+				m.mu.Unlock()
+				if busy {
+					ui.Progress(c, float64(pct)/100.0).FillWidth().Label(stage)
+					ui.Text(c, fmt.Sprintf("%d%% · %s", pct, stage)).FontSize(12).TextColor(accentInk(t))
+				}
+				if dErr != "" {
+					ui.Text(c, friendlyError(msg, dErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+				}
+				if dMsg != "" {
+					ui.Text(c, dMsg).FontSize(12).TextColor(ui.Hex("#10B981"))
+				}
+				ui.Row(c).Gap(10).Children(func() {
+					instBtn := uiPrimaryBtn(c, "store-sinf-usb-install", msg.StoreSinfDirectInstallBtn())
+					if busy {
+						instBtn.Disabled(true)
+					}
+					if instBtn.Clicked() {
+						m.directInstallStoreIPA(file.path, file.report.BundleID)
+					}
+					if uiBtn(c, "choose-another-ipa", msg.LibraryChooseAnother()).Clicked() {
+						m.pickIPA()
+					}
+					if uiBtn(c, "enc-view-details", msg.LibraryViewDetails()).Clicked() {
+						m.showEncDetails = !m.showEncDetails
+					}
+				})
+				if m.showEncDetails {
+					m.advancedDetailsBox(c, msg, file)
+				}
+			})
+			return
+		}
 		ui.Column(c.Key("encrypted-ipa-card")).FillWidth().Padding(24, 22).Gap(12).
 			AlignItems(ui.Center).Radius(14).Background(t.Surface).Border(1, ui.Hex("#F59E0B")).Children(func() {
 			ui.Image(c, phLockKeyDuotone).Width(56).Height(56).TextColor(ui.Hex("#F59E0B"))
@@ -771,7 +826,7 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 		}
 		badgeText, badgeBg, badgeFg := routeStatusBadge(id)
 		btn := ui.ButtonBase(c.Key("route-"+id)).FillWidth().Padding(14, 16).Background(bg).
-			Label(title).Description(badgeText+" · "+desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
+			Label(title).Description(badgeText + " · " + desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
 		btn.Children(func() {
 			ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 				dotBorder := t.Border

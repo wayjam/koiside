@@ -1,13 +1,19 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strings"
+
+	"golang.org/x/term"
+
+	"koiside/internal/appstore"
 )
 
 type stringSliceFlag []string
@@ -23,7 +29,7 @@ func (s *stringSliceFlag) Set(v string) error {
 // IsCommand reports whether arg[0] routes to the headless CLI/MCP instead of the GUI window.
 func IsCommand(arg string) bool {
 	switch arg {
-	case "ipa", "device", "transfer", "pairing", "install", "account", "mcp", "help", "-h", "--help", "version":
+	case "ipa", "device", "transfer", "pairing", "install", "account", "store", "mcp", "help", "-h", "--help", "version":
 		return true
 	default:
 		return false
@@ -55,8 +61,9 @@ func Run(ctx context.Context, args []string, deps Deps, stdout, stderr io.Writer
 		return runInstall(ctx, args[1:], deps, stdout, stderr)
 	case "account":
 		return runAccount(ctx, args[1:], deps, stdout, stderr)
+	case "store":
+		return runStore(ctx, args[1:], deps, stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "unknown command %q\n", args[0])
 		printUsage(stderr)
 		return ExitUsage
 	}
@@ -383,6 +390,238 @@ func runAccount(ctx context.Context, args []string, deps Deps, stdout, stderr io
 	}
 }
 
+func runStore(ctx context.Context, args []string, deps Deps, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		fmt.Fprintln(stderr, "usage: koiside store <login|status|switch|logout|search|versions|download|install> ...")
+		return ExitUsage
+	}
+	deps = deps.withDefaults()
+	sub, rest := args[0], args[1:]
+	switch sub {
+	case "status":
+		fs := flag.NewFlagSet("store status", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		asJSON := fs.Bool("json", false, "output JSON")
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		res, err := GetStoreStatus(ctx, deps)
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		if !res.SignedIn {
+			fmt.Fprintf(stdout, "App Store: not signed in (saved: %d)\n", len(res.Saved))
+			return ExitOK
+		}
+		fmt.Fprintf(stdout, "App Store: %s (%s / storefront=%s)\n", res.Email, res.CountryCode, res.StoreFront)
+		for _, s := range res.Saved {
+			fmt.Fprintf(stdout, "  %s (%s)\n", s.Email, s.CountryCode)
+		}
+		return ExitOK
+
+	case "login":
+		fs := flag.NewFlagSet("store login", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		email := fs.String("email", "", "Apple ID email")
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{"email": true})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if *email == "" && len(pos) > 0 {
+			*email = pos[0]
+		}
+		if strings.TrimSpace(*email) == "" {
+			fmt.Fprintln(stderr, "usage: koiside store login --email <apple_id> [--json]")
+			return ExitUsage
+		}
+		fmt.Fprint(stderr, "Apple ID password: ")
+		pwBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Fprintln(stderr)
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		reader := bufio.NewReader(os.Stdin)
+		err = deps.Accounts.SignInStore(ctx, *email, string(pwBytes), func(_ context.Context, em string) (string, error) {
+			fmt.Fprintf(stderr, "2FA verification code for %s: ", em)
+			line, rErr := reader.ReadString('\n')
+			if rErr != nil && len(line) == 0 {
+				return "", rErr
+			}
+			return strings.TrimSpace(line), nil
+		})
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		res, err := GetStoreStatus(ctx, deps)
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		fmt.Fprintf(stdout, "Signed in to App Store: %s (%s)\n", res.Email, res.CountryCode)
+		return ExitOK
+
+	case "switch":
+		fs := flag.NewFlagSet("store switch", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if len(pos) < 1 {
+			fmt.Fprintln(stderr, "usage: koiside store switch <email> [--json]")
+			return ExitUsage
+		}
+		_ = deps.Accounts.RestoreStoreSession(ctx)
+		if err := deps.Accounts.SwitchStoreAccount(pos[0]); err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		res, _ := GetStoreStatus(ctx, deps)
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		fmt.Fprintf(stdout, "Switched active App Store account to %s (%s)\n", res.Email, res.CountryCode)
+		return ExitOK
+
+	case "logout":
+		fs := flag.NewFlagSet("store logout", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		asJSON := fs.Bool("json", false, "output JSON")
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		deps.Accounts.SignOutStore()
+		if *asJSON {
+			return emitJSON(stdout, map[string]any{"signed_in": false})
+		}
+		fmt.Fprintln(stdout, "Signed out of App Store")
+		return ExitOK
+
+	case "search":
+		fs := flag.NewFlagSet("store search", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		country := fs.String("country", "", "App Store country code (e.g. US, JP, CN)")
+		entity := fs.String("entity", "software", "entity: software or iPadSoftware")
+		limit := fs.Int("limit", 15, "max results")
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{"country": true, "entity": true, "limit": true})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if len(pos) < 1 {
+			fmt.Fprintln(stderr, "usage: koiside store search <query> [--country US] [--limit 15] [--json]")
+			return ExitUsage
+		}
+		apps, err := SearchStoreApps(ctx, deps, strings.Join(pos, " "), *country, *entity, *limit)
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, apps)
+		}
+		for _, a := range apps {
+			fmt.Fprintf(stdout, "%d\t%s\t%s\tv%s\t%s\n", a.ID, a.BundleID, a.Name, a.Version, a.FormattedPrice)
+		}
+		return ExitOK
+
+	case "versions":
+		fs := flag.NewFlagSet("store versions", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		country := fs.String("country", "", "App Store country code")
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{"country": true})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if len(pos) < 1 {
+			fmt.Fprintln(stderr, "usage: koiside store versions <bundle_id|track_id> [--country US] [--json]")
+			return ExitUsage
+		}
+		res, err := ListStoreVersions(ctx, deps, pos[0], *country)
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		fmt.Fprintf(stdout, "%s (%s · v%s)\n", res.App.Name, res.App.BundleID, res.App.Version)
+		for _, v := range res.Versions {
+			fmt.Fprintln(stdout, " ", v)
+		}
+		return ExitOK
+
+	case "download":
+		fs := flag.NewFlagSet("store download", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		country := fs.String("country", "", "App Store country code")
+		ver := fs.String("version", "", "external version ID")
+		outPath := fs.String("o", "", "output IPA path")
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{"country": true, "version": true, "o": true})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if len(pos) < 1 {
+			fmt.Fprintln(stderr, "usage: koiside store download <bundle_id|track_id> [--version id] [-o out.ipa] [--json]")
+			return ExitUsage
+		}
+		res, err := DownloadStoreApp(ctx, deps, pos[0], *ver, *country, *outPath, false, func(p appstore.DownloadProgress) {
+			if !*asJSON && p.Total > 0 {
+				fmt.Fprintf(stderr, "\rDownloading: %d%% (%d / %d bytes)", p.Downloaded*100/p.Total, p.Downloaded, p.Total)
+			}
+		})
+		if !*asJSON {
+			fmt.Fprintln(stderr)
+		}
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		fmt.Fprintf(stdout, "Downloaded %s (%s) -> %s (%d bytes)\n", res.App.Name, res.App.BundleID, res.OutputPath, res.SizeBytes)
+		return ExitOK
+
+	case "install":
+		fs := flag.NewFlagSet("store install", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		country := fs.String("country", "", "App Store country code")
+		ver := fs.String("version", "", "external version ID")
+		asJSON := fs.Bool("json", false, "output JSON")
+		rest, pos := extractPositional(rest, map[string]bool{"country": true, "version": true})
+		if err := fs.Parse(rest); err != nil {
+			return ExitUsage
+		}
+		if len(pos) < 1 {
+			fmt.Fprintln(stderr, "usage: koiside store install <bundle_id|track_id|path.ipa> [--version id] [--json]")
+			return ExitUsage
+		}
+		res, err := InstallStoreApp(ctx, deps, pos[0], *ver, *country, false, func(pct int, stage string) {
+			if !*asJSON {
+				fmt.Fprintf(stderr, "[%3d%%] %s\n", pct, stage)
+			}
+		})
+		if err != nil {
+			return emitErr(*asJSON, err, stdout, stderr)
+		}
+		if *asJSON {
+			return emitJSON(stdout, res)
+		}
+		fmt.Fprintf(stdout, "Installed %s (%s)\nNext: %s\n", res.Name, res.BundleID, res.Next)
+		return ExitOK
+
+	default:
+		fmt.Fprintf(stderr, "unknown store subcommand %q\n", sub)
+		return ExitUsage
+	}
+}
+
 // extractPositional separates flags from positional arguments so flags like --json
 // can appear before or after positional arguments.
 func extractPositional(args []string, valueFlags map[string]bool) (flagArgs []string, pos []string) {
@@ -457,5 +696,6 @@ Usage:
   koiside transfer <ipa> [--to ...]     Transfer IPA via USB AFC (SHA-256 verified)
   koiside pairing place [--export ...]  Place or export RemotePairing/Lockdown files
   koiside install <target|ipa>          Desktop sign & USB install
-  koiside account status|certs|appids   Query restored Apple Developer account & quota`)
+  koiside account status|certs|appids   Query restored Apple Developer account & quota
+  koiside store <cmd>                   App Store login, search, download & USB install`)
 }

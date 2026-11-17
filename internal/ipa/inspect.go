@@ -55,6 +55,10 @@ func inspectReader(f *os.File) (Report, error) {
 	var iconPrefixes []string
 	for _, zf := range zr.File {
 		switch {
+		case strings.HasSuffix(zf.Name, ".sinf") && strings.Contains(zf.Name, "/SC_Info/"):
+			report.HasSinf = true
+		case zf.Name == "iTunesMetadata.plist":
+			report.HasStoreMeta = true
 		case strings.HasSuffix(zf.Name, ".dylib"):
 			report.Dylibs = append(report.Dylibs, zf.Name)
 		case isInfoPlist(zf.Name):

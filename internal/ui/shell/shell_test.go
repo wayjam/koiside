@@ -13,6 +13,7 @@ import (
 	"koiside/internal/account"
 	app "koiside/internal/app"
 	"koiside/internal/appleauth"
+	"koiside/internal/appstore"
 	"koiside/internal/device"
 	"koiside/internal/devportal"
 	"koiside/internal/ipa"
@@ -652,6 +653,19 @@ type fakeAccountManager struct {
 }
 
 func (f *fakeAccountManager) Store() account.StoreSession { return account.Unavailable{}.Store() }
+func (f *fakeAccountManager) SignInStore(context.Context, string, string, account.StoreCodeFunc) error {
+	return nil
+}
+func (f *fakeAccountManager) RestoreStoreSession(context.Context) error { return nil }
+func (f *fakeAccountManager) SignOutStore()                             {}
+func (f *fakeAccountManager) SwitchStoreAccount(string) error           { return nil }
+func (f *fakeAccountManager) ForgetStoreAccount(string) error           { return nil }
+func (f *fakeAccountManager) SavedStoreAccounts() []account.StoreAccountSummary {
+	return nil
+}
+func (f *fakeAccountManager) StoreClient() *appstore.Client { return appstore.NewClient() }
+func (f *fakeAccountManager) UpdateStoreCookies(string, []appstore.Cookie) {
+}
 func (f *fakeAccountManager) Developer() account.DeveloperSession {
 	return fakeDevSess{f: f}
 }
@@ -676,28 +690,30 @@ func (f *fakeAccountManager) SignInSavedDeveloper(ctx context.Context, email str
 	return f.SignInDeveloper(ctx, email, "pw", false, on2FA)
 }
 func (f *fakeAccountManager) RestoreDeveloperSession(context.Context) error { return nil }
-func (f *fakeAccountManager) SignOutDeveloper()               { f.signedIn = false }
-func (f *fakeAccountManager) ForgetSavedAccount(string) error { return nil }
-func (f *fakeAccountManager) SavedAccounts() []string         { return f.saved }
+func (f *fakeAccountManager) SignOutDeveloper()                             { f.signedIn = false }
+func (f *fakeAccountManager) ForgetSavedAccount(string) error               { return nil }
+func (f *fakeAccountManager) SavedAccounts() []string                       { return f.saved }
 func (f *fakeAccountManager) AnisetteURL() string {
 	if f.anisetteURL == "" {
 		return appleauth.DefaultAnisetteV3URL
 	}
 	return f.anisetteURL
 }
-func (f *fakeAccountManager) SetAnisetteURL(u string)               { f.anisetteURL = u }
+func (f *fakeAccountManager) SetAnisetteURL(u string)                  { f.anisetteURL = u }
 func (f *fakeAccountManager) ResetAnisetteState(context.Context) error { return nil }
-func (f *fakeAccountManager) Storage() appleauth.Storage            { return appleauth.NewMemoryStorage() }
+func (f *fakeAccountManager) Storage() appleauth.Storage               { return appleauth.NewMemoryStorage() }
 func (f *fakeAccountManager) DeveloperPortal() (*devportal.Session, error) {
 	return nil, context.Canceled
 }
 
 type fakeDevSess struct{ f *fakeAccountManager }
 
-func (s fakeDevSess) SignedIn() bool          { return s.f.signedIn }
-func (s fakeDevSess) Email() string           { return s.f.email }
-func (s fakeDevSess) FullName() string        { return s.f.fullName }
-func (s fakeDevSess) Teams() []devportal.Team { return []devportal.Team{{TeamID: "T1", Name: "Ada", Type: "Individual"}} }
+func (s fakeDevSess) SignedIn() bool   { return s.f.signedIn }
+func (s fakeDevSess) Email() string    { return s.f.email }
+func (s fakeDevSess) FullName() string { return s.f.fullName }
+func (s fakeDevSess) Teams() []devportal.Team {
+	return []devportal.Team{{TeamID: "T1", Name: "Ada", Type: "Individual"}}
+}
 func (s fakeDevSess) ActiveTeam() (devportal.Team, bool) {
 	return devportal.Team{TeamID: "T1", Name: "Ada", Type: "Individual"}, true
 }
@@ -1098,5 +1114,36 @@ func TestSidebarCollapseToIconRailAndResponsiveBreakpoints(t *testing.T) {
 	tt.SetSize(800, 600)
 	if !tt.HasText("按此路线继续") || !tt.HasText("PiliPlus") {
 		t.Fatalf("medium window stage 2 missing content: %q", tt.Texts())
+	}
+}
+
+func TestStoreViewAndSinfWorkbenchDirectInstall(t *testing.T) {
+	m, tt := newTest(t, false)
+	if err := tt.Click("商店"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("App Store 获取") || !tt.HasText("尚未登录 App Store 账号") {
+		t.Fatalf("expected store view text, got %q", tt.Texts())
+	}
+
+	m.mu.Lock()
+	m.files = []archiveState{{
+		path:  "/tmp/WeChat.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "WeChat",
+			BundleID:    "com.tencent.xin",
+			Version:     "8.0.50",
+			HasSinf:     true,
+			Findings:    []ipa.Finding{{Code: "fairplay", Severity: ipa.Block}},
+		},
+	}}
+	m.selected = 0
+	m.section = "文件"
+	m.taskStage = 1
+	m.mu.Unlock()
+	tt.Frame()
+	if !tt.HasText("已包含 App Store 授权 (SINF)") || !tt.HasText("直接通过 USB 安装正版包") {
+		t.Fatalf("expected Store SINF direct install option in workbench, got %q", tt.Texts())
 	}
 }

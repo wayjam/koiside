@@ -266,8 +266,9 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 			ui.Text(c, msg.AccountStoreBoundaryNote()).FontSize(11).TextColor(t.TextMuted)
 		})
 	})
-}
 
+	m.storeAccountSection(c, msg)
+}
 
 func (m *Model) accountReturnOverlay(c *ui.Context, msg locales.Messages, compact bool) {
 	m.mu.Lock()
@@ -488,6 +489,37 @@ func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 			m.submitMaxCertsResponse(nil)
 		}
 	}
+
+	m.mu.Lock()
+	store2FAEmail := m.store2FAEmail
+	store2FACh := m.store2FARespCh
+	m.mu.Unlock()
+	if store2FAEmail != "" && store2FACh != nil {
+		open := true
+		ui.Modal(c.Key("store-two-factor-modal"), &open, func() {
+			ui.Column(c).Width(360).Gap(12).Children(func() {
+				ui.Text(c, msg.Store2FATitle()).Bold().FontSize(16)
+				ui.Text(c, msg.Store2FADesc(store2FAEmail)).FontSize(12).TextColor(t.TextMuted)
+				ui.TextInput(c.Key("store-tfa-code-input"), &m.store2FACode).
+					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().Label(msg.Store2FATitle())
+				ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
+					if uiBtn(c, "store-tfa-cancel", msg.LibraryCancel()).Clicked() {
+						m.submitStore2FACode("")
+					}
+					submit := uiPrimaryBtn(c, "store-tfa-submit", msg.Account2FASubmit())
+					if strings.TrimSpace(m.store2FACode) == "" {
+						submit.Disabled(true)
+					}
+					if submit.Clicked() {
+						m.submitStore2FACode(strings.TrimSpace(m.store2FACode))
+					}
+				})
+			})
+		})
+		if !open {
+			m.submitStore2FACode("")
+		}
+	}
 }
 
 func (m *Model) submit2FAResponse(resp appleauth.TwoFactorResponse) {
@@ -683,6 +715,173 @@ func (m *Model) revokePortalCert(serial string) {
 		} else {
 			m.addLog("revoked dev certificate: " + serial)
 			m.loadPortalCertsAndQuota()
+		}
+		if m.win != nil {
+			mygo.RunOnMain(func() { m.win.Invalidate() })
+		}
+	}()
+}
+
+func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	mgr := m.services.Accounts
+	storeSess := mgr.Store()
+	savedStore := mgr.SavedStoreAccounts()
+
+	ui.Column(c).FillWidth().Gap(4).Margin(8, 0, 0, 0).Children(func() {
+		ui.Text(c, msg.StoreAccountSectionTitle()).Bold().FontSize(16)
+		ui.Text(c, msg.StoreAccountSectionDesc()).FontSize(12).TextColor(t.TextMuted)
+	})
+
+	if storeSess.SignedIn() {
+		insetGroup(c, "store-account-signedin", func() {
+			ui.Row(c).FillWidth().Padding(14, 18).Gap(12).AlignItems(ui.Center).Children(func() {
+				ui.Icon(c, phAccountFill).Width(24).Height(24).TextColor(accentInk(t))
+				ui.Column(c).Grow(1).Gap(2).Children(func() {
+					ui.Text(c, msg.StoreAccountSignedIn(storeSess.Email())).Bold().FontSize(14)
+					country := storeSess.CountryCode()
+					if country == "" {
+						country = "—"
+					}
+					monoText(c, msg.StoreAccountRegion(country, storeSess.StoreFront())).FontSize(11).TextColor(accentInk(t))
+				})
+				if uiBtn(c, "store-account-signout", msg.StoreAccountSignOutBtn()).Clicked() {
+					mgr.SignOutStore()
+					m.addLog("store account signed out")
+				}
+			})
+		})
+	}
+
+	if len(savedStore) > 0 {
+		insetGroup(c, "store-saved-accounts", func() {
+			for idx, item := range savedStore {
+				item := item
+				if idx > 0 {
+					ui.Divider(c)
+				}
+				isActive := storeSess.SignedIn() && strings.EqualFold(storeSess.Email(), item.Email)
+				ui.Row(c.Key(fmt.Sprintf("store-saved-%d", idx))).FillWidth().Padding(10, 18).Gap(10).AlignItems(ui.Center).Children(func() {
+					ui.Icon(c, phAccount).Width(18).Height(18).TextColor(accentInk(t))
+					ui.Column(c).Grow(1).Gap(2).Children(func() {
+						monoText(c, item.Email).FontSize(12).Bold()
+						cc := item.CountryCode
+						if cc == "" {
+							cc = item.StoreFront
+						}
+						monoText(c, msg.StoreAccountRegion(cc, item.StoreFront)).FontSize(11).TextColor(t.TextMuted)
+					})
+					if isActive {
+						ui.Row(c).Padding(2, 8).Radius(6).Background(t.Selection).Children(func() {
+							ui.Text(c, msg.StoreAccountActiveBadge()).FontSize(11).Bold().TextColor(accentInk(t))
+						})
+					} else if uiBtn(c, fmt.Sprintf("store-switch-%d", idx), msg.StoreAccountSwitchBtn()).Clicked() {
+						_ = mgr.SwitchStoreAccount(item.Email)
+					}
+					if uiBtn(c, fmt.Sprintf("store-forget-%d", idx), msg.StoreAccountForgetBtn()).Clicked() {
+						_ = mgr.ForgetStoreAccount(item.Email)
+					}
+				})
+			}
+		})
+	}
+
+	surfaceCard(c, "store-signin-card").Padding(16, 18).Gap(10).Children(func() {
+		ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(14)
+		ui.TextInput(c.Key("store-email-input"), &m.storeLoginEmail).
+			Placeholder(msg.AccountEmailPlaceholder()).FillWidth().Label(msg.AccountEmailLabel())
+		ui.TextInput(c.Key("store-password-input"), &m.storeLoginPass).
+			Password().Placeholder(msg.AccountPasswordPlaceholder()).FillWidth().Label(msg.AccountPasswordLabel())
+
+		m.mu.Lock()
+		busy := m.storeLoginBusy
+		sErr := m.storeLoginErr
+		m.mu.Unlock()
+		if sErr != "" {
+			ui.Text(c.Key("store-login-err"), friendlyError(msg, sErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+		}
+
+		ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
+			btn := uiPrimaryBtn(c, "store-signin-btn", msg.StoreAccountSignInBtn())
+			if busy || strings.TrimSpace(m.storeLoginEmail) == "" || m.storeLoginPass == "" {
+				btn.Disabled(true)
+			}
+			if btn.Clicked() {
+				m.startStoreLogin(m.storeLoginEmail, m.storeLoginPass)
+			}
+			if busy {
+				ui.Spinner(c).Label(msg.StoreAccountSigningIn())
+				ui.Text(c, msg.StoreAccountSigningIn()).FontSize(12).TextColor(accentInk(t))
+			}
+		})
+	})
+}
+
+func (m *Model) submitStore2FACode(code string) {
+	m.mu.Lock()
+	ch := m.store2FARespCh
+	m.store2FAEmail = ""
+	m.store2FARespCh = nil
+	m.store2FACode = ""
+	m.mu.Unlock()
+	if ch != nil {
+		select {
+		case ch <- code:
+		default:
+		}
+	}
+}
+
+func (m *Model) promptStore2FA(ctx context.Context, email string) (string, error) {
+	ch := make(chan string, 1)
+	m.mu.Lock()
+	m.store2FAEmail = email
+	m.store2FARespCh = ch
+	m.store2FACode = ""
+	m.mu.Unlock()
+	if m.win != nil {
+		mygo.RunOnMain(func() { m.win.Invalidate() })
+	}
+	select {
+	case code := <-ch:
+		if strings.TrimSpace(code) == "" {
+			return "", context.Canceled
+		}
+		return code, nil
+	case <-ctx.Done():
+		m.submitStore2FACode("")
+		return "", ctx.Err()
+	}
+}
+
+func (m *Model) startStoreLogin(email, password string) {
+	m.mu.Lock()
+	if m.storeLoginBusy {
+		m.mu.Unlock()
+		return
+	}
+	m.storeLoginBusy = true
+	m.storeLoginErr = ""
+	m.mu.Unlock()
+	if m.win != nil {
+		m.win.Invalidate()
+	}
+
+	go func() {
+		err := m.services.Accounts.SignInStore(context.Background(), email, password, m.promptStore2FA)
+		m.mu.Lock()
+		m.storeLoginBusy = false
+		if err != nil {
+			m.storeLoginErr = err.Error()
+		} else {
+			m.storeLoginErr = ""
+			m.storeLoginPass = ""
+		}
+		m.mu.Unlock()
+		if err != nil {
+			m.addLog("store sign-in failed: " + err.Error())
+		} else {
+			m.addLog("store signed in: " + email)
 		}
 		if m.win != nil {
 			mygo.RunOnMain(func() { m.win.Invalidate() })

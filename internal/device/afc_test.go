@@ -21,6 +21,24 @@ func TestWriteAtomicVerifiesBytes(t *testing.T) {
 	}
 }
 
+func TestWriteReaderStreamsAllBytes(t *testing.T) {
+	conn := &afcConn{}
+	payload := bytes.Repeat([]byte("A"), 600*1024)
+	var seen []int64
+	err := NewAFC(conn).WriteReader("PublicStaging/test.ipa", bytes.NewReader(payload), int64(len(payload)), func(up, tot int64) {
+		seen = append(seen, up)
+		if tot != int64(len(payload)) {
+			t.Fatalf("unexpected total %d", tot)
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(seen) < 2 || seen[len(seen)-1] != int64(len(payload)) {
+		t.Fatalf("unexpected progress sequence: %v", seen)
+	}
+}
+
 func TestWriteAtomicUsesRename0x18AndCleansUpOnError(t *testing.T) {
 	conn := &afcConn{}
 	transfer, err := NewAFC(conn).WriteAtomic("/Documents/existing.ipa", []byte("ipa"))

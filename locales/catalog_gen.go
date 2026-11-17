@@ -5139,3 +5139,375 @@ func ToolsManageOnDeviceBtn() string { return In(i18n.Locale()).ToolsManageOnDev
 func (msgs Messages) ToolsManageOnDeviceBtn() string {
 	return Catalog.Format(msgs.locale, "toolsManageOnDeviceBtn", nil)
 }
+
+// NavStore says "商店"
+// in the language the app shows.
+func NavStore() string { return In(i18n.Locale()).NavStore() }
+
+// NavStore says "商店"
+// in the language of msgs.
+func (msgs Messages) NavStore() string {
+	return Catalog.Format(msgs.locale, "navStore", nil)
+}
+
+// StoreTitle says "App Store 获取"
+// in the language the app shows.
+func StoreTitle() string { return In(i18n.Locale()).StoreTitle() }
+
+// StoreTitle says "App Store 获取"
+// in the language of msgs.
+func (msgs Messages) StoreTitle() string {
+	return Catalog.Format(msgs.locale, "storeTitle", nil)
+}
+
+// StoreSubtitle says "跨区搜索、查看历史版本并下载 SINF 授权 IPA，直接通过 USB 安装到 iPhone。"
+// in the language the app shows.
+func StoreSubtitle() string { return In(i18n.Locale()).StoreSubtitle() }
+
+// StoreSubtitle says "跨区搜索、查看历史版本并下载 SINF 授权 IPA，直接通过 USB 安装到 iPhone。"
+// in the language of msgs.
+func (msgs Messages) StoreSubtitle() string {
+	return Catalog.Format(msgs.locale, "storeSubtitle", nil)
+}
+
+// StoreAccountSectionTitle says "App Store 账号（下包与跨区）"
+// in the language the app shows.
+func StoreAccountSectionTitle() string { return In(i18n.Locale()).StoreAccountSectionTitle() }
+
+// StoreAccountSectionTitle says "App Store 账号（下包与跨区）"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSectionTitle() string {
+	return Catalog.Format(msgs.locale, "storeAccountSectionTitle", nil)
+}
+
+// StoreAccountSectionDesc says "用于搜索、获取免费授权和下载历史版本，与上方开发者签名账号完全独立。"
+// in the language the app shows.
+func StoreAccountSectionDesc() string { return In(i18n.Locale()).StoreAccountSectionDesc() }
+
+// StoreAccountSectionDesc says "用于搜索、获取免费授权和下载历史版本，与上方开发者签名账号完全独立。"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSectionDesc() string {
+	return Catalog.Format(msgs.locale, "storeAccountSectionDesc", nil)
+}
+
+// StoreAccountSignedIn says "当前商店账号：{email}"
+// in the language the app shows.
+func StoreAccountSignedIn(email string) string { return In(i18n.Locale()).StoreAccountSignedIn(email) }
+
+// StoreAccountSignedIn says "当前商店账号：{email}"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSignedIn(email string) string {
+	return Catalog.Format(msgs.locale, "storeAccountSignedIn", map[string]any{"email": email})
+}
+
+// StoreAccountRegion says "地区：{country}（Storefront: {storefront}）"
+// in the language the app shows.
+func StoreAccountRegion(country string, storefront string) string {
+	return In(i18n.Locale()).StoreAccountRegion(country, storefront)
+}
+
+// StoreAccountRegion says "地区：{country}（Storefront: {storefront}）"
+// in the language of msgs.
+func (msgs Messages) StoreAccountRegion(country string, storefront string) string {
+	return Catalog.Format(msgs.locale, "storeAccountRegion", map[string]any{"country": country, "storefront": storefront})
+}
+
+// StoreAccountSwitchBtn says "切换为此账号"
+// in the language the app shows.
+func StoreAccountSwitchBtn() string { return In(i18n.Locale()).StoreAccountSwitchBtn() }
+
+// StoreAccountSwitchBtn says "切换为此账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSwitchBtn() string {
+	return Catalog.Format(msgs.locale, "storeAccountSwitchBtn", nil)
+}
+
+// StoreAccountActiveBadge says "当前使用"
+// in the language the app shows.
+func StoreAccountActiveBadge() string { return In(i18n.Locale()).StoreAccountActiveBadge() }
+
+// StoreAccountActiveBadge says "当前使用"
+// in the language of msgs.
+func (msgs Messages) StoreAccountActiveBadge() string {
+	return Catalog.Format(msgs.locale, "storeAccountActiveBadge", nil)
+}
+
+// StoreAccountSignOutBtn says "退出商店账号"
+// in the language the app shows.
+func StoreAccountSignOutBtn() string { return In(i18n.Locale()).StoreAccountSignOutBtn() }
+
+// StoreAccountSignOutBtn says "退出商店账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSignOutBtn() string {
+	return Catalog.Format(msgs.locale, "storeAccountSignOutBtn", nil)
+}
+
+// StoreAccountForgetBtn says "移除"
+// in the language the app shows.
+func StoreAccountForgetBtn() string { return In(i18n.Locale()).StoreAccountForgetBtn() }
+
+// StoreAccountForgetBtn says "移除"
+// in the language of msgs.
+func (msgs Messages) StoreAccountForgetBtn() string {
+	return Catalog.Format(msgs.locale, "storeAccountForgetBtn", nil)
+}
+
+// StoreAccountSignInTitle says "登录 App Store 账号"
+// in the language the app shows.
+func StoreAccountSignInTitle() string { return In(i18n.Locale()).StoreAccountSignInTitle() }
+
+// StoreAccountSignInTitle says "登录 App Store 账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSignInTitle() string {
+	return Catalog.Format(msgs.locale, "storeAccountSignInTitle", nil)
+}
+
+// StoreAccountSignInBtn says "登录商店账号"
+// in the language the app shows.
+func StoreAccountSignInBtn() string { return In(i18n.Locale()).StoreAccountSignInBtn() }
+
+// StoreAccountSignInBtn says "登录商店账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSignInBtn() string {
+	return Catalog.Format(msgs.locale, "storeAccountSignInBtn", nil)
+}
+
+// StoreAccountSigningIn says "正在通过 SAP 握手登录…"
+// in the language the app shows.
+func StoreAccountSigningIn() string { return In(i18n.Locale()).StoreAccountSigningIn() }
+
+// StoreAccountSigningIn says "正在通过 SAP 握手登录…"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSigningIn() string {
+	return Catalog.Format(msgs.locale, "storeAccountSigningIn", nil)
+}
+
+// StoreAccountNeedTitle says "尚未登录 App Store 账号"
+// in the language the app shows.
+func StoreAccountNeedTitle() string { return In(i18n.Locale()).StoreAccountNeedTitle() }
+
+// StoreAccountNeedTitle says "尚未登录 App Store 账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountNeedTitle() string {
+	return Catalog.Format(msgs.locale, "storeAccountNeedTitle", nil)
+}
+
+// StoreAccountNeedDesc says "搜索应用不需要登录；获取历史版本列表与下载 IPA 需先登录对应地区的 Apple ID。"
+// in the language the app shows.
+func StoreAccountNeedDesc() string { return In(i18n.Locale()).StoreAccountNeedDesc() }
+
+// StoreAccountNeedDesc says "搜索应用不需要登录；获取历史版本列表与下载 IPA 需先登录对应地区的 Apple ID。"
+// in the language of msgs.
+func (msgs Messages) StoreAccountNeedDesc() string {
+	return Catalog.Format(msgs.locale, "storeAccountNeedDesc", nil)
+}
+
+// StoreAccountOpenBtn says "前往登录商店账号"
+// in the language the app shows.
+func StoreAccountOpenBtn() string { return In(i18n.Locale()).StoreAccountOpenBtn() }
+
+// StoreAccountOpenBtn says "前往登录商店账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountOpenBtn() string {
+	return Catalog.Format(msgs.locale, "storeAccountOpenBtn", nil)
+}
+
+// Store2FATitle says "App Store 双重认证"
+// in the language the app shows.
+func Store2FATitle() string { return In(i18n.Locale()).Store2FATitle() }
+
+// Store2FATitle says "App Store 双重认证"
+// in the language of msgs.
+func (msgs Messages) Store2FATitle() string {
+	return Catalog.Format(msgs.locale, "store2FATitle", nil)
+}
+
+// Store2FADesc says "请输入发送到受信任设备或手机的 6 位验证码（{email}）。"
+// in the language the app shows.
+func Store2FADesc(email string) string { return In(i18n.Locale()).Store2FADesc(email) }
+
+// Store2FADesc says "请输入发送到受信任设备或手机的 6 位验证码（{email}）。"
+// in the language of msgs.
+func (msgs Messages) Store2FADesc(email string) string {
+	return Catalog.Format(msgs.locale, "store2FADesc", map[string]any{"email": email})
+}
+
+// StoreSearchPlaceholder says "输入应用名称或关键词…"
+// in the language the app shows.
+func StoreSearchPlaceholder() string { return In(i18n.Locale()).StoreSearchPlaceholder() }
+
+// StoreSearchPlaceholder says "输入应用名称或关键词…"
+// in the language of msgs.
+func (msgs Messages) StoreSearchPlaceholder() string {
+	return Catalog.Format(msgs.locale, "storeSearchPlaceholder", nil)
+}
+
+// StoreCountryLabel says "商店地区"
+// in the language the app shows.
+func StoreCountryLabel() string { return In(i18n.Locale()).StoreCountryLabel() }
+
+// StoreCountryLabel says "商店地区"
+// in the language of msgs.
+func (msgs Messages) StoreCountryLabel() string {
+	return Catalog.Format(msgs.locale, "storeCountryLabel", nil)
+}
+
+// StoreSearchBtn says "搜索"
+// in the language the app shows.
+func StoreSearchBtn() string { return In(i18n.Locale()).StoreSearchBtn() }
+
+// StoreSearchBtn says "搜索"
+// in the language of msgs.
+func (msgs Messages) StoreSearchBtn() string {
+	return Catalog.Format(msgs.locale, "storeSearchBtn", nil)
+}
+
+// StoreSearching says "正在搜索 App Store…"
+// in the language the app shows.
+func StoreSearching() string { return In(i18n.Locale()).StoreSearching() }
+
+// StoreSearching says "正在搜索 App Store…"
+// in the language of msgs.
+func (msgs Messages) StoreSearching() string {
+	return Catalog.Format(msgs.locale, "storeSearching", nil)
+}
+
+// StoreSearchEmpty says "输入关键词搜索 App Store 应用，例如 WeChat、Telegram、Bilibili。"
+// in the language the app shows.
+func StoreSearchEmpty() string { return In(i18n.Locale()).StoreSearchEmpty() }
+
+// StoreSearchEmpty says "输入关键词搜索 App Store 应用，例如 WeChat、Telegram、Bilibili。"
+// in the language of msgs.
+func (msgs Messages) StoreSearchEmpty() string {
+	return Catalog.Format(msgs.locale, "storeSearchEmpty", nil)
+}
+
+// StoreNoResults says "未找到匹配的应用，可切换地区后重试。"
+// in the language the app shows.
+func StoreNoResults() string { return In(i18n.Locale()).StoreNoResults() }
+
+// StoreNoResults says "未找到匹配的应用，可切换地区后重试。"
+// in the language of msgs.
+func (msgs Messages) StoreNoResults() string {
+	return Catalog.Format(msgs.locale, "storeNoResults", nil)
+}
+
+// StoreVersionsBtn says "历史版本"
+// in the language the app shows.
+func StoreVersionsBtn() string { return In(i18n.Locale()).StoreVersionsBtn() }
+
+// StoreVersionsBtn says "历史版本"
+// in the language of msgs.
+func (msgs Messages) StoreVersionsBtn() string {
+	return Catalog.Format(msgs.locale, "storeVersionsBtn", nil)
+}
+
+// StoreVersionsLoading says "正在查询历史版本…"
+// in the language the app shows.
+func StoreVersionsLoading() string { return In(i18n.Locale()).StoreVersionsLoading() }
+
+// StoreVersionsLoading says "正在查询历史版本…"
+// in the language of msgs.
+func (msgs Messages) StoreVersionsLoading() string {
+	return Catalog.Format(msgs.locale, "storeVersionsLoading", nil)
+}
+
+// StoreVersionLatest says "最新版本"
+// in the language the app shows.
+func StoreVersionLatest() string { return In(i18n.Locale()).StoreVersionLatest() }
+
+// StoreVersionLatest says "最新版本"
+// in the language of msgs.
+func (msgs Messages) StoreVersionLatest() string {
+	return Catalog.Format(msgs.locale, "storeVersionLatest", nil)
+}
+
+// StoreDownloadBtn says "下载 IPA"
+// in the language the app shows.
+func StoreDownloadBtn() string { return In(i18n.Locale()).StoreDownloadBtn() }
+
+// StoreDownloadBtn says "下载 IPA"
+// in the language of msgs.
+func (msgs Messages) StoreDownloadBtn() string {
+	return Catalog.Format(msgs.locale, "storeDownloadBtn", nil)
+}
+
+// StoreDownloadInstallBtn says "下载并装入 iPhone"
+// in the language the app shows.
+func StoreDownloadInstallBtn() string { return In(i18n.Locale()).StoreDownloadInstallBtn() }
+
+// StoreDownloadInstallBtn says "下载并装入 iPhone"
+// in the language of msgs.
+func (msgs Messages) StoreDownloadInstallBtn() string {
+	return Catalog.Format(msgs.locale, "storeDownloadInstallBtn", nil)
+}
+
+// StoreDownloading says "正在获取授权并下载 ({pct}%)…"
+// in the language the app shows.
+func StoreDownloading(pct int) string { return In(i18n.Locale()).StoreDownloading(pct) }
+
+// StoreDownloading says "正在获取授权并下载 ({pct}%)…"
+// in the language of msgs.
+func (msgs Messages) StoreDownloading(pct int) string {
+	return Catalog.Format(msgs.locale, "storeDownloading", map[string]any{"pct": pct})
+}
+
+// StoreDownloadDone says "已生成授权 IPA：{path}"
+// in the language the app shows.
+func StoreDownloadDone(path string) string { return In(i18n.Locale()).StoreDownloadDone(path) }
+
+// StoreDownloadDone says "已生成授权 IPA：{path}"
+// in the language of msgs.
+func (msgs Messages) StoreDownloadDone(path string) string {
+	return Catalog.Format(msgs.locale, "storeDownloadDone", map[string]any{"path": path})
+}
+
+// StoreInstallDone says "已通过 USB 安装正版应用：{bundleID}"
+// in the language the app shows.
+func StoreInstallDone(bundleID string) string { return In(i18n.Locale()).StoreInstallDone(bundleID) }
+
+// StoreInstallDone says "已通过 USB 安装正版应用：{bundleID}"
+// in the language of msgs.
+func (msgs Messages) StoreInstallDone(bundleID string) string {
+	return Catalog.Format(msgs.locale, "storeInstallDone", map[string]any{"bundleID": bundleID})
+}
+
+// StoreInspectBtn says "在 IPA 工作台打开"
+// in the language the app shows.
+func StoreInspectBtn() string { return In(i18n.Locale()).StoreInspectBtn() }
+
+// StoreInspectBtn says "在 IPA 工作台打开"
+// in the language of msgs.
+func (msgs Messages) StoreInspectBtn() string {
+	return Catalog.Format(msgs.locale, "storeInspectBtn", nil)
+}
+
+// StoreSinfReadyTitle says "已包含 App Store 授权 (SINF)"
+// in the language the app shows.
+func StoreSinfReadyTitle() string { return In(i18n.Locale()).StoreSinfReadyTitle() }
+
+// StoreSinfReadyTitle says "已包含 App Store 授权 (SINF)"
+// in the language of msgs.
+func (msgs Messages) StoreSinfReadyTitle() string {
+	return Catalog.Format(msgs.locale, "storeSinfReadyTitle", nil)
+}
+
+// StoreSinfReadyDesc says "该 IPA 主二进制受 FairPlay 保护，不可改包名或用个人免费证书重签，但可直接通过 USB …"
+// in the language the app shows.
+func StoreSinfReadyDesc() string { return In(i18n.Locale()).StoreSinfReadyDesc() }
+
+// StoreSinfReadyDesc says "该 IPA 主二进制受 FairPlay 保护，不可改包名或用个人免费证书重签，但可直接通过 USB …"
+// in the language of msgs.
+func (msgs Messages) StoreSinfReadyDesc() string {
+	return Catalog.Format(msgs.locale, "storeSinfReadyDesc", nil)
+}
+
+// StoreSinfDirectInstallBtn says "直接通过 USB 安装正版包"
+// in the language the app shows.
+func StoreSinfDirectInstallBtn() string { return In(i18n.Locale()).StoreSinfDirectInstallBtn() }
+
+// StoreSinfDirectInstallBtn says "直接通过 USB 安装正版包"
+// in the language of msgs.
+func (msgs Messages) StoreSinfDirectInstallBtn() string {
+	return Catalog.Format(msgs.locale, "storeSinfDirectInstallBtn", nil)
+}

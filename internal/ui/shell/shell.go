@@ -1,33 +1,36 @@
 // Package shell is the phase-one native window.
 // It calls application services and owns no IPA or device protocol.
 package shell
-import (
 
+import (
 	"context"
 	"fmt"
+	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
-	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui"
 
 	app "koiside/internal/app"
 	"koiside/internal/appleauth"
+	"koiside/internal/appstore"
 	"koiside/internal/device"
 	"koiside/internal/devportal"
 	"koiside/internal/installer"
 	"koiside/locales"
 )
+
 const (
-	accentLight = "#1769D2"
+	accentLight  = "#1769D2"
 	accentDark   = "#64A8FF"
 	narrowWidth  = 720
 	mediumWidth  = 920
 	sidebarFullW = 216
 	sidebarIconW = 64
 )
+
 // Model is the window state. Tests drive it without opening a window.
 type Model struct {
 	services app.Services
@@ -88,76 +91,99 @@ type Model struct {
 	exportedPath string
 	exportCancel context.CancelFunc
 
-	files         []archiveState
-	devices       []device.Device
-	deviceInfo    device.Info
-	deviceInfoErr string
-	deviceErr     string
-	deviceApps    []device.InstalledApp
-	appsQueried   bool
-	sideStoreApp      *device.InstalledApp
-	sideStoreEmbedded bool
-	vpnApp            *device.InstalledApp
-	lcApp             *device.InstalledApp
+	files              []archiveState
+	devices            []device.Device
+	deviceInfo         device.Info
+	deviceInfoErr      string
+	deviceErr          string
+	deviceApps         []device.InstalledApp
+	appsQueried        bool
+	sideStoreApp       *device.InstalledApp
+	sideStoreEmbedded  bool
+	vpnApp             *device.InstalledApp
+	lcApp              *device.InstalledApp
 	lcApps             []device.LiveContainerApp
 	latestSideStoreLog *device.SideStoreLogSummary
 	sideStoreDocs      []string
 	sideStoreTree      []device.DocEntry
 	docsBundleID       string
-	docDeleting    string
-	docDeleteMsg   string
-	docDeleteErr   string
-	usbVerified    bool
-	devModeKnown   bool
-	devModeEnabled bool
-	devModeMsg     string
-	devModeErr     string
-	deviceProbing  bool
-	sessionErr     error
-	transfer       string
-	transferState  string
-	transferErr    string
-	transferring   bool
-	transferrer   Transferrer
+	docDeleting        string
+	docDeleteMsg       string
+	docDeleteErr       string
+	usbVerified        bool
+	devModeKnown       bool
+	devModeEnabled     bool
+	devModeMsg         string
+	devModeErr         string
+	deviceProbing      bool
+	sessionErr         error
+	transfer           string
+	transferState      string
+	transferErr        string
+	transferring       bool
+	transferrer        Transferrer
 
-	loginEmail        string
-	loginPassword     string
-	loginRemember     bool
-	loginBusy         bool
-	loginErr          string
-	anisetteInput     string
-	anisetteNotice    string
-	twoFactorPrompt   *appleauth.TwoFactorPrompt
-	twoFactorRespCh   chan appleauth.TwoFactorResponse
-	twoFactorCode     string
-	maxCertsList      []devportal.DevelopmentCertificate
-	maxCertsRespCh    chan []string
-	maxCertsSelected  map[string]bool
-	portalCerts       []devportal.DevelopmentCertificate
-	portalCertsLoaded bool
-	portalCertErr     string
-	portalQuotaKnown  bool
-	portalAppIDsAvail int64
-	portalAppIDsMax   int64
-	portalAppIDs      []devportal.AppID
-	appIDDeleting     string
-	certsLoading      bool
-	returnTarget      *accountReturnContext
+	loginEmail         string
+	loginPassword      string
+	loginRemember      bool
+	loginBusy          bool
+	loginErr           string
+	anisetteInput      string
+	anisetteNotice     string
+	twoFactorPrompt    *appleauth.TwoFactorPrompt
+	twoFactorRespCh    chan appleauth.TwoFactorResponse
+	twoFactorCode      string
+	maxCertsList       []devportal.DevelopmentCertificate
+	maxCertsRespCh     chan []string
+	maxCertsSelected   map[string]bool
+	portalCerts        []devportal.DevelopmentCertificate
+	portalCertsLoaded  bool
+	portalCertErr      string
+	portalQuotaKnown   bool
+	portalAppIDsAvail  int64
+	portalAppIDsMax    int64
+	portalAppIDs       []devportal.AppID
+	appIDDeleting      string
+	certsLoading       bool
+	returnTarget       *accountReturnContext
 	pendingToolInstall installer.ToolTarget
 	pendingRevokeCert  *devportal.DevelopmentCertificate
-	toolInstalling  bool
-	toolInstallPct  int
-	toolInstallMsg  string
-	toolInstallErr  string
-	toolInstallDone bool
-	pairingBusy     bool
-	pairingMsg      string
-	pairingErr      string
-	directInstallOn bool
-	directPct       int
-	directStage     string
-	directErr       string
-	directDoneMsg   string
+	toolInstalling     bool
+	toolInstallPct     int
+	toolInstallMsg     string
+	toolInstallErr     string
+	toolInstallDone    bool
+	pairingBusy        bool
+	pairingMsg         string
+	pairingErr         string
+	directInstallOn    bool
+	directPct          int
+	directStage        string
+	directErr          string
+	directDoneMsg      string
+
+	storeLoginEmail    string
+	storeLoginPass     string
+	storeLoginBusy     bool
+	storeLoginErr      string
+	store2FAEmail      string
+	store2FACode       string
+	store2FARespCh     chan string
+	storeQuery         string
+	storeCountry       string
+	storeSearching     bool
+	storeSearchErr     string
+	storeResults       []appstore.Software
+	storeSelected      int
+	storeVersionsBusy  bool
+	storeVersionsErr   string
+	storeVersions      []string
+	storeSelectedVer   string
+	storeDownloadBusy  bool
+	storeDownloadPct   int
+	storeDownloadErr   string
+	storeDownloadMsg   string
+	storeDownloadedIPA string
 
 	logs []string
 	mu   sync.Mutex
@@ -435,6 +461,7 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 				}{
 					{"准备", msg.NavHome()},
 					{"文件", msg.NavTask()},
+					{"商店", msg.NavStore()},
 					{"设备", msg.NavDevice()},
 					{"账号", msg.NavAccount()},
 					{"工具", msg.NavHelpTools()},
@@ -538,6 +565,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				}{
 					{"准备", phHouse, phHouseFill, msg.NavHome()},
 					{"文件", phStack, phStackFill, msg.NavTask()},
+					{"商店", phImport, phImport, msg.NavStore()},
 					{"设备", phDevice, phDeviceFill, msg.NavDevice()},
 					{"账号", phAccount, phAccountFill, msg.NavAccount()},
 					{"工具", phCompass, phCompassFill, msg.NavHelpTools()},
@@ -545,7 +573,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				}
 				for _, it := range items {
 					active := navSection == it.id || (it.id == "准备" && navSection == "")
-					btn := ui.ButtonBase(c.Key("sb-icon-"+it.id)).Width(42).Height(36).Radius(8).
+					btn := ui.ButtonBase(c.Key("sb-icon-" + it.id)).Width(42).Height(36).Radius(8).
 						Center().Label(it.label).Cursor(ui.CursorPointer).Transition(colorTransition)
 					if active {
 						btn.Background(t.Selection)
@@ -573,6 +601,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			sb := ui.Sidebar(c, &chosenNav, func() {
 				ui.SidebarItem(c, "准备", navIcon("准备", phHouse, phHouseFill), msg.NavHome()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
 				ui.SidebarItem(c, "文件", navIcon("文件", phStack, phStackFill), msg.NavTask()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "商店", navIcon("商店", phImport, phImport), msg.NavStore()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
 				ui.SidebarItem(c, "设备", navIcon("设备", phDevice, phDeviceFill), msg.NavDevice()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
 				ui.SidebarItem(c, "账号", navIcon("账号", phAccount, phAccountFill), msg.NavAccount()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
 				ui.SidebarItem(c, "工具", navIcon("工具", phCompass, phCompassFill), msg.NavHelpTools()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
@@ -646,6 +675,8 @@ func (m *Model) workspace(c *ui.Context, msg locales.Messages, compact bool) {
 		m.maintainView(c, msg, compact)
 	case "文件":
 		m.filesView(c, msg, compact)
+	case "商店":
+		m.storeView(c, msg)
 	case "设备":
 		m.deviceView(c, msg)
 	case "账号":
@@ -801,7 +832,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 	}
 	card := ui.ButtonBase(c.Key("device-card")).FillWidth().Padding(16, 20).
 		Radius(14).Background(t.Surface).
-		Label(cardTitle+" · "+m.deviceStatusText(msg)+" · "+m.sideStoreSummaryText(msg)).
+		Label(cardTitle + " · " + m.deviceStatusText(msg) + " · " + m.sideStoreSummaryText(msg)).
 		Cursor(ui.CursorPointer).Transition(colorTransition)
 	if t.Dark {
 		card.Border(1, t.Border).InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.06))

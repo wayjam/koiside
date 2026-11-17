@@ -83,7 +83,6 @@ func (m *Model) findInstalledLCApp(bundleID string) (device.LiveContainerApp, bo
 	return device.LiveContainerApp{}, false
 }
 
-
 // RefreshDevices runs a read-only usbmuxd/lockdown/installation_proxy probe asynchronously.
 func (m *Model) RefreshDevices() {
 	m.detectDevices()
@@ -1647,6 +1646,59 @@ func (m *Model) directInstallSelected() {
 		} else {
 			m.directPct = 100
 			m.directDoneMsg = curMsg.ToolInstallSucceeded(res.BundleID)
+		}
+		m.mu.Unlock()
+		if err == nil {
+			m.detectDevices()
+		}
+		if m.win != nil {
+			mygo.RunOnMain(func() { m.win.Invalidate() })
+		}
+	}()
+}
+
+func (m *Model) directInstallStoreIPA(ipaPath, bundleID string) {
+	msg := m.msg(nil)
+	if !m.hasConnectedDevice() {
+		m.mu.Lock()
+		m.directErr = msg.ToolInstallNeedDevice()
+		m.mu.Unlock()
+		return
+	}
+	m.mu.Lock()
+	if m.directInstallOn {
+		m.mu.Unlock()
+		return
+	}
+	dev := m.devices[0]
+	m.directInstallOn = true
+	m.directPct = 5
+	m.directStage = "usb_install"
+	m.directErr = ""
+	m.directDoneMsg = ""
+	m.mu.Unlock()
+
+	go func() {
+		err := installer.InstallStoreIPA(context.Background(), ipaPath, dev, nil, func(pct int, stage string) {
+			m.mu.Lock()
+			m.directPct = pct
+			m.directStage = stage
+			m.mu.Unlock()
+			if m.win != nil {
+				mygo.RunOnMain(func() { m.win.Invalidate() })
+			}
+		})
+		curMsg := m.msg(nil)
+		m.mu.Lock()
+		m.directInstallOn = false
+		if err != nil {
+			m.directErr = err.Error()
+		} else {
+			m.directPct = 100
+			if bundleID == "" {
+				bundleID = filepath.Base(ipaPath)
+			}
+			m.directDoneMsg = curMsg.StoreInstallDone(bundleID)
 		}
 		m.mu.Unlock()
 		if err == nil {

@@ -58,6 +58,7 @@ func main() {
 		model.StartDeviceWatch(watchCtx)
 		go func() {
 			_ = services.Accounts.RestoreDeveloperSession(context.Background())
+			_ = services.Accounts.RestoreStoreSession(context.Background())
 			mygo.RunOnMain(func() { win.Invalidate() })
 		}()
 		var openPaths []string

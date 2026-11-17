@@ -245,6 +245,40 @@ func (a *AFC) fileClose(handle uint64) error {
 	return err
 }
 
+// WriteReader streams r to remotePath in 512 KB chunks without buffering the entire file in memory.
+func (a *AFC) WriteReader(remotePath string, r io.Reader, totalSize int64, onProgress func(uploaded, total int64)) error {
+	handle, err := a.fileOpen(remotePath, afcModeWriteOnly)
+	if err != nil {
+		return err
+	}
+	defer a.fileClose(handle)
+
+	req := make([]byte, 8)
+	binary.LittleEndian.PutUint64(req, handle)
+	const chunk = 512 * 1024
+	buf := make([]byte, chunk)
+	var uploaded int64
+	for {
+		n, readErr := io.ReadFull(r, buf)
+		if n > 0 {
+			if _, _, err := a.roundTrip(afcOpFileWrite, req, buf[:n]); err != nil {
+				return err
+			}
+			uploaded += int64(n)
+			if onProgress != nil {
+				onProgress(uploaded, totalSize)
+			}
+		}
+		if readErr == io.EOF || readErr == io.ErrUnexpectedEOF {
+			break
+		}
+		if readErr != nil {
+			return readErr
+		}
+	}
+	return nil
+}
+
 func (a *AFC) writeFile(remotePath string, body []byte) error {
 	handle, err := a.fileOpen(remotePath, afcModeWriteOnly)
 	if err != nil {

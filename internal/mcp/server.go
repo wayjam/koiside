@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koiside/internal/appstore"
+	"koiside/internal/cli"
 	"strings"
 	"sync"
-
-	"koiside/internal/cli"
 )
 
 const protocolVersion = "2025-03-26"
@@ -275,6 +275,62 @@ func (s *Server) callTool(ctx context.Context, name string, rawArgs json.RawMess
 	case "get_account_quota":
 		return cli.GetAccountStatus(ctx, s.deps, true)
 
+	case "store_status":
+		return cli.GetStoreStatus(ctx, s.deps)
+
+	case "store_search":
+		var a struct {
+			Query   string `json:"query"`
+			Country string `json:"country"`
+			Entity  string `json:"entity"`
+			Limit   int    `json:"limit"`
+		}
+		if err := json.Unmarshal(rawArgs, &a); err != nil {
+			return nil, err
+		}
+		return cli.SearchStoreApps(ctx, s.deps, a.Query, a.Country, a.Entity, a.Limit)
+
+	case "store_versions":
+		var a struct {
+			Target  string `json:"target"`
+			Country string `json:"country"`
+		}
+		if err := json.Unmarshal(rawArgs, &a); err != nil {
+			return nil, err
+		}
+		return cli.ListStoreVersions(ctx, s.deps, a.Target, a.Country)
+
+	case "store_download":
+		var a struct {
+			Target     string `json:"target"`
+			VersionID  string `json:"version_id"`
+			Country    string `json:"country"`
+			OutputPath string `json:"output_path"`
+		}
+		if err := json.Unmarshal(rawArgs, &a); err != nil {
+			return nil, err
+		}
+		return cli.DownloadStoreApp(ctx, s.deps, a.Target, a.VersionID, a.Country, a.OutputPath, false, func(p appstore.DownloadProgress) {
+			if errOut != nil && p.Total > 0 {
+				_, _ = fmt.Fprintf(errOut, "[koiside-mcp] store_download %d%%\n", p.Downloaded*100/p.Total)
+			}
+		})
+
+	case "store_install":
+		var a struct {
+			Target    string `json:"target"`
+			VersionID string `json:"version_id"`
+			Country   string `json:"country"`
+		}
+		if err := json.Unmarshal(rawArgs, &a); err != nil {
+			return nil, err
+		}
+		return cli.InstallStoreApp(ctx, s.deps, a.Target, a.VersionID, a.Country, false, func(pct int, stage string) {
+			if errOut != nil {
+				_, _ = fmt.Fprintf(errOut, "[koiside-mcp] store_install %d%%: %s\n", pct, stage)
+			}
+		})
+
 	default:
 		return nil, fmt.Errorf("unknown tool %q", name)
 	}
@@ -389,6 +445,72 @@ func toolCatalog() []map[string]any {
 			"inputSchema": map[string]any{
 				"type":       "object",
 				"properties": map[string]any{},
+			},
+		},
+		{
+			"name":        "store_status",
+			"description": "Inspect active and saved App Store accounts restored from macOS Keychain (regions, storefronts, pods).",
+			"annotations": map[string]any{"readOnlyHint": true},
+			"inputSchema": map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
+		{
+			"name":        "store_search",
+			"description": "Search the App Store catalog across countries/regions (no sign-in required).",
+			"annotations": map[string]any{"readOnlyHint": true},
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"query":   map[string]any{"type": "string", "description": "App name or keywords."},
+					"country": map[string]any{"type": "string", "description": "ISO country code (e.g. US, CN, JP)."},
+					"entity":  map[string]any{"type": "string", "description": "Optional iTunes entity (software or iPadSoftware)."},
+					"limit":   map[string]any{"type": "integer", "description": "Max results (default 25)."},
+				},
+				"required": []string{"query"},
+			},
+		},
+		{
+			"name":        "store_versions",
+			"description": "List available historical App Store external version IDs for a Bundle ID or track ID using the restored Store session.",
+			"annotations": map[string]any{"readOnlyHint": true},
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"target":  map[string]any{"type": "string", "description": "Bundle ID or numeric App Store track ID."},
+					"country": map[string]any{"type": "string", "description": "Optional ISO country override."},
+				},
+				"required": []string{"target"},
+			},
+		},
+		{
+			"name":        "store_download",
+			"description": "Acquire a free App Store license (if needed), download the IPA, and inject SINF + iTunesMetadata.plist.",
+			"annotations": map[string]any{"readOnlyHint": false, "destructiveHint": false},
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"target":      map[string]any{"type": "string", "description": "Bundle ID or numeric App Store track ID."},
+					"version_id":  map[string]any{"type": "string", "description": "Optional historical external version ID."},
+					"country":     map[string]any{"type": "string", "description": "Optional ISO country override."},
+					"output_path": map[string]any{"type": "string", "description": "Optional local destination .ipa path."},
+				},
+				"required": []string{"target"},
+			},
+		},
+		{
+			"name":        "store_install",
+			"description": "Install a SINF-licensed App Store .ipa path or download from App Store and install directly over USB without re-signing.",
+			"annotations": map[string]any{"readOnlyHint": false, "destructiveHint": true},
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"target":     map[string]any{"type": "string", "description": "Local SINF .ipa path, Bundle ID, or track ID."},
+					"version_id": map[string]any{"type": "string", "description": "Optional historical external version ID."},
+					"country":    map[string]any{"type": "string", "description": "Optional ISO country override."},
+				},
+				"required": []string{"target"},
 			},
 		},
 	}

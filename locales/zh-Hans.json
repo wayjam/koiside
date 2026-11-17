@@ -765,5 +765,63 @@
   "errFriendlyNetwork": "连接 Apple 或 Anisette 服务超时/失败，请检查网络后重试。",
   "errFriendlyMaxCerts": "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。",
   "errFriendlyMaxAppIDs": "免费个人团队 7 天内最多注册 10 个 App ID，请等待旧名额到期释放。",
-  "toolsManageOnDeviceBtn": "前往「设备」安装或管理"
+  "toolsManageOnDeviceBtn": "前往「设备」安装或管理",
+  "navStore": "商店",
+  "storeTitle": "App Store 获取",
+  "storeSubtitle": "跨区搜索、查看历史版本并下载 SINF 授权 IPA，直接通过 USB 安装到 iPhone。",
+  "storeAccountSectionTitle": "App Store 账号（下包与跨区）",
+  "storeAccountSectionDesc": "用于搜索、获取免费授权和下载历史版本，与上方开发者签名账号完全独立。",
+  "storeAccountSignedIn": "当前商店账号：{email}",
+  "@storeAccountSignedIn": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "storeAccountRegion": "地区：{country}（Storefront: {storefront}）",
+  "@storeAccountRegion": {
+    "placeholders": {
+      "country": { "type": "String" },
+      "storefront": { "type": "String" }
+    }
+  },
+  "storeAccountSwitchBtn": "切换为此账号",
+  "storeAccountActiveBadge": "当前使用",
+  "storeAccountSignOutBtn": "退出商店账号",
+  "storeAccountForgetBtn": "移除",
+  "storeAccountSignInTitle": "登录 App Store 账号",
+  "storeAccountSignInBtn": "登录商店账号",
+  "storeAccountSigningIn": "正在通过 SAP 握手登录…",
+  "storeAccountNeedTitle": "尚未登录 App Store 账号",
+  "storeAccountNeedDesc": "搜索应用不需要登录；获取历史版本列表与下载 IPA 需先登录对应地区的 Apple ID。",
+  "storeAccountOpenBtn": "前往登录商店账号",
+  "store2FATitle": "App Store 双重认证",
+  "store2FADesc": "请输入发送到受信任设备或手机的 6 位验证码（{email}）。",
+  "@store2FADesc": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "storeSearchPlaceholder": "输入应用名称或关键词…",
+  "storeCountryLabel": "商店地区",
+  "storeSearchBtn": "搜索",
+  "storeSearching": "正在搜索 App Store…",
+  "storeSearchEmpty": "输入关键词搜索 App Store 应用，例如 WeChat、Telegram、Bilibili。",
+  "storeNoResults": "未找到匹配的应用，可切换地区后重试。",
+  "storeVersionsBtn": "历史版本",
+  "storeVersionsLoading": "正在查询历史版本…",
+  "storeVersionLatest": "最新版本",
+  "storeDownloadBtn": "下载 IPA",
+  "storeDownloadInstallBtn": "下载并装入 iPhone",
+  "storeDownloading": "正在获取授权并下载 ({pct}%)…",
+  "@storeDownloading": {
+    "placeholders": { "pct": { "type": "int" } }
+  },
+  "storeDownloadDone": "已生成授权 IPA：{path}",
+  "@storeDownloadDone": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "storeInstallDone": "已通过 USB 安装正版应用：{bundleID}",
+  "@storeInstallDone": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "storeInspectBtn": "在 IPA 工作台打开",
+  "storeSinfReadyTitle": "已包含 App Store 授权 (SINF)",
+  "storeSinfReadyDesc": "该 IPA 主二进制受 FairPlay 保护，不可改包名或用个人免费证书重签，但可直接通过 USB 原样安装到拥有对应账号授权的 iPhone。",
+  "storeSinfDirectInstallBtn": "直接通过 USB 安装正版包"
 }

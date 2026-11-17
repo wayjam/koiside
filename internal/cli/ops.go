@@ -75,17 +75,19 @@ func (d Deps) withDefaults() Deps {
 
 // IPAReportResult wraps ipa.Report without raw PNG bytes so agent responses stay compact.
 type IPAReportResult struct {
-	Path        string          `json:"path"`
-	SHA256      string          `json:"sha256"`
-	BundleID    string          `json:"bundle_id"`
-	DisplayName string          `json:"display_name"`
-	Version     string          `json:"version"`
-	Build       string          `json:"build,omitempty"`
-	HasIcon     bool            `json:"has_icon"`
-	Components  []ipa.Component `json:"components"`
-	MachOs      []ipa.MachO     `json:"machos"`
-	Dylibs      []string        `json:"dylibs,omitempty"`
-	Findings    []ipa.Finding   `json:"findings,omitempty"`
+	Path         string          `json:"path"`
+	SHA256       string          `json:"sha256"`
+	BundleID     string          `json:"bundle_id"`
+	DisplayName  string          `json:"display_name"`
+	Version      string          `json:"version"`
+	Build        string          `json:"build,omitempty"`
+	HasIcon      bool            `json:"has_icon"`
+	Components   []ipa.Component `json:"components"`
+	MachOs       []ipa.MachO     `json:"machos"`
+	Dylibs       []string        `json:"dylibs,omitempty"`
+	Findings     []ipa.Finding   `json:"findings,omitempty"`
+	HasSinf      bool            `json:"has_sinf,omitempty"`
+	HasStoreMeta bool            `json:"has_store_meta,omitempty"`
 }
 
 func InspectIPA(path string) (IPAReportResult, error) {
@@ -97,17 +99,19 @@ func InspectIPA(path string) (IPAReportResult, error) {
 		return IPAReportResult{}, err
 	}
 	return IPAReportResult{
-		Path:        path,
-		SHA256:      rep.SHA256,
-		BundleID:    rep.BundleID,
-		DisplayName: rep.DisplayName,
-		Version:     rep.Version,
-		Build:       rep.Build,
-		HasIcon:     len(rep.IconPNG) > 0,
-		Components:  rep.Components,
-		MachOs:      rep.MachOs,
-		Dylibs:      rep.Dylibs,
-		Findings:    rep.Findings,
+		Path:         path,
+		SHA256:       rep.SHA256,
+		BundleID:     rep.BundleID,
+		DisplayName:  rep.DisplayName,
+		Version:      rep.Version,
+		Build:        rep.Build,
+		HasIcon:      len(rep.IconPNG) > 0,
+		Components:   rep.Components,
+		MachOs:       rep.MachOs,
+		Dylibs:       rep.Dylibs,
+		Findings:     rep.Findings,
+		HasSinf:      rep.HasSinf,
+		HasStoreMeta: rep.HasStoreMeta,
 	}, nil
 }
 
@@ -122,9 +126,9 @@ type PrepareIPARequest struct {
 }
 
 type PrepareIPAResult struct {
-	PreviewOnly bool        `json:"preview_only"`
-	InputPath   string      `json:"input_path"`
-	Diff        ipa.Diff    `json:"diff"`
+	PreviewOnly bool         `json:"preview_only"`
+	InputPath   string       `json:"input_path"`
+	Diff        ipa.Diff     `json:"diff"`
 	Exported    *task.Record `json:"exported,omitempty"`
 }
 
@@ -543,18 +547,18 @@ type CertSummary struct {
 }
 
 type AccountQuotaResult struct {
-	SignedIn          bool              `json:"signed_in"`
-	Email             string            `json:"email,omitempty"`
-	FullName          string            `json:"full_name,omitempty"`
-	AnisetteURL       string            `json:"anisette_url"`
-	SavedAccounts     []string          `json:"saved_accounts,omitempty"`
-	Team              *devportal.Team   `json:"team,omitempty"`
-	TeamKind          string            `json:"team_kind,omitempty"`
-	QuotaKnown        bool              `json:"quota_known"`
-	AppIDsAvailable   int64             `json:"app_ids_available"`
-	AppIDsMax         int64             `json:"app_ids_max"`
-	Certificates      []CertSummary     `json:"certificates,omitempty"`
-	AppIDs            []devportal.AppID `json:"app_ids,omitempty"`
+	SignedIn        bool              `json:"signed_in"`
+	Email           string            `json:"email,omitempty"`
+	FullName        string            `json:"full_name,omitempty"`
+	AnisetteURL     string            `json:"anisette_url"`
+	SavedAccounts   []string          `json:"saved_accounts,omitempty"`
+	Team            *devportal.Team   `json:"team,omitempty"`
+	TeamKind        string            `json:"team_kind,omitempty"`
+	QuotaKnown      bool              `json:"quota_known"`
+	AppIDsAvailable int64             `json:"app_ids_available"`
+	AppIDsMax       int64             `json:"app_ids_max"`
+	Certificates    []CertSummary     `json:"certificates,omitempty"`
+	AppIDs          []devportal.AppID `json:"app_ids,omitempty"`
 }
 
 func GetAccountStatus(ctx context.Context, d Deps, includePortal bool) (AccountQuotaResult, error) {

@@ -47,6 +47,7 @@ func TestMCPInitializeListAndToolsCall(t *testing.T) {
 		`{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"inspect_ipa","arguments":{"path":` + mustJSON(ipaPath) + `}}}`,
 		`{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_device_status","arguments":{}}}`,
 		`{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"get_account_quota","arguments":{}}}`,
+		`{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"store_status","arguments":{}}}`,
 	}, "\n") + "\n"
 
 	var out, errOut bytes.Buffer
@@ -68,8 +69,8 @@ func TestMCPInitializeListAndToolsCall(t *testing.T) {
 	}
 
 	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
-	if len(lines) != 5 {
-		t.Fatalf("expected 5 JSON-RPC responses, got %d:\n%s", len(lines), out.String())
+	if len(lines) != 6 {
+		t.Fatalf("expected 6 JSON-RPC responses, got %d:\n%s", len(lines), out.String())
 	}
 
 	// 1. initialize
@@ -99,8 +100,8 @@ func TestMCPInitializeListAndToolsCall(t *testing.T) {
 	if err := json.Unmarshal([]byte(lines[1]), &listResp); err != nil {
 		t.Fatal(err)
 	}
-	if len(listResp.Result.Tools) != 9 {
-		t.Fatalf("expected 9 tools, got %d", len(listResp.Result.Tools))
+	if len(listResp.Result.Tools) != 14 {
+		t.Fatalf("expected 14 tools, got %d", len(listResp.Result.Tools))
 	}
 
 	// 3. inspect_ipa
@@ -139,6 +140,11 @@ func TestMCPInitializeListAndToolsCall(t *testing.T) {
 	}
 	if quotaResp.Result.IsError || quotaResp.Result.StructuredContent.Status != "action_required" || quotaResp.Result.StructuredContent.Reason != "needs_apple_signin" {
 		t.Fatalf("unexpected get_account_quota action_required: %s", lines[4])
+	}
+
+	// 6. store_status returns signed_in=false
+	if !strings.Contains(lines[5], `"signed_in":false`) {
+		t.Fatalf("unexpected store_status response: %s", lines[5])
 	}
 }
 

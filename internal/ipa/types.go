@@ -65,17 +65,19 @@ type MachO struct {
 // Report is the read-only inspection. SHA256 identifies the file bytes;
 // it does not identify the publisher.
 type Report struct {
-	SHA256      string
-	Scope       string
-	BundleID    string
-	DisplayName string
-	Version     string
-	Build       string
-	Components  []Component
-	MachOs      []MachO
-	Dylibs      []string
-	Findings    []Finding
-	IconPNG     []byte
+	SHA256       string
+	Scope        string
+	BundleID     string
+	DisplayName  string
+	Version      string
+	Build        string
+	Components   []Component
+	MachOs       []MachO
+	Dylibs       []string
+	Findings     []Finding
+	IconPNG      []byte
+	HasSinf      bool
+	HasStoreMeta bool
 }
 
 // Change is a reviewed edit. Empty fields stay unchanged. Components and

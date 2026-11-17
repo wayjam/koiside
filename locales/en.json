@@ -604,5 +604,63 @@
   "errFriendlyNetwork": "Timed out or failed reaching Apple / Anisette servers. Check your network and retry.",
   "errFriendlyMaxCerts": "Development certificate limit reached. Revoke an unused certificate under Apple Account.",
   "errFriendlyMaxAppIDs": "Free Personal Teams are limited to 10 App IDs per 7 days. Wait for an existing ID to expire.",
-  "toolsManageOnDeviceBtn": "Install & Manage in Device"
+  "toolsManageOnDeviceBtn": "Install & Manage in Device",
+  "navStore": "Store",
+  "storeTitle": "App Store Acquire",
+  "storeSubtitle": "Search across regions, fetch version history, download SINF-licensed IPAs, and install directly over USB.",
+  "storeAccountSectionTitle": "App Store Accounts (Downloads & Regions)",
+  "storeAccountSectionDesc": "Used for App Store search, free license acquisition, and version downloads. Independent from your Developer signing account.",
+  "storeAccountSignedIn": "Active Store Account: {email}",
+  "@storeAccountSignedIn": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "storeAccountRegion": "Region: {country} (Storefront: {storefront})",
+  "@storeAccountRegion": {
+    "placeholders": {
+      "country": { "type": "String" },
+      "storefront": { "type": "String" }
+    }
+  },
+  "storeAccountSwitchBtn": "Use Account",
+  "storeAccountActiveBadge": "Active",
+  "storeAccountSignOutBtn": "Sign Out Store",
+  "storeAccountForgetBtn": "Remove",
+  "storeAccountSignInTitle": "Sign In to App Store",
+  "storeAccountSignInBtn": "Sign In Store",
+  "storeAccountSigningIn": "Signing in via SAP handshake…",
+  "storeAccountNeedTitle": "No App Store Account Signed In",
+  "storeAccountNeedDesc": "Search works without signing in; fetching version IDs and downloading IPAs requires an Apple ID for that storefront.",
+  "storeAccountOpenBtn": "Go to Store Sign-In",
+  "store2FATitle": "App Store Two-Factor Auth",
+  "store2FADesc": "Enter the 6-digit verification code for {email}.",
+  "@store2FADesc": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "storeSearchPlaceholder": "Search app name or keywords…",
+  "storeCountryLabel": "Region",
+  "storeSearchBtn": "Search",
+  "storeSearching": "Searching App Store…",
+  "storeSearchEmpty": "Enter keywords to search the App Store (e.g. WeChat, Telegram, Bilibili).",
+  "storeNoResults": "No matching apps found. Try switching the storefront region.",
+  "storeVersionsBtn": "Versions",
+  "storeVersionsLoading": "Fetching version history…",
+  "storeVersionLatest": "Latest",
+  "storeDownloadBtn": "Download IPA",
+  "storeDownloadInstallBtn": "Download & Install",
+  "storeDownloading": "Acquiring license & downloading ({pct}%)…",
+  "@storeDownloading": {
+    "placeholders": { "pct": { "type": "int" } }
+  },
+  "storeDownloadDone": "Saved licensed IPA: {path}",
+  "@storeDownloadDone": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "storeInstallDone": "Installed Store IPA over USB: {bundleID}",
+  "@storeInstallDone": {
+    "placeholders": { "bundleID": { "type": "String" } }
+  },
+  "storeInspectBtn": "Open in IPA Workbench",
+  "storeSinfReadyTitle": "Contains App Store License (SINF)",
+  "storeSinfReadyDesc": "This IPA uses FairPlay protection and cannot be modified or re-signed with a free Personal Team, but it can be installed directly over USB on devices authorized for the purchasing Apple ID.",
+  "storeSinfDirectInstallBtn": "Install Store IPA over USB"
 }
