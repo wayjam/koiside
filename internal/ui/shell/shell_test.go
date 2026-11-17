@@ -1054,3 +1054,49 @@ func TestRevokeCertConfirmModalAndArchiveRemove(t *testing.T) {
 		t.Fatal("expected pendingRevokeCert cleared on cancel")
 	}
 }
+
+func TestSidebarCollapseToIconRailAndResponsiveBreakpoints(t *testing.T) {
+	m, tt := newTest(t, false)
+	tt.SetSize(960, 640)
+	if m.sidebarCollapsed {
+		t.Fatal("sidebar should start expanded")
+	}
+	if err := tt.Click("收起侧栏"); err != nil {
+		t.Fatal(err)
+	}
+	if !m.sidebarCollapsed {
+		t.Fatal("expected sidebarCollapsed=true after clicking collapse")
+	}
+	// Collapsed icon rail still switches sections
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if m.section != "设备" {
+		t.Fatalf("expected section=设备 from icon rail, got %s", m.section)
+	}
+	if err := tt.Click("展开侧栏"); err != nil {
+		t.Fatal(err)
+	}
+	if m.sidebarCollapsed {
+		t.Fatal("expected sidebarCollapsed=false after clicking expand")
+	}
+
+	// Medium window (800x600) stacks two-column task layouts cleanly without clipping
+	m.mu.Lock()
+	m.files = []archiveState{{
+		path:  "PiliPlus.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "PiliPlus",
+			BundleID:    "com.example.piliplus",
+			Version:     "2.2.1",
+		},
+	}}
+	m.section = "文件"
+	m.taskStage = 2
+	m.mu.Unlock()
+	tt.SetSize(800, 600)
+	if !tt.HasText("按此路线继续") || !tt.HasText("PiliPlus") {
+		t.Fatalf("medium window stage 2 missing content: %q", tt.Texts())
+	}
+}

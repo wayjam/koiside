@@ -125,19 +125,22 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 		ui.Text(c, msg.ToolsDetectedNote()).FontSize(12).TextColor(t.TextMuted)
 	})
 
+	winW, _ := c.Size()
+	stackToolRow := winW > 0 && winW < mediumWidth
+
 	allGuides := m.guides(msg)
 	insetGroup(c, "tools-list-group", func() {
 		for idx, guide := range allGuides {
 			guide := guide
 			glyph, iconBg := toolBadgeStyle(guide.name)
-			ui.Row(c.Key("tool-card-"+guide.name)).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
-				ui.Row(c).Width(40).Height(40).Radius(10).Background(iconBg).
+			renderInfo := func() {
+				ui.Row(c).Width(40).Height(40).Radius(10).Background(iconBg).Shrink(0).
 					InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.22)).
 					Center().Children(func() {
 					ui.Icon(c, glyph).Width(20).Height(20).TextColor(ui.Hex("#FFFFFF"))
 				})
-				ui.Column(c).Grow(1).Gap(3).Children(func() {
-					ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+				ui.Column(c).Grow(1).MinWidth(0).Gap(3).Children(func() {
+					ui.Row(c).FillWidth().Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
 						ui.Text(c, guide.name).Bold().FontSize(15)
 						ui.Text(c, msg.ToolsStatusPrefix(guide.state)).FontSize(12).TextColor(t.TextMuted)
 					})
@@ -146,7 +149,9 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 						ui.Text(c, msg.ToolLocalDevVPNLimitation()).FontSize(11).TextColor(t.TextMuted)
 					}
 				})
-				ui.Row(c).Gap(8).Children(func() {
+			}
+			renderActions := func() {
+				ui.Row(c).Wrap().Gap(8).Children(func() {
 					switch guide.name {
 					case "LocalDevVPN":
 						if uiBtn(c, "tools-open-localdevvpn", msg.ToolInstallLocalDevVPNBtn()).Clicked() {
@@ -161,12 +166,37 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 						c.OpenURL(guide.source)
 					}
 				})
-			})
+			}
+			if stackToolRow {
+				ui.Column(c.Key("tool-card-"+guide.name)).FillWidth().Padding(14, 16).Gap(10).Children(func() {
+					ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Start).Children(renderInfo)
+					ui.Row(c).FillWidth().Justify(ui.End).Children(renderActions)
+				})
+			} else {
+				ui.Row(c.Key("tool-card-"+guide.name)).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
+					renderInfo()
+					renderActions()
+				})
+			}
 			if idx < len(allGuides)-1 {
 				ui.Divider(c)
 			}
 		}
 		m.toolInstallStatusRow(c, msg)
+	})
+
+	insetGroup(c, "help-lc-advanced-group", func() {
+		ui.Column(c).FillWidth().Padding(14, 18).Gap(8).Transition(heightTransition).Children(func() {
+			ui.Collapsible(c.Key("help-lc-advanced-collapsible"), msg.LcAdvancedTitle(), &m.showLCAdvanced, func() {
+				ui.Column(c).FillWidth().Gap(6).Padding(4, 0, 0, 0).Children(func() {
+					ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(13)
+					ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(12).TextColor(t.TextMuted)
+					ui.Divider(c)
+					ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(13)
+					ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(12).TextColor(t.TextMuted)
+				})
+			}).Cursor(ui.CursorPointer)
+		})
 	})
 }
 

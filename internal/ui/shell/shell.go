@@ -22,10 +22,12 @@ import (
 )
 const (
 	accentLight = "#1769D2"
-	accentDark  = "#64A8FF"
-	narrowWidth = 720
+	accentDark   = "#64A8FF"
+	narrowWidth  = 720
+	mediumWidth  = 920
+	sidebarFullW = 216
+	sidebarIconW = 64
 )
-
 // Model is the window state. Tests drive it without opening a window.
 type Model struct {
 	services app.Services
@@ -55,6 +57,7 @@ type Model struct {
 	showLCAdvanced    bool
 	showEncDetails    bool
 	showLogs          bool
+	sidebarCollapsed  bool
 	narrowDetail      bool
 	appearance        string
 	language          string
@@ -282,22 +285,32 @@ func (m *Model) view(c *ui.Context) {
 		m.toolInstallConfirmModal(c, msg)
 		m.revokeCertConfirmModal(c, msg)
 		m.accountModals(c, msg)
+		return
 	}
 
-	ui.Split(c.Key("main-split"), &m.sidebar, func() {
-		m.sidebarView(c, msg)
-	}, func() {
-		right := ui.Column(c).Fill().Background(c.Theme().Background)
+	sideW := float32(sidebarFullW)
+	if m.sidebarCollapsed {
+		sideW = sidebarIconW
+	}
+	ui.Row(c).Fill().Children(func() {
+		ui.Column(c).Width(sideW).Shrink(0).FillHeight().Children(func() {
+			m.sidebarView(c, msg)
+		})
+		right := ui.Column(c).Grow(1).MinWidth(0).FillHeight().Background(c.Theme().Background)
 		attachWorkspaceDrop(right)
 		right.Children(func() {
 			if m.section == "准备" || m.section == "" {
 				ambientGlow(c, dark)
 			}
-			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(24, 30).Gap(16).Children(func() {
+			padY, padX := float32(24), float32(30)
+			if winW > 0 && winW < mediumWidth {
+				padY, padX = 20, 22
+			}
+			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(padY, padX).Gap(16).Children(func() {
 				m.workspace(c, msg, false)
 			})
 		})
-	}).SplitReset(216).Fill()
+	})
 	m.accountReturnOverlay(c, msg, false)
 	m.openPathDialog(c, msg)
 	m.toolInstallConfirmModal(c, msg)
@@ -398,10 +411,15 @@ func (m *Model) openPathDialog(c *ui.Context, msg locales.Messages) {
 
 func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
+	bar := c.TitleBar()
+	topPad := float32(10)
+	if bar.Bottom > 0 {
+		topPad = bar.Bottom + 6
+	}
 	ui.Column(c).FillWidth().Background(t.Surface).BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
-		Padding(10, 14).Gap(8).Children(func() {
-		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).Children(func() {
-			ui.Image(c, brandLogoSVG).Width(22).Height(22)
+		Padding(topPad, 14, 10, 14).Gap(8).Children(func() {
+		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).DragWindow().Children(func() {
+			ui.Image(c, brandLogoSVG).Width(20).Height(20)
 			ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 			if m.isTaskSection(m.section) && m.narrowDetail {
 				if uiBtn(c, "compact-back", "‹ "+msg.NavBack()).Clicked() {
@@ -466,10 +484,38 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 		if bar.Bottom > 0 {
 			topPad = bar.Bottom + 10
 		}
-		ui.Row(c).Padding(topPad, 16, 10, 16).Gap(10).AlignItems(ui.Center).DragWindow().Children(func() {
-			ui.Image(c, brandLogoSVG).Width(24).Height(24)
-			ui.Text(c, msg.AppTitle()).Bold().FontSize(16)
-		})
+		if m.sidebarCollapsed {
+			ui.Column(c).Padding(topPad, 10, 10, 10).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
+				ui.Image(c, brandLogoSVG).Width(22).Height(22)
+				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 8).Radius(6).
+					Label("展开侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)
+				if tog.Hovered() {
+					tog.Background(t.SurfaceHover)
+				}
+				tog.Children(func() {
+					ui.Icon(c, phCaretRight).Width(14).Height(14).TextColor(t.TextMuted)
+				})
+				if tog.Clicked() {
+					m.sidebarCollapsed = false
+				}
+			})
+		} else {
+			ui.Row(c).Padding(topPad, 12, 12, 16).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
+				ui.Image(c, brandLogoSVG).Width(22).Height(22)
+				ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
+				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 6).Radius(6).
+					Label("收起侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)
+				if tog.Hovered() {
+					tog.Background(t.SurfaceHover)
+				}
+				tog.Children(func() {
+					ui.Icon(c, phCaretLeft).Width(14).Height(14).TextColor(t.TextMuted)
+				})
+				if tog.Clicked() {
+					m.sidebarCollapsed = true
+				}
+			})
+		}
 		navSection := m.section
 		if m.isTaskSection(navSection) {
 			navSection = "文件"
@@ -482,29 +528,69 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			}
 			return regular
 		}
-		chosenNav := navSection
-		sb := ui.Sidebar(c, &chosenNav, func() {
-			ui.SidebarItem(c, "准备", navIcon("准备", phHouse, phHouseFill), msg.NavHome()).Cursor(ui.CursorPointer)
-			ui.SidebarItem(c, "文件", navIcon("文件", phStack, phStackFill), msg.NavTask()).Cursor(ui.CursorPointer)
-			ui.SidebarItem(c, "设备", navIcon("设备", phDevice, phDeviceFill), msg.NavDevice()).Cursor(ui.CursorPointer)
-			ui.SidebarItem(c, "账号", navIcon("账号", phAccount, phAccountFill), msg.NavAccount()).Cursor(ui.CursorPointer)
-			ui.SidebarItem(c, "工具", navIcon("工具", phCompass, phCompassFill), msg.NavHelpTools()).Cursor(ui.CursorPointer)
-			ui.SidebarItem(c, "设置", navIcon("设置", phGear, phGearFill), msg.NavSettings()).Cursor(ui.CursorPointer)
-		}).Grow(1).FillWidth()
-		if sb.Changed() {
-			if chosenNav == "文件" && m.isTaskSection(m.lastTaskSection) {
-				m.section = m.lastTaskSection
+		if m.sidebarCollapsed {
+			ui.Column(c).Padding(6, 10).Gap(4).Grow(1).FillWidth().AlignItems(ui.Center).Children(func() {
+				items := []struct {
+					id      string
+					regular *ui.SVG
+					filled  *ui.SVG
+					label   string
+				}{
+					{"准备", phHouse, phHouseFill, msg.NavHome()},
+					{"文件", phStack, phStackFill, msg.NavTask()},
+					{"设备", phDevice, phDeviceFill, msg.NavDevice()},
+					{"账号", phAccount, phAccountFill, msg.NavAccount()},
+					{"工具", phCompass, phCompassFill, msg.NavHelpTools()},
+					{"设置", phGear, phGearFill, msg.NavSettings()},
+				}
+				for _, it := range items {
+					active := navSection == it.id || (it.id == "准备" && navSection == "")
+					btn := ui.ButtonBase(c.Key("sb-icon-"+it.id)).Width(42).Height(36).Radius(8).
+						Center().Label(it.label).Cursor(ui.CursorPointer).Transition(colorTransition)
+					if active {
+						btn.Background(t.Selection)
+					} else if btn.Hovered() {
+						btn.Background(t.SurfaceHover)
+					}
+					btn.Children(func() {
+						icColor := t.TextMuted
+						if active {
+							icColor = accentInk(t)
+						}
+						ui.Icon(c, navIcon(it.id, it.regular, it.filled)).Width(18).Height(18).TextColor(icColor)
+					})
+					if btn.Clicked() {
+						if it.id == "文件" && m.isTaskSection(m.lastTaskSection) {
+							m.section = m.lastTaskSection
+						} else {
+							m.section = it.id
+						}
+					}
+				}
+			})
+		} else {
+			chosenNav := navSection
+			sb := ui.Sidebar(c, &chosenNav, func() {
+				ui.SidebarItem(c, "准备", navIcon("准备", phHouse, phHouseFill), msg.NavHome()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "文件", navIcon("文件", phStack, phStackFill), msg.NavTask()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "设备", navIcon("设备", phDevice, phDeviceFill), msg.NavDevice()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "账号", navIcon("账号", phAccount, phAccountFill), msg.NavAccount()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "工具", navIcon("工具", phCompass, phCompassFill), msg.NavHelpTools()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				ui.SidebarItem(c, "设置", navIcon("设置", phGear, phGearFill), msg.NavSettings()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+			}).Padding(6, 12).Gap(4).Grow(1).FillWidth()
+			if sb.Changed() {
+				if chosenNav == "文件" && m.isTaskSection(m.lastTaskSection) {
+					m.section = m.lastTaskSection
+				} else {
+					m.section = chosenNav
+				}
+			}
+			if c.Vibrancy() {
+				sb.Background(ui.Transparent)
 			} else {
-				m.section = chosenNav
+				sb.Background(t.Surface)
 			}
 		}
-		if c.Vibrancy() {
-			sb.Background(ui.Transparent)
-		} else {
-			sb.Background(t.Surface)
-		}
-
-		// Bottom device pin
 		ui.Column(c).FillWidth().Padding(10, 12, 12, 12).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).Children(func() {
 			pinText := msg.SidebarDeviceSingle()
 			dotColor := t.TextMuted
@@ -520,16 +606,27 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				pinText = msg.SidebarDeviceConnected(devName, conn)
 				dotColor = ui.Hex("#10B981")
 			}
-			pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).FillWidth().Padding(7, 10).Radius(8).
-				Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
-			pinBtn.Children(func() {
-				ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
-					ui.Row(c).Width(7).Height(7).Radius(4).Background(dotColor)
-					ui.Text(c, pinText).FontSize(11).Bold().TextColor(t.Text).SingleLine().Grow(1)
+			if m.sidebarCollapsed {
+				pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).Width(42).Height(34).Radius(8).
+					Center().Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
+				pinBtn.Children(func() {
+					ui.Row(c).Width(8).Height(8).Radius(4).Background(dotColor)
 				})
-			})
-			if pinBtn.Clicked() {
-				m.section = "设备"
+				if pinBtn.Clicked() {
+					m.section = "设备"
+				}
+			} else {
+				pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).FillWidth().Padding(9, 12).Radius(9).
+					Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
+				pinBtn.Children(func() {
+					ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+						ui.Row(c).Width(7).Height(7).Radius(4).Background(dotColor)
+						ui.Text(c, pinText).FontSize(12).Bold().TextColor(t.Text).SingleLine().Grow(1)
+					})
+				})
+				if pinBtn.Clicked() {
+					m.section = "设备"
+				}
 			}
 		})
 	})
@@ -727,7 +824,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 					dot := ui.Row(c).Width(8).Height(8).Radius(4)
 					dot.Background(dot.AnimateColor("dev-dot", targetDot, ui.Animation{Duration: 240 * time.Millisecond, Oklab: true}))
 				})
-				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+				ui.Row(c).FillWidth().Wrap().Gap(6).AlignItems(ui.Center).Children(func() {
 					ui.Text(c.Key("device"), m.deviceStatusText(msg)).FontSize(13).TextColor(t.TextMuted)
 					ui.Text(c, "·").FontSize(12).TextColor(t.TextMuted)
 					ui.Text(c, m.sideStoreSummaryText(msg)).FontSize(12).TextColor(t.TextMuted)

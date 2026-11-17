@@ -411,7 +411,6 @@ func (m *Model) filesView(c *ui.Context, msg locales.Messages, compact bool) {
 			ui.Text(c, msg.LibrarySubtitle()).FontSize(12).TextColor(t.TextMuted)
 		})
 	})
-
 	if compact {
 		if m.narrowDetail {
 			ui.Column(c).FillWidth().Gap(14).Children(func() {
@@ -904,7 +903,8 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 		})
 	}
 
-	if compact {
+	winW, _ := c.Size()
+	if compact || (winW > 0 && winW < mediumWidth) {
 		ui.Column(c).FillWidth().Gap(14).Children(func() {
 			mainPane()
 			sidePane()
@@ -1082,7 +1082,8 @@ func (m *Model) prepareChoiceView(c *ui.Context, msg locales.Messages, compact b
 		}
 	}
 
-	if compact {
+	winW, _ := c.Size()
+	if compact || (winW > 0 && winW < mediumWidth) {
 		ui.Column(c).FillWidth().Gap(14).Children(func() {
 			mainPane()
 			sidePane()
@@ -1346,7 +1347,8 @@ func (m *Model) diffView(c *ui.Context, msg locales.Messages, compact bool) {
 		})
 	}
 
-	if compact {
+	winW, _ := c.Size()
+	if compact || (winW > 0 && winW < mediumWidth) {
 		ui.Column(c).FillWidth().Gap(14).Children(func() {
 			leftPane()
 			rightPane()

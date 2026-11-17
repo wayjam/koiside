@@ -265,7 +265,7 @@ func ambientGlow(c *ui.Context, dark bool) {
 
 func stepIndicatorBar(c *ui.Context, active int, steps []string, onSelect func(int)) {
 	t := c.Theme()
-	ui.Row(c).FillWidth().Gap(6).AlignItems(ui.Center).Children(func() {
+	ui.Row(c).FillWidth().Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
 		for i, label := range steps {
 			stepNum := i + 1
 			isActive := stepNum == active

@@ -645,15 +645,18 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 		return msg.DeviceToolNotDetected()
 	}
 
+	winW, _ := c.Size()
+	stackToolRow := winW > 0 && winW < mediumWidth
+
 	insetGroup(c, "device-sidestore-group", func() {
-		ui.Row(c).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
-			ui.Row(c).Width(40).Height(40).Radius(10).Background(t.Accent).
+		renderSSInfo := func() {
+			ui.Row(c).Width(40).Height(40).Radius(10).Background(t.Accent).Shrink(0).
 				InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.22)).
 				Center().Children(func() {
 				ui.Icon(c, phLightningFill).Width(20).Height(20).TextColor(ui.Hex("#FFFFFF"))
 			})
-			ui.Column(c).Grow(1).Gap(3).Children(func() {
-				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+			ui.Column(c).Grow(1).MinWidth(0).Gap(3).Children(func() {
+				ui.Row(c).FillWidth().Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
 					ui.Text(c, msg.DeviceSideStoreCardTitle()).Bold().FontSize(15)
 					sideStatus := toolStatusText(m.sideStoreApp)
 					if m.appsQueried && m.sideStoreApp == nil && m.sideStoreEmbedded {
@@ -682,7 +685,9 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					monoText(c.Key("device-latest-ss-log"), msg.DeviceLatestSideStoreLog(latestLog.Operation, st, latestLog.File)).Role(ui.RoleStatus).FontSize(11).TextColor(t.TextMuted)
 				}
 			})
-			ui.Row(c).Gap(8).Children(func() {
+		}
+		renderSSActions := func() {
+			ui.Row(c).Wrap().Gap(8).Children(func() {
 				if uiBtn(c, "install-sidestore-btn", msg.ToolInstallSideStoreBtn()).Clicked() {
 					m.confirmToolInstall(installer.TargetSideStore)
 				}
@@ -690,10 +695,21 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					m.openHelp("setup")
 				}
 			})
-		})
+		}
+		if stackToolRow {
+			ui.Column(c).FillWidth().Padding(14, 16).Gap(10).Children(func() {
+				ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Start).Children(renderSSInfo)
+				ui.Row(c).FillWidth().Justify(ui.End).Children(renderSSActions)
+			})
+		} else {
+			ui.Row(c).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
+				renderSSInfo()
+				renderSSActions()
+			})
+		}
 		ui.Divider(c)
-		ui.Row(c).FillWidth().Padding(10, 18).Gap(12).AlignItems(ui.Center).Children(func() {
-			ui.Row(c).Gap(6).AlignItems(ui.Center).Grow(1).Children(func() {
+		ui.Row(c).FillWidth().Wrap().Padding(10, 18).Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Row(c).Gap(6).AlignItems(ui.Center).Grow(1).MinWidth(180).Children(func() {
 				ui.Icon(c, phShieldFill).Width(15).Height(15).TextColor(ui.Hex("#0284C7"))
 				ui.Text(c, "LocalDevVPN").Bold().FontSize(12)
 				ui.Text(c, toolStatusText(m.vpnApp)).FontSize(12).TextColor(t.TextMuted)
@@ -703,18 +719,20 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			}
 		})
 		ui.Divider(c)
-		ui.Row(c).FillWidth().Padding(10, 18).Gap(12).AlignItems(ui.Center).Children(func() {
-			ui.Row(c).Gap(6).AlignItems(ui.Center).Grow(1).Children(func() {
+		ui.Row(c).FillWidth().Wrap().Padding(10, 18).Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Row(c).Gap(6).AlignItems(ui.Center).Grow(1).MinWidth(180).Children(func() {
 				ui.Icon(c, phCubeFill).Width(15).Height(15).TextColor(ui.Hex("#0D9488"))
 				ui.Text(c, "LiveContainer").Bold().FontSize(12)
 				ui.Text(c, toolStatusText(m.lcApp)).FontSize(12).TextColor(t.TextMuted)
 			})
-			if uiBtn(c, "install-lcss-btn", msg.ToolInstallLCSSBtn()).Clicked() {
-				m.confirmToolInstall(installer.TargetLiveContainerLCSS)
-			}
-			if uiBtn(c, "install-lc-btn", msg.ToolInstallLCBtn()).Clicked() {
-				m.confirmToolInstall(installer.TargetLiveContainerOnly)
-			}
+			ui.Row(c).Wrap().Gap(8).Children(func() {
+				if uiBtn(c, "install-lcss-btn", msg.ToolInstallLCSSBtn()).Clicked() {
+					m.confirmToolInstall(installer.TargetLiveContainerLCSS)
+				}
+				if uiBtn(c, "install-lc-btn", msg.ToolInstallLCBtn()).Clicked() {
+					m.confirmToolInstall(installer.TargetLiveContainerOnly)
+				}
+			})
 		})
 		m.toolInstallStatusRow(c, msg)
 	})
@@ -1159,7 +1177,8 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 			m.openHelp("missing")
 		}
 	}
-	if compact {
+	winW, _ := c.Size()
+	if compact || (winW > 0 && winW < mediumWidth) {
 		ui.Column(c).FillWidth().Gap(14).Children(func() {
 			mainPane()
 			sidePane()
