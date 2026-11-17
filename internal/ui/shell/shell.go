@@ -17,6 +17,7 @@ import (
 	"koiside/internal/appleauth"
 	"koiside/internal/device"
 	"koiside/internal/devportal"
+	"koiside/internal/installer"
 	"koiside/locales"
 )
 const (
@@ -51,6 +52,7 @@ type Model struct {
 	editLocalizedName string
 	removePaths       map[string]bool
 	showAdvanced      bool
+	showLCAdvanced    bool
 	showEncDetails    bool
 	showLogs          bool
 	narrowDetail      bool
@@ -138,6 +140,7 @@ type Model struct {
 	appIDDeleting     string
 	certsLoading      bool
 	returnTarget      *accountReturnContext
+	pendingToolInstall installer.ToolTarget
 	toolInstalling  bool
 	toolInstallPct  int
 	toolInstallMsg  string
@@ -275,8 +278,8 @@ func (m *Model) view(c *ui.Context) {
 		})
 		m.accountReturnOverlay(c, msg, true)
 		m.openPathDialog(c, msg)
+		m.toolInstallConfirmModal(c, msg)
 		m.accountModals(c, msg)
-		return
 	}
 
 	ui.Split(c.Key("main-split"), &m.sidebar, func() {
@@ -295,6 +298,7 @@ func (m *Model) view(c *ui.Context) {
 	}).SplitReset(216).Fill()
 	m.accountReturnOverlay(c, msg, false)
 	m.openPathDialog(c, msg)
+	m.toolInstallConfirmModal(c, msg)
 	m.accountModals(c, msg)
 }
 

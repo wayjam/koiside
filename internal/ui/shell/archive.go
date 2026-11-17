@@ -983,11 +983,11 @@ func (m *Model) routePrecheckGroup(c *ui.Context, msg locales.Messages) {
 					if needHost {
 						if m.installRoute == "livecontainer" {
 							if uiBtn(c, "route-install-lcss", msg.ToolInstallLCSSBtn()).Clicked() {
-								m.installEcosystemTool("livecontainer-sidestore")
+								m.confirmToolInstall("livecontainer-sidestore")
 							}
 						} else {
 							if uiBtn(c, "route-install-ss", msg.ToolInstallSideStoreBtn()).Clicked() {
-								m.installEcosystemTool("sidestore")
+								m.confirmToolInstall("sidestore")
 							}
 						}
 					}

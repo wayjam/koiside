@@ -4865,3 +4865,123 @@ func DeviceLatestSideStoreLog(op string, status string, file string) string {
 func (msgs Messages) DeviceLatestSideStoreLog(op string, status string, file string) string {
 	return Catalog.Format(msgs.locale, "deviceLatestSideStoreLog", map[string]any{"op": op, "status": status, "file": file})
 }
+
+// ToolConfirmTitle says "确认安装 {tool}"
+// in the language the app shows.
+func ToolConfirmTitle(tool string) string { return In(i18n.Locale()).ToolConfirmTitle(tool) }
+
+// ToolConfirmTitle says "确认安装 {tool}"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmTitle(tool string) string {
+	return Catalog.Format(msgs.locale, "toolConfirmTitle", map[string]any{"tool": tool})
+}
+
+// ToolConfirmInstallBtn says "确认开始安装"
+// in the language the app shows.
+func ToolConfirmInstallBtn() string { return In(i18n.Locale()).ToolConfirmInstallBtn() }
+
+// ToolConfirmInstallBtn says "确认开始安装"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmInstallBtn() string {
+	return Catalog.Format(msgs.locale, "toolConfirmInstallBtn", nil)
+}
+
+// ToolConfirmSideStoreDesc says "• 独立版 SideStore（latest 正式通道），主屏幕拥有独立图标。\n• 占用 1 …"
+// in the language the app shows.
+func ToolConfirmSideStoreDesc() string { return In(i18n.Locale()).ToolConfirmSideStoreDesc() }
+
+// ToolConfirmSideStoreDesc says "• 独立版 SideStore（latest 正式通道），主屏幕拥有独立图标。\n• 占用 1 …"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmSideStoreDesc() string {
+	return Catalog.Format(msgs.locale, "toolConfirmSideStoreDesc", nil)
+}
+
+// ToolConfirmLCSSDesc says "• LiveContainer + SideStore 合装版（nightly 通道），内置 SideStore。\n• 仅占 1 …"
+// in the language the app shows.
+func ToolConfirmLCSSDesc() string { return In(i18n.Locale()).ToolConfirmLCSSDesc() }
+
+// ToolConfirmLCSSDesc says "• LiveContainer + SideStore 合装版（nightly 通道），内置 SideStore。\n• 仅占 1 …"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmLCSSDesc() string {
+	return Catalog.Format(msgs.locale, "toolConfirmLCSSDesc", nil)
+}
+
+// ToolConfirmLCOnlyDesc says "• 仅安装 LiveContainer 宿主（nightly 通道），占 1 个免费个人桌面名额。\n• …"
+// in the language the app shows.
+func ToolConfirmLCOnlyDesc() string { return In(i18n.Locale()).ToolConfirmLCOnlyDesc() }
+
+// ToolConfirmLCOnlyDesc says "• 仅安装 LiveContainer 宿主（nightly 通道），占 1 个免费个人桌面名额。\n• …"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmLCOnlyDesc() string {
+	return Catalog.Format(msgs.locale, "toolConfirmLCOnlyDesc", nil)
+}
+
+// ToolConfirmConflictEmbedded says "检测到当前手机已装「LiveContainer + SideStore 合装版」。再装独立 SideStore 会多占 1 …"
+// in the language the app shows.
+func ToolConfirmConflictEmbedded() string { return In(i18n.Locale()).ToolConfirmConflictEmbedded() }
+
+// ToolConfirmConflictEmbedded says "检测到当前手机已装「LiveContainer + SideStore 合装版」。再装独立 SideStore 会多占 1 …"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmConflictEmbedded() string {
+	return Catalog.Format(msgs.locale, "toolConfirmConflictEmbedded", nil)
+}
+
+// ToolConfirmConflictStandalone says "检测到当前手机已装「独立版 SideStore」。若改为合装版，建议先在手机删除独立 SideStore…"
+// in the language the app shows.
+func ToolConfirmConflictStandalone() string { return In(i18n.Locale()).ToolConfirmConflictStandalone() }
+
+// ToolConfirmConflictStandalone says "检测到当前手机已装「独立版 SideStore」。若改为合装版，建议先在手机删除独立 SideStore…"
+// in the language of msgs.
+func (msgs Messages) ToolConfirmConflictStandalone() string {
+	return Catalog.Format(msgs.locale, "toolConfirmConflictStandalone", nil)
+}
+
+// LcAdvancedTitle says "进阶用法：同时运行多个 App & 添加到桌面"
+// in the language the app shows.
+func LcAdvancedTitle() string { return In(i18n.Locale()).LcAdvancedTitle() }
+
+// LcAdvancedTitle says "进阶用法：同时运行多个 App & 添加到桌面"
+// in the language of msgs.
+func (msgs Messages) LcAdvancedTitle() string {
+	return Catalog.Format(msgs.locale, "lcAdvancedTitle", nil)
+}
+
+// LcAdvancedMultiTitle says "1. 让容器内 App 可以同时启动（Shared App）"
+// in the language the app shows.
+func LcAdvancedMultiTitle() string { return In(i18n.Locale()).LcAdvancedMultiTitle() }
+
+// LcAdvancedMultiTitle says "1. 让容器内 App 可以同时启动（Shared App）"
+// in the language of msgs.
+func (msgs Messages) LcAdvancedMultiTitle() string {
+	return Catalog.Format(msgs.locale, "lcAdvancedMultiTitle", nil)
+}
+
+// LcAdvancedMultiDesc says "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App…"
+// in the language the app shows.
+func LcAdvancedMultiDesc() string { return In(i18n.Locale()).LcAdvancedMultiDesc() }
+
+// LcAdvancedMultiDesc says "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App…"
+// in the language of msgs.
+func (msgs Messages) LcAdvancedMultiDesc() string {
+	return Catalog.Format(msgs.locale, "lcAdvancedMultiDesc", nil)
+}
+
+// LcAdvancedShortcutTitle says "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）"
+// in the language the app shows.
+func LcAdvancedShortcutTitle() string { return In(i18n.Locale()).LcAdvancedShortcutTitle() }
+
+// LcAdvancedShortcutTitle says "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）"
+// in the language of msgs.
+func (msgs Messages) LcAdvancedShortcutTitle() string {
+	return Catalog.Format(msgs.locale, "lcAdvancedShortcutTitle", nil)
+}
+
+// LcAdvancedShortcutSteps says "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App I…"
+// in the language the app shows.
+func LcAdvancedShortcutSteps() string { return In(i18n.Locale()).LcAdvancedShortcutSteps() }
+
+// LcAdvancedShortcutSteps says "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App I…"
+// in the language of msgs.
+func (msgs Messages) LcAdvancedShortcutSteps() string {
+	return Catalog.Format(msgs.locale, "lcAdvancedShortcutSteps", nil)
+}

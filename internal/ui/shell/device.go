@@ -684,7 +684,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			})
 			ui.Row(c).Gap(8).Children(func() {
 				if uiBtn(c, "install-sidestore-btn", msg.ToolInstallSideStoreBtn()).Clicked() {
-					m.installEcosystemTool(installer.TargetSideStore)
+					m.confirmToolInstall(installer.TargetSideStore)
 				}
 				if uiBtn(c, "sidestore-guide", msg.DeviceViewToolGuide()).Clicked() {
 					m.openHelp("setup")
@@ -710,10 +710,10 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 				ui.Text(c, toolStatusText(m.lcApp)).FontSize(12).TextColor(t.TextMuted)
 			})
 			if uiBtn(c, "install-lcss-btn", msg.ToolInstallLCSSBtn()).Clicked() {
-				m.installEcosystemTool(installer.TargetLiveContainerLCSS)
+				m.confirmToolInstall(installer.TargetLiveContainerLCSS)
 			}
 			if uiBtn(c, "install-lc-btn", msg.ToolInstallLCBtn()).Clicked() {
-				m.installEcosystemTool(installer.TargetLiveContainerOnly)
+				m.confirmToolInstall(installer.TargetLiveContainerOnly)
 			}
 		})
 		m.toolInstallStatusRow(c, msg)
@@ -1140,6 +1140,21 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 				}
 			})
 		})
+		if isLCInside {
+			insetGroup(c, "transfer-lc-advanced-group", func() {
+				ui.Column(c).FillWidth().Padding(14, 16).Gap(8).Transition(heightTransition).Children(func() {
+					ui.Collapsible(c.Key("lc-advanced-collapsible"), msg.LcAdvancedTitle(), &m.showLCAdvanced, func() {
+						ui.Column(c).FillWidth().Gap(6).Padding(4, 0, 0, 0).Children(func() {
+							ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(12)
+							ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(11).TextColor(t.TextMuted)
+							ui.Divider(c)
+							ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(12)
+							ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(11).TextColor(t.TextMuted)
+						})
+					}).Cursor(ui.CursorPointer)
+				})
+			})
+		}
 		if uiBtn(c, "transfer-missing-file-help", msg.HelpTopicMissingFileTitle()).Clicked() {
 			m.openHelp("missing")
 		}
@@ -1214,6 +1229,13 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, compact bool) 
 		ui.Text(c, msg.MaintainStep1()).FontSize(13)
 		ui.Text(c, msg.MaintainStep2()).FontSize(13)
 		ui.Text(c, msg.MaintainStep3()).FontSize(13)
+		if m.installRoute == "livecontainer" && m.lcPlacement != "outside" {
+			ui.Divider(c)
+			ui.Text(c, msg.LcAdvancedTitle()).Bold().FontSize(13)
+			ui.Text(c, msg.LcAdvancedMultiTitle()+" — "+msg.LcAdvancedMultiDesc()).FontSize(12).TextColor(t.TextMuted)
+			ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(12)
+			ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(12).TextColor(t.TextMuted)
+		}
 		ui.Divider(c)
 		ui.Text(c, msg.MaintainExpiryNote()).FontSize(12).TextColor(t.TextMuted)
 	})
@@ -1294,6 +1316,78 @@ func (m *Model) triggerDeveloperMode() {
 			mygo.RunOnMain(func() { m.win.Invalidate() })
 		}
 	}()
+}
+
+func (m *Model) confirmToolInstall(target installer.ToolTarget) {
+	m.mu.Lock()
+	m.pendingToolInstall = target
+	m.mu.Unlock()
+}
+
+func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
+	m.mu.Lock()
+	target := m.pendingToolInstall
+	embedded := m.sideStoreEmbedded
+	standalone := m.sideStoreApp != nil
+	m.mu.Unlock()
+	if target == "" {
+		return
+	}
+
+	t := c.Theme()
+	var toolName, body, conflict string
+	switch target {
+	case installer.TargetSideStore:
+		toolName = "SideStore"
+		body = msg.ToolConfirmSideStoreDesc()
+		if embedded {
+			conflict = msg.ToolConfirmConflictEmbedded()
+		}
+	case installer.TargetLiveContainerLCSS:
+		toolName = "LiveContainer + SideStore"
+		body = msg.ToolConfirmLCSSDesc()
+		if standalone {
+			conflict = msg.ToolConfirmConflictStandalone()
+		}
+	case installer.TargetLiveContainerOnly:
+		toolName = "LiveContainer"
+		body = msg.ToolConfirmLCOnlyDesc()
+	default:
+		toolName = string(target)
+	}
+
+	open := true
+	ui.Modal(c.Key("tool-confirm-modal"), &open, func() {
+		ui.Column(c).Width(420).Gap(12).Children(func() {
+			ui.Text(c, msg.ToolConfirmTitle(toolName)).Bold().FontSize(16)
+			ui.Text(c, body).FontSize(12)
+			if conflict != "" {
+				ui.Row(c).FillWidth().Padding(10, 12).Gap(8).Radius(8).
+					Background(t.SurfaceHover).Border(1, ui.Hex("#F59E0B")).AlignItems(ui.Start).Children(func() {
+					ui.Icon(c, phWarningFill).Width(16).Height(16).TextColor(ui.Hex("#F59E0B"))
+					ui.Text(c, conflict).FontSize(11).Grow(1)
+				})
+			}
+			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
+				if uiBtn(c, "tool-confirm-cancel", msg.LibraryCancel()).Clicked() {
+					m.mu.Lock()
+					m.pendingToolInstall = ""
+					m.mu.Unlock()
+				}
+				if uiPrimaryBtn(c, "tool-confirm-ok", msg.ToolConfirmInstallBtn()).Clicked() {
+					m.mu.Lock()
+					m.pendingToolInstall = ""
+					m.mu.Unlock()
+					m.installEcosystemTool(target)
+				}
+			})
+		})
+	})
+	if !open {
+		m.mu.Lock()
+		m.pendingToolInstall = ""
+		m.mu.Unlock()
+	}
 }
 
 func (m *Model) installEcosystemTool(target installer.ToolTarget) {

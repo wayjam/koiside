@@ -568,5 +568,20 @@
       "status": { "type": "String" },
       "file": { "type": "String" }
     }
-  }
+  },
+  "toolConfirmTitle": "Confirm Installing {tool}",
+  "@toolConfirmTitle": {
+    "placeholders": { "tool": { "type": "String" } }
+  },
+  "toolConfirmInstallBtn": "Install Now",
+  "toolConfirmSideStoreDesc": "• Standalone SideStore (official latest release) with its own Home Screen icon.\n• Uses 1 free Personal Team app slot (2 slots if paired with standalone LiveContainer).\n• Requires LocalDevVPN on iPhone for wireless refresh.",
+  "toolConfirmLCSSDesc": "• Integrated LiveContainer + SideStore bundle (nightly channel) with built-in SideStore.\n• Uses only 1 free Personal Team app slot and shares certificates inside the same sandbox.\n• Refreshing the LiveContainer host every 7 days refreshes both.",
+  "toolConfirmLCOnlyDesc": "• Standalone LiveContainer host (nightly channel), using 1 free Personal Team app slot.\n• Best when standalone SideStore is already installed; import certificate from SideStore in Settings.",
+  "toolConfirmConflictEmbedded": "LiveContainer + SideStore (integrated) is already detected on this iPhone. Installing standalone SideStore uses an extra slot and may confuse pairing files unless you remove the integrated app first.",
+  "toolConfirmConflictStandalone": "Standalone SideStore is already detected on this iPhone. Consider removing it first before switching to the integrated LiveContainer + SideStore bundle.",
+  "lcAdvancedTitle": "Advanced: Multi-Launch & Home Screen Shortcuts",
+  "lcAdvancedMultiTitle": "1. Run container apps simultaneously (Shared App)",
+  "lcAdvancedMultiDesc": "In LiveContainer, open the app card → Settings → Convert to Shared App so it can run alongside other apps in multi-task / multi-container mode.",
+  "lcAdvancedShortcutTitle": "2. Add a Home Screen icon via iOS Shortcuts (7 steps)",
+  "lcAdvancedShortcutSteps": "1. Open LiveContainer → Apps and long-press the app.\n2. Tap Add to Home Screen → Save App Icon, pick a style and save.\n3. Long-press again → Add to Home Screen → Copy Launch URL.\n4. Open Apple Shortcuts and tap + to create a new shortcut.\n5. Search for Launch App and pick the LiveContainer action.\n6. Tap Launch URL, paste the copied URL, and run once to test.\n7. Tap Share → Add to Home Screen, set the name, and pick the saved icon. (iOS sandbox requires Shortcuts on device for Home Screen icons.)"
 }

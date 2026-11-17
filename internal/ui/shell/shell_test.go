@@ -981,3 +981,42 @@ func TestEmbeddedSideStoreInLiveContainerDetection(t *testing.T) {
 		t.Fatalf("expected LC docs title: %q", tt.Texts())
 	}
 }
+
+func TestToolInstallConfirmModalAndLCAdvancedGuides(t *testing.T) {
+	m, tt := newTest(t, false)
+	m.SetSnapshot(device.Snapshot{
+		Device:            device.Device{ID: 1, UDID: "UDID-LC", ConnectionType: "USB"},
+		Info:              device.Info{Name: "Lumia1530", Version: "27.0.1", Type: "iPhone13,3"},
+		LiveContainer:     &device.InstalledApp{BundleID: "com.kdt.livecontainer.8K49", Name: "LiveContainer", Version: "3.8.14", TeamID: "8K49"},
+		SideStoreEmbedded: true,
+		USBVerified:       true,
+	}, nil)
+
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("安装 SideStore"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("确认安装 SideStore") || !tt.HasText("LiveContainer + SideStore 合装版") {
+		t.Fatalf("expected tool confirm modal with conflict warning: %q", tt.Texts())
+	}
+	if err := tt.Click("取消"); err != nil {
+		t.Fatal(err)
+	}
+	if m.pendingToolInstall != "" || tt.HasText("确认安装 SideStore") {
+		t.Fatalf("expected confirm modal closed after cancel")
+	}
+
+	// Stage 4 LiveContainer inside includes collapsible Shared App + Shortcuts guide
+	m.mu.Lock()
+	m.installRoute = "livecontainer"
+	m.lcPlacement = "inside"
+	m.section = "交接"
+	m.taskStage = 4
+	m.mu.Unlock()
+	tt.Frame()
+	if !tt.HasText("进阶用法：同时运行多个 App & 添加到桌面") {
+		t.Fatalf("expected LC advanced usage collapsible in stage 4: %q", tt.Texts())
+	}
+}

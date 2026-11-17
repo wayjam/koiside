@@ -151,11 +151,11 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 					switch guide.name {
 					case "SideStore":
 						if uiPrimaryBtn(c, "tools-install-sidestore", msg.ToolInstallSideStoreBtn()).Clicked() {
-							m.installEcosystemTool(installer.TargetSideStore)
+							m.confirmToolInstall(installer.TargetSideStore)
 						}
 					case "LiveContainer":
 						if uiBtn(c, "tools-install-lcss", msg.ToolInstallLCSSBtn()).Clicked() {
-							m.installEcosystemTool(installer.TargetLiveContainerLCSS)
+							m.confirmToolInstall(installer.TargetLiveContainerLCSS)
 						}
 					case "LocalDevVPN":
 						if uiBtn(c, "tools-open-localdevvpn", msg.ToolInstallLocalDevVPNBtn()).Clicked() {

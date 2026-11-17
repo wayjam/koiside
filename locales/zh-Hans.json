@@ -729,5 +729,20 @@
       "status": { "type": "String" },
       "file": { "type": "String" }
     }
-  }
+  },
+  "toolConfirmTitle": "确认安装 {tool}",
+  "@toolConfirmTitle": {
+    "placeholders": { "tool": { "type": "String" } }
+  },
+  "toolConfirmInstallBtn": "确认开始安装",
+  "toolConfirmSideStoreDesc": "• 独立版 SideStore（latest 正式通道），主屏幕拥有独立图标。\n• 占用 1 个免费个人桌面名额（若再单独装 LiveContainer 共占 2 个）。\n• 需配合 LocalDevVPN 在手机上完成首次刷新。",
+  "toolConfirmLCSSDesc": "• LiveContainer + SideStore 合装版（nightly 通道），内置 SideStore。\n• 仅占 1 个免费个人桌面名额，剩余名额可留给独立 App；证书同容器共享免配置。\n• 7 天续签只需刷新 LiveContainer 宿主本身。",
+  "toolConfirmLCOnlyDesc": "• 仅安装 LiveContainer 宿主（nightly 通道），占 1 个免费个人桌面名额。\n• 适合手机上已装独立 SideStore 的场景，安装后可在设置导入 SideStore 证书。",
+  "toolConfirmConflictEmbedded": "检测到当前手机已装「LiveContainer + SideStore 合装版」。再装独立 SideStore 会多占 1 个名额且可能与内置 SideStore 配对目录混淆，建议先按需删除合装版后再安装。",
+  "toolConfirmConflictStandalone": "检测到当前手机已装「独立版 SideStore」。若改为合装版，建议先在手机删除独立 SideStore，避免两套 SideStore 共存混淆。",
+  "lcAdvancedTitle": "进阶用法：同时运行多个 App & 添加到桌面",
+  "lcAdvancedMultiTitle": "1. 让容器内 App 可以同时启动（Shared App）",
+  "lcAdvancedMultiDesc": "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App，即可与多开/多任务模式配合同时运行。",
+  "lcAdvancedShortcutTitle": "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）",
+  "lcAdvancedShortcutSteps": "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App Icon，选一种图标样式并保存。\n3. 再次长按该 App，进入 Add to Home Screen → Copy Launch URL。\n4. 打开 iPhone 的「快捷指令」App，点右上角 ＋ 新建快捷指令。\n5. 搜索 Launch App，选择属于 LiveContainer 的操作。\n6. 点操作中的 Launch URL，粘贴刚才复制的地址，并点运行测试。\n7. 测试成功后点分享 → 添加到主屏幕，设置名称并选择刚保存的图标即可。（受 iOS 沙盒限制，桌面图标需由快捷指令在手机端生成）"
 }
