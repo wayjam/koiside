@@ -3,7 +3,6 @@ package shell
 import (
 	"github.com/egoist/mygo/ui"
 
-	"koiside/internal/installer"
 	"koiside/locales"
 )
 
@@ -149,17 +148,13 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 				})
 				ui.Row(c).Gap(8).Children(func() {
 					switch guide.name {
-					case "SideStore":
-						if uiPrimaryBtn(c, "tools-install-sidestore", msg.ToolInstallSideStoreBtn()).Clicked() {
-							m.confirmToolInstall(installer.TargetSideStore)
-						}
-					case "LiveContainer":
-						if uiBtn(c, "tools-install-lcss", msg.ToolInstallLCSSBtn()).Clicked() {
-							m.confirmToolInstall(installer.TargetLiveContainerLCSS)
-						}
 					case "LocalDevVPN":
 						if uiBtn(c, "tools-open-localdevvpn", msg.ToolInstallLocalDevVPNBtn()).Clicked() {
 							c.OpenURL(guide.source)
+						}
+					default:
+						if uiBtn(c, "tools-manage-device-"+guide.name, msg.ToolsManageOnDeviceBtn()).Clicked() {
+							m.section = "设备"
 						}
 					}
 					if uiBtn(c, "tool-"+guide.name, msg.ToolsOpenGuide()).Clicked() {

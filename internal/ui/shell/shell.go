@@ -141,6 +141,7 @@ type Model struct {
 	certsLoading      bool
 	returnTarget      *accountReturnContext
 	pendingToolInstall installer.ToolTarget
+	pendingRevokeCert  *devportal.DevelopmentCertificate
 	toolInstalling  bool
 	toolInstallPct  int
 	toolInstallMsg  string
@@ -279,6 +280,7 @@ func (m *Model) view(c *ui.Context) {
 		m.accountReturnOverlay(c, msg, true)
 		m.openPathDialog(c, msg)
 		m.toolInstallConfirmModal(c, msg)
+		m.revokeCertConfirmModal(c, msg)
 		m.accountModals(c, msg)
 	}
 
@@ -299,6 +301,7 @@ func (m *Model) view(c *ui.Context) {
 	m.accountReturnOverlay(c, msg, false)
 	m.openPathDialog(c, msg)
 	m.toolInstallConfirmModal(c, msg)
+	m.revokeCertConfirmModal(c, msg)
 	m.accountModals(c, msg)
 }
 

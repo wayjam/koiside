@@ -77,6 +77,27 @@ func (m *Model) selectArchiveIndex(idx int) {
 	m.selected = idx
 	m.resetArchiveSessionLocked(m.files[idx])
 }
+func (m *Model) removeArchiveIndex(idx int) {
+	m.mu.Lock()
+	if idx < 0 || idx >= len(m.files) {
+		m.mu.Unlock()
+		return
+	}
+	m.files = append(m.files[:idx], m.files[idx+1:]...)
+	if len(m.files) == 0 {
+		m.selected = 0
+	} else {
+		if m.selected >= len(m.files) {
+			m.selected = len(m.files) - 1
+		}
+		m.resetArchiveSessionLocked(m.files[m.selected])
+	}
+	m.mu.Unlock()
+	if m.win != nil {
+		m.win.Invalidate()
+	}
+}
+
 
 func (m *Model) inspect(path string) {
 	var sizeBytes int64
@@ -489,6 +510,13 @@ func (m *Model) archiveList(c *ui.Context, msg locales.Messages, compact bool) {
 					m.narrowDetail = true
 				}
 			}
+			if selected {
+				ui.Row(c).FillWidth().Padding(0, 12, 8, 56).Justify(ui.End).Children(func() {
+					if uiBtn(c, fmt.Sprintf("archive-rm-%d", i), msg.ArchiveRemoveBtn()).Clicked() {
+						m.removeArchiveIndex(i)
+					}
+				})
+			}
 			if i < len(files)-1 {
 				ui.Divider(c)
 			}
@@ -835,16 +863,6 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 					}
 				})
 			}
-			surfaceCard(c, "lc-eval-card").Padding(16, 18).Gap(10).Children(func() {
-				ui.Text(c, msg.RouteLiveContainerEvalTitle()).Bold().FontSize(15)
-				ui.Text(c, msg.RouteLiveContainerEvalDesc()).FontSize(12).TextColor(t.TextMuted)
-				ui.Divider(c)
-				ui.Text(c, "• "+msg.RouteLiveContainerStandalone()).FontSize(12)
-				ui.Text(c, "• "+msg.RouteLiveContainerIntegrated()).FontSize(12)
-				ui.Divider(c)
-				ui.Text(c, msg.RouteLiveContainerGuideTitle()).Bold().FontSize(13)
-				ui.Text(c, msg.RouteLiveContainerSteps()).FontSize(12).TextColor(t.TextMuted)
-			})
 		} else if m.installRoute == "advanced" {
 			surfaceCard(c, "adv-eval-card").Padding(16, 18).Gap(8).Children(func() {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {

@@ -227,3 +227,28 @@ func formatBytes(size int64) string {
 	}
 	return fmt.Sprintf("%d B", size)
 }
+
+func friendlyError(msg locales.Messages, raw string) string {
+	if raw == "" {
+		return ""
+	}
+	low := strings.ToLower(raw)
+	switch {
+	case strings.Contains(low, "locked") || strings.Contains(low, "passcode"):
+		return msg.ErrFriendlyLocked()
+	case strings.Contains(low, "untrusted") || strings.Contains(low, "pair"):
+		return msg.ErrFriendlyUntrusted()
+	case strings.Contains(low, "no device") || strings.Contains(low, "usbmuxd"):
+		return msg.ErrFriendlyNoDevice()
+	case strings.Contains(low, "7460") || strings.Contains(low, "maximum number of certificates"):
+		return msg.ErrFriendlyMaxCerts()
+	case strings.Contains(low, "9120") || strings.Contains(low, "10 app id"):
+		return msg.ErrFriendlyMaxAppIDs()
+	case strings.Contains(low, "not signed in") || strings.Contains(low, "2fa") || strings.Contains(low, "bad password") || strings.Contains(low, "20101") || strings.Contains(low, "22406"):
+		return msg.ErrFriendlyAuth()
+	case strings.Contains(low, "timeout") || strings.Contains(low, "deadline") || strings.Contains(low, "eof") || strings.Contains(low, "connection refused") || strings.Contains(low, "no such host"):
+		return msg.ErrFriendlyNetwork()
+	default:
+		return raw
+	}
+}

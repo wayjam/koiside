@@ -100,10 +100,9 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 			if certErr != "" {
 				ui.Divider(c)
 				ui.Row(c).FillWidth().Padding(10, 18).Children(func() {
-					ui.Text(c, certErr).FontSize(12).TextColor(ui.Hex("#EF4444"))
+					ui.Text(c, friendlyError(msg, certErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
 				})
 			} else if !certsLoaded {
-				ui.Divider(c)
 				ui.Row(c).FillWidth().Padding(12, 18).Children(func() {
 					ui.Text(c, msg.AccountCertEmpty()).FontSize(12).TextColor(t.TextMuted)
 				})
@@ -130,7 +129,10 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 						})
 						if cert.SerialNumber != "" {
 							if uiBtn(c, fmt.Sprintf("revoke-cert-%d", idx), msg.AccountRevokeCertBtn()).Clicked() {
-								m.revokePortalCert(cert.SerialNumber)
+								cp := cert
+								m.mu.Lock()
+								m.pendingRevokeCert = &cp
+								m.mu.Unlock()
 							}
 						}
 					})
@@ -194,7 +196,7 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 			loginErr := m.loginErr
 			m.mu.Unlock()
 			if loginErr != "" {
-				ui.Text(c.Key("acc-login-err"), loginErr).FontSize(12).TextColor(ui.Hex("#EF4444"))
+				ui.Text(c.Key("acc-login-err"), friendlyError(msg, loginErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
 			}
 
 			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
@@ -336,6 +338,51 @@ func (m *Model) accountReturnOverlay(c *ui.Context, msg locales.Messages, compac
 			})
 		})
 	})
+}
+
+func (m *Model) revokeCertConfirmModal(c *ui.Context, msg locales.Messages) {
+	m.mu.Lock()
+	cert := m.pendingRevokeCert
+	m.mu.Unlock()
+	if cert == nil {
+		return
+	}
+	t := c.Theme()
+	devSess := m.services.Accounts.Developer()
+	hasLocal := devSess.SignedIn() && devportal.HasLocalRSAKeyForCert(devSess.Email(), *cert, m.services.Accounts.Storage())
+	open := true
+	ui.Modal(c.Key("revoke-cert-confirm-modal"), &open, func() {
+		ui.Column(c).Width(420).Gap(12).Children(func() {
+			ui.Text(c, msg.AccountRevokeConfirmTitle()).Bold().FontSize(16)
+			ui.Text(c, msg.AccountRevokeConfirmDesc(cert.SerialNumber, valueOrUnknown(msg, cert.MachineName))).FontSize(12)
+			if hasLocal {
+				ui.Row(c).FillWidth().Padding(10, 12).Gap(8).Radius(8).
+					Background(t.SurfaceHover).Border(1, ui.Hex("#F59E0B")).AlignItems(ui.Start).Children(func() {
+					ui.Icon(c, phWarningFill).Width(16).Height(16).TextColor(ui.Hex("#F59E0B"))
+					ui.Text(c, msg.AccountRevokeConfirmLocalKeyWarn()).FontSize(11).Grow(1)
+				})
+			}
+			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
+				if uiBtn(c, "revoke-confirm-cancel", msg.LibraryCancel()).Clicked() {
+					m.mu.Lock()
+					m.pendingRevokeCert = nil
+					m.mu.Unlock()
+				}
+				if uiPrimaryBtn(c, "revoke-confirm-ok", msg.AccountRevokeConfirmBtn()).Clicked() {
+					serial := cert.SerialNumber
+					m.mu.Lock()
+					m.pendingRevokeCert = nil
+					m.mu.Unlock()
+					m.revokePortalCert(serial)
+				}
+			})
+		})
+	})
+	if !open {
+		m.mu.Lock()
+		m.pendingRevokeCert = nil
+		m.mu.Unlock()
+	}
 }
 func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()

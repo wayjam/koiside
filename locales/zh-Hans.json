@@ -69,7 +69,7 @@
   "deviceSessionLocked": "设备处于锁屏状态，请解锁 iPhone 后重新检测。",
   "deviceSessionUntrusted": "设备尚未信任此电脑或缺少配对记录，请在手机上点“信任”。",
   "deviceSideStoreUSBReady": "USB 文件共享就绪 · 文稿容器可访问",
-  "transferUSBVerified": "SideStore 文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。",
+  "transferUSBVerified": "文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。",
 
   "transferSectionTitle": "交接准备",
   "transferGuideTitle": "准备传输 IPA",
@@ -240,7 +240,7 @@
   "guideStep2Empty": "当前尚未导入 IPA，你可以现在导入或稍后在首页操作。",
   "guideStep3Title": "交接给 SideStore",
   "guideStep3Desc": "USB 传输或导出完成后，需要在手机端打开文件并由 SideStore 签名安装与日常续签。",
-  "guideStep3Note": "USB 仅负责传文件；在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN。KoiSide 第一阶段不直接签名或安装。",
+  "guideStep3Note": "在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN；如需桌面直接签名安装，可在「设备」或「交接」页使用已登录的 Apple ID。",
   "guideRetry": "重新检测",
   "guideConnectLater": "稍后连接",
   "guideSkip": "跳过引导",
@@ -744,5 +744,26 @@
   "lcAdvancedMultiTitle": "1. 让容器内 App 可以同时启动（Shared App）",
   "lcAdvancedMultiDesc": "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App，即可与多开/多任务模式配合同时运行。",
   "lcAdvancedShortcutTitle": "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）",
-  "lcAdvancedShortcutSteps": "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App Icon，选一种图标样式并保存。\n3. 再次长按该 App，进入 Add to Home Screen → Copy Launch URL。\n4. 打开 iPhone 的「快捷指令」App，点右上角 ＋ 新建快捷指令。\n5. 搜索 Launch App，选择属于 LiveContainer 的操作。\n6. 点操作中的 Launch URL，粘贴刚才复制的地址，并点运行测试。\n7. 测试成功后点分享 → 添加到主屏幕，设置名称并选择刚保存的图标即可。（受 iOS 沙盒限制，桌面图标需由快捷指令在手机端生成）"
+  "lcAdvancedShortcutSteps": "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App Icon，选一种图标样式并保存。\n3. 再次长按该 App，进入 Add to Home Screen → Copy Launch URL。\n4. 打开 iPhone 的「快捷指令」App，点右上角 ＋ 新建快捷指令。\n5. 搜索 Launch App，选择属于 LiveContainer 的操作。\n6. 点操作中的 Launch URL，粘贴刚才复制的地址，并点运行测试。\n7. 测试成功后点分享 → 添加到主屏幕，设置名称并选择刚保存的图标即可。（受 iOS 沙盒限制，桌面图标需由快捷指令在手机端生成）",
+  "transferUSBVerifiedLC": "LiveContainer 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。",
+  "transferUSBVerifiedSS": "SideStore 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。",
+  "accountRevokeConfirmTitle": "确认吊销开发证书？",
+  "accountRevokeConfirmDesc": "将吊销证书 {serial}（Machine: {machine}）。吊销后无法撤销，使用该证书签名的应用将无法继续刷新。",
+  "@accountRevokeConfirmDesc": {
+    "placeholders": {
+      "serial": { "type": "String" },
+      "machine": { "type": "String" }
+    }
+  },
+  "accountRevokeConfirmLocalKeyWarn": "注意：此证书匹配当前 Mac 的本机私钥，吊销后本机已安装的 SideStore / LiveContainer 将受影响。",
+  "accountRevokeConfirmBtn": "确认吊销",
+  "archiveRemoveBtn": "移除",
+  "errFriendlyLocked": "iPhone 处于锁屏状态，请先解锁手机屏幕后再试。",
+  "errFriendlyUntrusted": "iPhone 尚未信任此电脑，请在手机上点「信任」并输入锁屏密码。",
+  "errFriendlyNoDevice": "未检测到通过 USB 连接的 iPhone，请检查数据线与接口。",
+  "errFriendlyAuth": "Apple ID 凭据或会话已失效，请前往「Apple 账号」重新登录。",
+  "errFriendlyNetwork": "连接 Apple 或 Anisette 服务超时/失败，请检查网络后重试。",
+  "errFriendlyMaxCerts": "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。",
+  "errFriendlyMaxAppIDs": "免费个人团队 7 天内最多注册 10 个 App ID，请等待旧名额到期释放。",
+  "toolsManageOnDeviceBtn": "前往「设备」安装或管理"
 }

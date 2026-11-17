@@ -528,11 +528,11 @@ func (msgs Messages) DeviceSideStoreUSBReady() string {
 	return Catalog.Format(msgs.locale, "deviceSideStoreUSBReady", nil)
 }
 
-// TransferUSBVerified says "SideStore 文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。"
+// TransferUSBVerified says "文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。"
 // in the language the app shows.
 func TransferUSBVerified() string { return In(i18n.Locale()).TransferUSBVerified() }
 
-// TransferUSBVerified says "SideStore 文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。"
+// TransferUSBVerified says "文稿容器可访问（只读列举通过）。点击传送后将写入并校验哈希。"
 // in the language of msgs.
 func (msgs Messages) TransferUSBVerified() string {
 	return Catalog.Format(msgs.locale, "transferUSBVerified", nil)
@@ -1774,11 +1774,11 @@ func (msgs Messages) GuideStep3Desc() string {
 	return Catalog.Format(msgs.locale, "guideStep3Desc", nil)
 }
 
-// GuideStep3Note says "USB 仅负责传文件；在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN。KoiSide …"
+// GuideStep3Note says "在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN…"
 // in the language the app shows.
 func GuideStep3Note() string { return In(i18n.Locale()).GuideStep3Note() }
 
-// GuideStep3Note says "USB 仅负责传文件；在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN。KoiSide …"
+// GuideStep3Note says "在 SideStore 导入、安装与刷新前必须开启 LocalDevVPN…"
 // in the language of msgs.
 func (msgs Messages) GuideStep3Note() string {
 	return Catalog.Format(msgs.locale, "guideStep3Note", nil)
@@ -4984,4 +4984,158 @@ func LcAdvancedShortcutSteps() string { return In(i18n.Locale()).LcAdvancedShort
 // in the language of msgs.
 func (msgs Messages) LcAdvancedShortcutSteps() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedShortcutSteps", nil)
+}
+
+// TransferUSBVerifiedLC says "LiveContainer 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。"
+// in the language the app shows.
+func TransferUSBVerifiedLC() string { return In(i18n.Locale()).TransferUSBVerifiedLC() }
+
+// TransferUSBVerifiedLC says "LiveContainer 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。"
+// in the language of msgs.
+func (msgs Messages) TransferUSBVerifiedLC() string {
+	return Catalog.Format(msgs.locale, "transferUSBVerifiedLC", nil)
+}
+
+// TransferUSBVerifiedSS says "SideStore 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。"
+// in the language the app shows.
+func TransferUSBVerifiedSS() string { return In(i18n.Locale()).TransferUSBVerifiedSS() }
+
+// TransferUSBVerifiedSS says "SideStore 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。"
+// in the language of msgs.
+func (msgs Messages) TransferUSBVerifiedSS() string {
+	return Catalog.Format(msgs.locale, "transferUSBVerifiedSS", nil)
+}
+
+// AccountRevokeConfirmTitle says "确认吊销开发证书？"
+// in the language the app shows.
+func AccountRevokeConfirmTitle() string { return In(i18n.Locale()).AccountRevokeConfirmTitle() }
+
+// AccountRevokeConfirmTitle says "确认吊销开发证书？"
+// in the language of msgs.
+func (msgs Messages) AccountRevokeConfirmTitle() string {
+	return Catalog.Format(msgs.locale, "accountRevokeConfirmTitle", nil)
+}
+
+// AccountRevokeConfirmDesc says "将吊销证书 {serial}（Machine: {machine}…"
+// in the language the app shows.
+func AccountRevokeConfirmDesc(serial string, machine string) string {
+	return In(i18n.Locale()).AccountRevokeConfirmDesc(serial, machine)
+}
+
+// AccountRevokeConfirmDesc says "将吊销证书 {serial}（Machine: {machine}…"
+// in the language of msgs.
+func (msgs Messages) AccountRevokeConfirmDesc(serial string, machine string) string {
+	return Catalog.Format(msgs.locale, "accountRevokeConfirmDesc", map[string]any{"serial": serial, "machine": machine})
+}
+
+// AccountRevokeConfirmLocalKeyWarn says "注意：此证书匹配当前 Mac 的本机私钥，吊销后本机已安装的 SideStore / LiveContainer …"
+// in the language the app shows.
+func AccountRevokeConfirmLocalKeyWarn() string {
+	return In(i18n.Locale()).AccountRevokeConfirmLocalKeyWarn()
+}
+
+// AccountRevokeConfirmLocalKeyWarn says "注意：此证书匹配当前 Mac 的本机私钥，吊销后本机已安装的 SideStore / LiveContainer …"
+// in the language of msgs.
+func (msgs Messages) AccountRevokeConfirmLocalKeyWarn() string {
+	return Catalog.Format(msgs.locale, "accountRevokeConfirmLocalKeyWarn", nil)
+}
+
+// AccountRevokeConfirmBtn says "确认吊销"
+// in the language the app shows.
+func AccountRevokeConfirmBtn() string { return In(i18n.Locale()).AccountRevokeConfirmBtn() }
+
+// AccountRevokeConfirmBtn says "确认吊销"
+// in the language of msgs.
+func (msgs Messages) AccountRevokeConfirmBtn() string {
+	return Catalog.Format(msgs.locale, "accountRevokeConfirmBtn", nil)
+}
+
+// ArchiveRemoveBtn says "移除"
+// in the language the app shows.
+func ArchiveRemoveBtn() string { return In(i18n.Locale()).ArchiveRemoveBtn() }
+
+// ArchiveRemoveBtn says "移除"
+// in the language of msgs.
+func (msgs Messages) ArchiveRemoveBtn() string {
+	return Catalog.Format(msgs.locale, "archiveRemoveBtn", nil)
+}
+
+// ErrFriendlyLocked says "iPhone 处于锁屏状态，请先解锁手机屏幕后再试。"
+// in the language the app shows.
+func ErrFriendlyLocked() string { return In(i18n.Locale()).ErrFriendlyLocked() }
+
+// ErrFriendlyLocked says "iPhone 处于锁屏状态，请先解锁手机屏幕后再试。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyLocked() string {
+	return Catalog.Format(msgs.locale, "errFriendlyLocked", nil)
+}
+
+// ErrFriendlyUntrusted says "iPhone 尚未信任此电脑，请在手机上点「信任」并输入锁屏密码。"
+// in the language the app shows.
+func ErrFriendlyUntrusted() string { return In(i18n.Locale()).ErrFriendlyUntrusted() }
+
+// ErrFriendlyUntrusted says "iPhone 尚未信任此电脑，请在手机上点「信任」并输入锁屏密码。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyUntrusted() string {
+	return Catalog.Format(msgs.locale, "errFriendlyUntrusted", nil)
+}
+
+// ErrFriendlyNoDevice says "未检测到通过 USB 连接的 iPhone，请检查数据线与接口。"
+// in the language the app shows.
+func ErrFriendlyNoDevice() string { return In(i18n.Locale()).ErrFriendlyNoDevice() }
+
+// ErrFriendlyNoDevice says "未检测到通过 USB 连接的 iPhone，请检查数据线与接口。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyNoDevice() string {
+	return Catalog.Format(msgs.locale, "errFriendlyNoDevice", nil)
+}
+
+// ErrFriendlyAuth says "Apple ID 凭据或会话已失效，请前往「Apple 账号」重新登录。"
+// in the language the app shows.
+func ErrFriendlyAuth() string { return In(i18n.Locale()).ErrFriendlyAuth() }
+
+// ErrFriendlyAuth says "Apple ID 凭据或会话已失效，请前往「Apple 账号」重新登录。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyAuth() string {
+	return Catalog.Format(msgs.locale, "errFriendlyAuth", nil)
+}
+
+// ErrFriendlyNetwork says "连接 Apple 或 Anisette 服务超时/失败，请检查网络后重试。"
+// in the language the app shows.
+func ErrFriendlyNetwork() string { return In(i18n.Locale()).ErrFriendlyNetwork() }
+
+// ErrFriendlyNetwork says "连接 Apple 或 Anisette 服务超时/失败，请检查网络后重试。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyNetwork() string {
+	return Catalog.Format(msgs.locale, "errFriendlyNetwork", nil)
+}
+
+// ErrFriendlyMaxCerts says "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。"
+// in the language the app shows.
+func ErrFriendlyMaxCerts() string { return In(i18n.Locale()).ErrFriendlyMaxCerts() }
+
+// ErrFriendlyMaxCerts says "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyMaxCerts() string {
+	return Catalog.Format(msgs.locale, "errFriendlyMaxCerts", nil)
+}
+
+// ErrFriendlyMaxAppIDs says "免费个人团队 7 天内最多注册 10 个 App ID，请等待旧名额到期释放。"
+// in the language the app shows.
+func ErrFriendlyMaxAppIDs() string { return In(i18n.Locale()).ErrFriendlyMaxAppIDs() }
+
+// ErrFriendlyMaxAppIDs says "免费个人团队 7 天内最多注册 10 个 App ID，请等待旧名额到期释放。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyMaxAppIDs() string {
+	return Catalog.Format(msgs.locale, "errFriendlyMaxAppIDs", nil)
+}
+
+// ToolsManageOnDeviceBtn says "前往「设备」安装或管理"
+// in the language the app shows.
+func ToolsManageOnDeviceBtn() string { return In(i18n.Locale()).ToolsManageOnDeviceBtn() }
+
+// ToolsManageOnDeviceBtn says "前往「设备」安装或管理"
+// in the language of msgs.
+func (msgs Messages) ToolsManageOnDeviceBtn() string {
+	return Catalog.Format(msgs.locale, "toolsManageOnDeviceBtn", nil)
 }

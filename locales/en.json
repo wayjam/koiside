@@ -51,7 +51,7 @@
   "deviceSessionLocked": "Device is locked. Unlock your iPhone and click Retry.",
   "deviceSessionUntrusted": "Device is untrusted or missing pairing record. Tap Trust on your iPhone.",
   "deviceSideStoreUSBReady": "USB file sharing ready · Documents container accessible",
-  "transferUSBVerified": "SideStore Documents container reachable (read-only list verified). Transfer writes and verifies SHA-256.",
+  "transferUSBVerified": "Documents container reachable (read-only list verified). Transfer writes and verifies SHA-256.",
 
   "transferSectionTitle": "Transfer Handoff",
   "transferGuideTitle": "Prepare the IPA Transfer",
@@ -180,7 +180,7 @@
   "guideStep2Empty": "No IPA imported yet. Import one now or skip to Home.",
   "guideStep3Title": "Hand off to SideStore",
   "guideStep3Desc": "After USB transfer or export, open the IPA in Files and import it into SideStore for signing and refresh.",
-  "guideStep3Note": "USB only transfers files; LocalDevVPN must be enabled before SideStore can import, install, or refresh apps.",
+  "guideStep3Note": "LocalDevVPN must be enabled before SideStore installs or refreshes. For direct USB signing, use your signed-in Apple ID in Device or Handoff.",
   "guideRetry": "Retry",
   "guideConnectLater": "Connect later",
   "guideSkip": "Skip setup",
@@ -583,5 +583,26 @@
   "lcAdvancedMultiTitle": "1. Run container apps simultaneously (Shared App)",
   "lcAdvancedMultiDesc": "In LiveContainer, open the app card → Settings → Convert to Shared App so it can run alongside other apps in multi-task / multi-container mode.",
   "lcAdvancedShortcutTitle": "2. Add a Home Screen icon via iOS Shortcuts (7 steps)",
-  "lcAdvancedShortcutSteps": "1. Open LiveContainer → Apps and long-press the app.\n2. Tap Add to Home Screen → Save App Icon, pick a style and save.\n3. Long-press again → Add to Home Screen → Copy Launch URL.\n4. Open Apple Shortcuts and tap + to create a new shortcut.\n5. Search for Launch App and pick the LiveContainer action.\n6. Tap Launch URL, paste the copied URL, and run once to test.\n7. Tap Share → Add to Home Screen, set the name, and pick the saved icon. (iOS sandbox requires Shortcuts on device for Home Screen icons.)"
+  "lcAdvancedShortcutSteps": "1. Open LiveContainer → Apps and long-press the app.\n2. Tap Add to Home Screen → Save App Icon, pick a style and save.\n3. Long-press again → Add to Home Screen → Copy Launch URL.\n4. Open Apple Shortcuts and tap + to create a new shortcut.\n5. Search for Launch App and pick the LiveContainer action.\n6. Tap Launch URL, paste the copied URL, and run once to test.\n7. Tap Share → Add to Home Screen, set the name, and pick the saved icon. (iOS sandbox requires Shortcuts on device for Home Screen icons.)",
+  "transferUSBVerifiedLC": "LiveContainer Documents container reachable. Transfer writes to /Documents and verifies SHA-256.",
+  "transferUSBVerifiedSS": "SideStore Documents container reachable. Transfer writes to /Documents and verifies SHA-256.",
+  "accountRevokeConfirmTitle": "Revoke Development Certificate?",
+  "accountRevokeConfirmDesc": "This will permanently revoke certificate {serial} (Machine: {machine}). Apps signed with it will stop refreshing.",
+  "@accountRevokeConfirmDesc": {
+    "placeholders": {
+      "serial": { "type": "String" },
+      "machine": { "type": "String" }
+    }
+  },
+  "accountRevokeConfirmLocalKeyWarn": "Warning: this certificate matches your Mac's local private key. Revoking it will affect SideStore / LiveContainer installed from this Mac.",
+  "accountRevokeConfirmBtn": "Revoke Certificate",
+  "archiveRemoveBtn": "Remove",
+  "errFriendlyLocked": "iPhone is locked. Unlock your iPhone screen and retry.",
+  "errFriendlyUntrusted": "iPhone has not trusted this Mac yet. Tap Trust on your iPhone and enter your passcode.",
+  "errFriendlyNoDevice": "No iPhone detected over USB. Check your cable and connection.",
+  "errFriendlyAuth": "Apple ID session expired or invalid. Sign in again under Apple Account.",
+  "errFriendlyNetwork": "Timed out or failed reaching Apple / Anisette servers. Check your network and retry.",
+  "errFriendlyMaxCerts": "Development certificate limit reached. Revoke an unused certificate under Apple Account.",
+  "errFriendlyMaxAppIDs": "Free Personal Teams are limited to 10 App IDs per 7 days. Wait for an existing ID to expire.",
+  "toolsManageOnDeviceBtn": "Install & Manage in Device"
 }

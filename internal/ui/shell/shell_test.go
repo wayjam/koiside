@@ -327,8 +327,8 @@ func TestEndToEndTaskFlowRoutePrepareConflictHandoffVerifyAndMaintain(t *testing
 	if err := tt.Click("在 LiveContainer 里运行"); err != nil {
 		t.Fatal(err)
 	}
-	if !tt.HasText("评估 LiveContainer 是否适合") {
-		t.Fatalf("LiveContainer evaluation missing: %q", tt.Texts())
+	if !tt.HasText("选择安装在 LiveContainer 里面还是外面") {
+		t.Fatalf("LiveContainer placement missing: %q", tt.Texts())
 	}
 	// Choose SideStore route and continue to Stage 3
 	if err := tt.Click("独立安装 · 免费个人签名（推荐）"); err != nil {
@@ -1018,5 +1018,39 @@ func TestToolInstallConfirmModalAndLCAdvancedGuides(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("进阶用法：同时运行多个 App & 添加到桌面") {
 		t.Fatalf("expected LC advanced usage collapsible in stage 4: %q", tt.Texts())
+	}
+}
+
+func TestRevokeCertConfirmModalAndArchiveRemove(t *testing.T) {
+	m, tt := newTest(t, false)
+	m.mu.Lock()
+	m.files = []archiveState{{path: "A.ipa", ready: true, report: ipa.Report{DisplayName: "AppA", BundleID: "com.example.a"}}}
+	m.section = "文件"
+	m.taskStage = 1
+	m.mu.Unlock()
+	tt.Frame()
+	if err := tt.Click("移除"); err != nil {
+		t.Fatal(err)
+	}
+	if len(m.archives()) != 0 {
+		t.Fatalf("expected archive removed, got %d", len(m.archives()))
+	}
+
+	m.mu.Lock()
+	m.pendingRevokeCert = &devportal.DevelopmentCertificate{
+		Name:         "iOS Development",
+		SerialNumber: "SER123",
+		MachineName:  "koiside",
+	}
+	m.mu.Unlock()
+	tt.Frame()
+	if !tt.HasText("确认吊销开发证书？") || !tt.HasText("SER123") {
+		t.Fatalf("expected revoke cert confirm modal: %q", tt.Texts())
+	}
+	if err := tt.Click("取消"); err != nil {
+		t.Fatal(err)
+	}
+	if m.pendingRevokeCert != nil {
+		t.Fatal("expected pendingRevokeCert cleared on cancel")
 	}
 }
