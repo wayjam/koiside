@@ -184,12 +184,24 @@ func (c *Client) DownloadProduct(ctx context.Context, account Account, app Softw
 			}
 		}
 
+		reqHeaders := map[string]string{
+			"Content-Type": "application/x-apple-plist",
+			"iCloud-DSID":  account.DSID,
+			"X-Dsid":       account.DSID,
+		}
+		if account.PasswordToken != "" {
+			reqHeaders["X-Token"] = account.PasswordToken
+		}
+		if account.Store != "" {
+			sf := account.Store
+			if !strings.Contains(sf, "-") {
+				sf += "-1"
+			}
+			reqHeaders["X-Apple-Store-Front"] = sf
+		}
+
 		for range 4 {
-			resp, err := c.doAppleRequest(ctx, "POST", scheme+"://"+host+reqPath, map[string]string{
-				"Content-Type": "application/x-apple-plist",
-				"iCloud-DSID":  account.DSID,
-				"X-Dsid":       account.DSID,
-			}, body, cookies)
+			resp, err := c.doAppleRequest(ctx, "POST", scheme+"://"+host+reqPath, reqHeaders, body, cookies)
 			if err != nil {
 				return rawResponse{}, err
 			}
@@ -255,6 +267,11 @@ func (c *Client) DownloadProduct(ctx context.Context, account Account, app Softw
 	if !emptyServerErr {
 		dict, err = responseDict(rResp, redownload)
 		if err != nil {
+			if rResp.Status == http.StatusForbidden && len(strings.TrimSpace(string(rResp.Body))) == 0 {
+				return nil, cookies, &DownloadError{
+					Message: "appstore: Apple DownloadDispatch rejected legacy redownload/update with HTTP 403 (this account/region now requires Apple ent/download with kbsync)",
+				}
+			}
 			return nil, cookies, err
 		}
 	}
@@ -276,7 +293,6 @@ func (c *Client) DownloadProduct(ctx context.Context, account Account, app Softw
 			return nil, cookies, err
 		}
 	}
-
 	if err := requireDownloadItems(dict); err != nil {
 		return nil, cookies, err
 	}
