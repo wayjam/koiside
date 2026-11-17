@@ -1127,6 +1127,37 @@ func TestStoreViewAndSinfWorkbenchDirectInstall(t *testing.T) {
 	}
 
 	m.mu.Lock()
+	m.storeResults = []appstore.Software{
+		{ID: 1, Name: "FirstApp", BundleID: "com.example.first", Version: "1.0.0", FormattedPrice: "Free"},
+		{ID: 2, Name: "SecondApp", BundleID: "com.example.second", Version: "2.3.4", FormattedPrice: "Free", ArtistName: "Acme"},
+	}
+	m.storeSelected = 0
+	m.mu.Unlock()
+	tt.Frame()
+	if err := tt.Click("SecondApp"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("com.example.second") || !tt.HasText("Acme") {
+		t.Fatalf("expected second app detail visible in right pane, got %q", tt.Texts())
+	}
+
+	// Compact breakpoint drills into detail view and supports returning via top-bar back button
+	tt.SetSize(600, 560)
+	if err := tt.Click("FirstApp"); err != nil {
+		t.Fatal(err)
+	}
+	if !m.storeNarrowDetail || !tt.HasText("com.example.first") {
+		t.Fatalf("expected compact drill-down to FirstApp, storeNarrowDetail=%v texts=%q", m.storeNarrowDetail, tt.Texts())
+	}
+	if err := tt.Click("‹ 返回"); err != nil {
+		t.Fatal(err)
+	}
+	if m.storeNarrowDetail || !tt.HasText("SecondApp") {
+		t.Fatalf("expected compact back to restore search list, storeNarrowDetail=%v texts=%q", m.storeNarrowDetail, tt.Texts())
+	}
+	tt.SetSize(1180, 860)
+
+	m.mu.Lock()
 	m.files = []archiveState{{
 		path:  "/tmp/WeChat.ipa",
 		ready: true,

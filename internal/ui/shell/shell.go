@@ -175,6 +175,7 @@ type Model struct {
 	storeSearchErr     string
 	storeResults       []appstore.Software
 	storeSelected      int
+	storeNarrowDetail  bool
 	storeVersionsBusy  bool
 	storeVersionsErr   string
 	storeVersions      []string
@@ -447,9 +448,10 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).DragWindow().Children(func() {
 			ui.Image(c, brandLogoSVG).Width(20).Height(20)
 			ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
-			if m.isTaskSection(m.section) && m.narrowDetail {
+			if (m.isTaskSection(m.section) && m.narrowDetail) || (m.section == "商店" && m.storeNarrowDetail) {
 				if uiBtn(c, "compact-back", "‹ "+msg.NavBack()).Clicked() {
 					m.narrowDetail = false
+					m.storeNarrowDetail = false
 				}
 			}
 		})
@@ -492,6 +494,7 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 							m.section = item.id
 						}
 						m.narrowDetail = false
+						m.storeNarrowDetail = false
 					}
 				}
 			})
@@ -676,7 +679,7 @@ func (m *Model) workspace(c *ui.Context, msg locales.Messages, compact bool) {
 	case "文件":
 		m.filesView(c, msg, compact)
 	case "商店":
-		m.storeView(c, msg)
+		m.storeView(c, msg, compact)
 	case "设备":
 		m.deviceView(c, msg)
 	case "账号":
