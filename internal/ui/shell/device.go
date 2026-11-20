@@ -1225,8 +1225,19 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 		return
 	}
 
+	if m.userConfirmed {
+		ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Box(c).Size(42, 42).Radius(12).Background(brandWarmSurface(t)).
+				Center().Children(func() {
+				ui.Image(c, brandLogo).Size(32, 32).Fit(ui.Contain)
+			})
+			ui.Text(c, msg.MaintainTitle()).FontSize(26).Bold()
+		})
+	}
 	ui.Column(c).FillWidth().Gap(4).Children(func() {
-		ui.Text(c, msg.MaintainTitle()).FontSize(26).Bold()
+		if !m.userConfirmed {
+			ui.Text(c, msg.MaintainTitle()).FontSize(26).Bold()
+		}
 		ui.Text(c, msg.MaintainSubtitle()).TextColor(t.TextMuted)
 		if m.maintainApp != "" {
 			ui.Text(c, msg.MaintainTargetApp(m.maintainApp)).FontSize(12).Bold().TextColor(accentInk(t))

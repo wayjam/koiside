@@ -11,10 +11,12 @@
   "out": "build",
   "macos": {
     "minimumSystemVersion": "26.0",
-    "signingIdentity": "-"
+    "signingIdentity": "-",
+    "icon": "resources/icon.icns"
   },
   "linux": {
     "webview": false,
     "categories": ["Utility"]
-  }
+  },
+  "icon": "resources/icon.png"
 }

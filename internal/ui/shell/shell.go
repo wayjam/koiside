@@ -446,7 +446,7 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 	ui.Column(c).FillWidth().Background(t.Surface).BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Padding(topPad, 14, 10, 14).Gap(8).Children(func() {
 		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).DragWindow().Children(func() {
-			ui.Image(c, brandLogoSVG).Width(20).Height(20)
+			ui.Image(c, brandLogo).Size(28, 28).Fit(ui.Contain)
 			ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 			if (m.isTaskSection(m.section) && m.narrowDetail) || (m.section == "商店" && m.storeNarrowDetail) {
 				if uiBtn(c, "compact-back", "‹ "+msg.NavBack()).Clicked() {
@@ -516,7 +516,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 		}
 		if m.sidebarCollapsed {
 			ui.Column(c).Padding(topPad, 10, 10, 10).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
-				ui.Image(c, brandLogoSVG).Width(22).Height(22)
+				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 8).Radius(6).
 					Label("展开侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)
 				if tog.Hovered() {
@@ -531,7 +531,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			})
 		} else {
 			ui.Row(c).Padding(topPad, 12, 12, 16).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
-				ui.Image(c, brandLogoSVG).Width(22).Height(22)
+				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
 				ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 6).Radius(6).
 					Label("收起侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)

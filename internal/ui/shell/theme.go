@@ -106,6 +106,14 @@ func applyShellTheme(c *ui.Context, dark bool) {
 	c.SetTheme(base)
 }
 
+// brandWarmSurface gives brand-only details a restrained warm tint.
+func brandWarmSurface(t *ui.Theme) ui.Color {
+	if t.Dark {
+		return ui.Hex("#FFD28A").Alpha(0.08)
+	}
+	return ui.Hex("#FFB85C").Alpha(0.10)
+}
+
 // accentInk returns the readable blue accent for text and icons over Background, Surface, or Selection.
 func accentInk(t *ui.Theme) ui.Color {
 	if t.Dark {
@@ -217,7 +225,7 @@ func primaryActionButton(c *ui.Context, key, label string, icon *ui.SVG) ui.Elem
 // appIconBadge renders the extracted AppIcon PNG if available, otherwise falls back to a crisp Phosphor badge.
 func appIconBadge(c *ui.Context, file archiveState, size float32) {
 	if bm := cachedBitmap(file.report.IconPNG); bm != nil {
-		ui.Image(c, bm).Size(size, size).Radius(size * 0.22).Fit(ui.Cover).
+		ui.Image(c, bm).Size(size, size).Radius(size*0.22).Fit(ui.Cover).
 			Border(1, ui.RGBA(0, 0, 0, 0.08))
 		return
 	}
@@ -233,7 +241,7 @@ func appIconBadge(c *ui.Context, file archiveState, size float32) {
 		glyph = phPaperPlaneTiltDuotone
 		bg = ui.Hex("#0284C7")
 	}
-	ui.Row(c).Width(size).Height(size).Radius(size * 0.24).Background(bg).
+	ui.Row(c).Width(size).Height(size).Radius(size*0.24).Background(bg).
 		InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.2)).
 		Center().Children(func() {
 		if glyph == phLockKeyDuotone || glyph == phPaperPlaneTiltDuotone {

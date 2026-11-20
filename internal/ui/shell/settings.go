@@ -170,9 +170,13 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 			}
 		})
 		ui.Divider(c)
-		ui.Column(c).FillWidth().Padding(14, 18).Gap(2).Children(func() {
-			ui.Text(c, msg.SettingsAbout()).Bold().FontSize(14)
-			ui.Text(c, msg.SettingsAboutDesc()).FontSize(12).TextColor(t.TextMuted)
+		ui.Row(c).FillWidth().Padding(14, 18).Gap(12).AlignItems(ui.Center).
+			Background(brandWarmSurface(t)).Children(func() {
+			ui.Image(c, brandLogo).Size(36, 36).Fit(ui.Contain)
+			ui.Column(c).Grow(1).Gap(2).Children(func() {
+				ui.Text(c, msg.SettingsAbout()).Bold().FontSize(14)
+				ui.Text(c, msg.SettingsAboutDesc()).FontSize(12).TextColor(t.TextMuted)
+			})
 		})
 	})
 }

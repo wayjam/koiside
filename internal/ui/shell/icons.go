@@ -9,6 +9,19 @@ import (
 //go:embed assets/icons/*.svg
 var iconFS embed.FS
 
+//go:embed assets/brand/logo.png
+var brandLogoPNG []byte
+
+var brandLogo = mustBrandLogo()
+
+func mustBrandLogo() *ui.Bitmap {
+	bitmap, err := ui.DecodeBitmap(brandLogoPNG)
+	if err != nil {
+		panic("shell: invalid brand logo: " + err.Error())
+	}
+	return bitmap
+}
+
 func mustIcon(name string) *ui.SVG {
 	data, err := iconFS.ReadFile("assets/icons/" + name + ".svg")
 	if err != nil {
@@ -73,19 +86,6 @@ var (
 	phMagnifyingGlassDuotone = mustIcon("magnifying-glass-duotone")
 	phLockKeyDuotone         = mustIcon("lock-key-duotone")
 	phPaperPlaneTiltDuotone  = mustIcon("paper-plane-tilt-duotone")
-
-	brandLogoSVG = ui.MustParseSVG([]byte(`<svg viewBox="0 0 28 28" fill="none">
-		<rect width="28" height="28" rx="7" fill="url(#brandGrad)"/>
-		<polygon points="14 6 7 10 14 14 21 10 14 6" fill="#FFFFFF" fill-opacity="0.96"/>
-		<polyline points="7 14 14 18 21 14" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-		<polyline points="7 18 14 22 21 18" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.82"/>
-		<defs>
-			<linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-				<stop stop-color="#2580EE"/>
-				<stop offset="1" stop-color="#1769D2"/>
-			</linearGradient>
-		</defs>
-	</svg>`))
 
 	phoneBadgeSVG = ui.MustParseSVG([]byte(`<svg viewBox="0 0 36 60" fill="none">
 		<rect x="1.5" y="1.5" width="33" height="57" rx="8.5" fill="#181C24" stroke="#475569" stroke-width="1.5"/>
