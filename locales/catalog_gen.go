@@ -8,14 +8,16 @@ import (
 	"github.com/egoist/mygo/i18n"
 
 	// MyGo's own strings in the app's languages.
+	_ "github.com/egoist/mygo/locales/ja"
 	_ "github.com/egoist/mygo/locales/zh-Hans"
 )
 
 //go:embed *.json
 var files embed.FS
 
-// Catalog holds the messages in zh-Hans, the source language, and en. It is
-// registered with package i18n, which makes its languages the app's.
+// Catalog holds the messages in zh-Hans, the source language, and en, ja
+// and ru. It is registered with package i18n, which makes its languages the
+// app's.
 var Catalog *i18n.Catalog
 
 func init() {
@@ -2044,11 +2046,11 @@ func (msgs Messages) SettingsLanguage() string {
 	return Catalog.Format(msgs.locale, "settingsLanguage", nil)
 }
 
-// SettingsLanguageDesc says "切换界面显示语言（中文 / English），支持实时刷新。"
+// SettingsLanguageDesc says "选择界面显示语言，切换后立即生效。"
 // in the language the app shows.
 func SettingsLanguageDesc() string { return In(i18n.Locale()).SettingsLanguageDesc() }
 
-// SettingsLanguageDesc says "切换界面显示语言（中文 / English），支持实时刷新。"
+// SettingsLanguageDesc says "选择界面显示语言，切换后立即生效。"
 // in the language of msgs.
 func (msgs Messages) SettingsLanguageDesc() string {
 	return Catalog.Format(msgs.locale, "settingsLanguageDesc", nil)
@@ -2082,6 +2084,168 @@ func SettingsLangEn() string { return In(i18n.Locale()).SettingsLangEn() }
 // in the language of msgs.
 func (msgs Messages) SettingsLangEn() string {
 	return Catalog.Format(msgs.locale, "settingsLangEn", nil)
+}
+
+// SettingsLangRu says "Русский"
+// in the language the app shows.
+func SettingsLangRu() string { return In(i18n.Locale()).SettingsLangRu() }
+
+// SettingsLangRu says "Русский"
+// in the language of msgs.
+func (msgs Messages) SettingsLangRu() string {
+	return Catalog.Format(msgs.locale, "settingsLangRu", nil)
+}
+
+// SettingsLangJa says "日本語"
+// in the language the app shows.
+func SettingsLangJa() string { return In(i18n.Locale()).SettingsLangJa() }
+
+// SettingsLangJa says "日本語"
+// in the language of msgs.
+func (msgs Messages) SettingsLangJa() string {
+	return Catalog.Format(msgs.locale, "settingsLangJa", nil)
+}
+
+// SidebarExpand says "展开侧栏"
+// in the language the app shows.
+func SidebarExpand() string { return In(i18n.Locale()).SidebarExpand() }
+
+// SidebarExpand says "展开侧栏"
+// in the language of msgs.
+func (msgs Messages) SidebarExpand() string {
+	return Catalog.Format(msgs.locale, "sidebarExpand", nil)
+}
+
+// SidebarCollapse says "收起侧栏"
+// in the language the app shows.
+func SidebarCollapse() string { return In(i18n.Locale()).SidebarCollapse() }
+
+// SidebarCollapse says "收起侧栏"
+// in the language of msgs.
+func (msgs Messages) SidebarCollapse() string {
+	return Catalog.Format(msgs.locale, "sidebarCollapse", nil)
+}
+
+// ProgressStageDownload says "正在下载"
+// in the language the app shows.
+func ProgressStageDownload() string { return In(i18n.Locale()).ProgressStageDownload() }
+
+// ProgressStageDownload says "正在下载"
+// in the language of msgs.
+func (msgs Messages) ProgressStageDownload() string {
+	return Catalog.Format(msgs.locale, "progressStageDownload", nil)
+}
+
+// ProgressStagePreparing says "正在准备"
+// in the language the app shows.
+func ProgressStagePreparing() string { return In(i18n.Locale()).ProgressStagePreparing() }
+
+// ProgressStagePreparing says "正在准备"
+// in the language of msgs.
+func (msgs Messages) ProgressStagePreparing() string {
+	return Catalog.Format(msgs.locale, "progressStagePreparing", nil)
+}
+
+// ProgressStageCertificate says "正在准备证书"
+// in the language the app shows.
+func ProgressStageCertificate() string { return In(i18n.Locale()).ProgressStageCertificate() }
+
+// ProgressStageCertificate says "正在准备证书"
+// in the language of msgs.
+func (msgs Messages) ProgressStageCertificate() string {
+	return Catalog.Format(msgs.locale, "progressStageCertificate", nil)
+}
+
+// ProgressStageSigning says "正在签名"
+// in the language the app shows.
+func ProgressStageSigning() string { return In(i18n.Locale()).ProgressStageSigning() }
+
+// ProgressStageSigning says "正在签名"
+// in the language of msgs.
+func (msgs Messages) ProgressStageSigning() string {
+	return Catalog.Format(msgs.locale, "progressStageSigning", nil)
+}
+
+// ProgressStageUSBInstall says "正在通过 USB 安装"
+// in the language the app shows.
+func ProgressStageUSBInstall() string { return In(i18n.Locale()).ProgressStageUSBInstall() }
+
+// ProgressStageUSBInstall says "正在通过 USB 安装"
+// in the language of msgs.
+func (msgs Messages) ProgressStageUSBInstall() string {
+	return Catalog.Format(msgs.locale, "progressStageUSBInstall", nil)
+}
+
+// ProgressStagePairing says "正在放置配对文件"
+// in the language the app shows.
+func ProgressStagePairing() string { return In(i18n.Locale()).ProgressStagePairing() }
+
+// ProgressStagePairing says "正在放置配对文件"
+// in the language of msgs.
+func (msgs Messages) ProgressStagePairing() string {
+	return Catalog.Format(msgs.locale, "progressStagePairing", nil)
+}
+
+// ProgressStageComplete says "已完成"
+// in the language the app shows.
+func ProgressStageComplete() string { return In(i18n.Locale()).ProgressStageComplete() }
+
+// ProgressStageComplete says "已完成"
+// in the language of msgs.
+func (msgs Messages) ProgressStageComplete() string {
+	return Catalog.Format(msgs.locale, "progressStageComplete", nil)
+}
+
+// ProgressStageConnectAFC says "正在连接设备存储"
+// in the language the app shows.
+func ProgressStageConnectAFC() string { return In(i18n.Locale()).ProgressStageConnectAFC() }
+
+// ProgressStageConnectAFC says "正在连接设备存储"
+// in the language of msgs.
+func (msgs Messages) ProgressStageConnectAFC() string {
+	return Catalog.Format(msgs.locale, "progressStageConnectAFC", nil)
+}
+
+// ProgressStageUploadApp says "正在上传应用"
+// in the language the app shows.
+func ProgressStageUploadApp() string { return In(i18n.Locale()).ProgressStageUploadApp() }
+
+// ProgressStageUploadApp says "正在上传应用"
+// in the language of msgs.
+func (msgs Messages) ProgressStageUploadApp() string {
+	return Catalog.Format(msgs.locale, "progressStageUploadApp", nil)
+}
+
+// ProgressStageUploadIPA says "正在上传 IPA"
+// in the language the app shows.
+func ProgressStageUploadIPA() string { return In(i18n.Locale()).ProgressStageUploadIPA() }
+
+// ProgressStageUploadIPA says "正在上传 IPA"
+// in the language of msgs.
+func (msgs Messages) ProgressStageUploadIPA() string {
+	return Catalog.Format(msgs.locale, "progressStageUploadIPA", nil)
+}
+
+// ProgressStageConnectInstallProxy says "正在连接安装服务"
+// in the language the app shows.
+func ProgressStageConnectInstallProxy() string {
+	return In(i18n.Locale()).ProgressStageConnectInstallProxy()
+}
+
+// ProgressStageConnectInstallProxy says "正在连接安装服务"
+// in the language of msgs.
+func (msgs Messages) ProgressStageConnectInstallProxy() string {
+	return Catalog.Format(msgs.locale, "progressStageConnectInstallProxy", nil)
+}
+
+// ErrFriendlyUnexpected says "操作失败：{err}"
+// in the language the app shows.
+func ErrFriendlyUnexpected(err string) string { return In(i18n.Locale()).ErrFriendlyUnexpected(err) }
+
+// ErrFriendlyUnexpected says "操作失败：{err}"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyUnexpected(err string) string {
+	return Catalog.Format(msgs.locale, "errFriendlyUnexpected", map[string]any{"err": err})
 }
 
 // SettingsFileLocations says "文件位置"

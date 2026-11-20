@@ -518,7 +518,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			ui.Column(c).Padding(topPad, 10, 10, 10).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
 				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 8).Radius(6).
-					Label("展开侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)
+					Label(msg.SidebarExpand()).Cursor(ui.CursorPointer).Transition(colorTransition)
 				if tog.Hovered() {
 					tog.Background(t.SurfaceHover)
 				}
@@ -534,7 +534,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
 				ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 6).Radius(6).
-					Label("收起侧栏").Cursor(ui.CursorPointer).Transition(colorTransition)
+					Label(msg.SidebarCollapse()).Cursor(ui.CursorPointer).Transition(colorTransition)
 				if tog.Hovered() {
 					tog.Background(t.SurfaceHover)
 				}
@@ -943,7 +943,7 @@ func (m *Model) choiceNote(c *ui.Context, msg locales.Messages) {
 		return
 	}
 	if m.exportErr != "" {
-		ui.Text(c.Key("export-err"), msg.DiffExportFailed(m.exportErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+		ui.Text(c.Key("export-err"), msg.DiffExportFailed(friendlyError(msg, m.exportErr))).FontSize(12).TextColor(ui.Hex("#EF4444"))
 		return
 	}
 	if m.exportMsg != "" {
@@ -1012,7 +1012,7 @@ func (m *Model) pickIPA() {
 			msg := m.msg(nil)
 			switch {
 			case err != nil:
-				m.dialogNote = msg.DialogOpenFailed(err.Error())
+				m.dialogNote = msg.DialogOpenFailed(friendlyError(msg, err.Error()))
 				m.chosen = nil
 			case len(paths) == 0:
 				m.dialogNote = msg.DialogOpenCanceled()
@@ -1054,7 +1054,7 @@ func (m *Model) SaveCopy() {
 			curMsg := m.msg(nil)
 			switch {
 			case err != nil:
-				m.dialogNote = curMsg.DialogSaveFailed(err.Error())
+				m.dialogNote = curMsg.DialogSaveFailed(friendlyError(curMsg, err.Error()))
 				m.saved = ""
 			case path == "":
 				m.dialogNote = curMsg.DialogSaveCanceled()

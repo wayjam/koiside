@@ -53,6 +53,10 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 			langIdx = 1
 		case langEn:
 			langIdx = 2
+		case langRu:
+			langIdx = 3
+		case langJa:
+			langIdx = 4
 		}
 		ui.Row(c).FillWidth().Padding(14, 18).AlignItems(ui.Center).Gap(12).Children(func() {
 			ui.Icon(c, phGlobe).Width(18).Height(18).TextColor(accentInk(t))
@@ -64,9 +68,11 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 				msg.SettingsLangSystem(),
 				msg.SettingsLangZhHans(),
 				msg.SettingsLangEn(),
+				msg.SettingsLangRu(),
+				msg.SettingsLangJa(),
 			).Cursor(ui.CursorPointer).Label(msg.SettingsLanguage())
 			if seg.Changed() {
-				langs := []string{langSystem, langZhHans, langEn}
+				langs := []string{langSystem, langZhHans, langEn, langRu, langJa}
 				m.SetLanguage(langs[langIdx])
 				c.Invalidate()
 			}

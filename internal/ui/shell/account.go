@@ -412,7 +412,7 @@ func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, msg.Account2FADesc()).FontSize(12).TextColor(t.TextMuted)
 				}
 				if tfa.LastError != "" {
-					ui.Text(c, tfa.LastError).FontSize(11).TextColor(ui.Hex("#EF4444"))
+					ui.Text(c, friendlyError(msg, tfa.LastError)).FontSize(11).TextColor(ui.Hex("#EF4444"))
 				}
 				ui.TextInput(c.Key("tfa-code-input"), &m.twoFactorCode).
 					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().Label(msg.Account2FATitle())

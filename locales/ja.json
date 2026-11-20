@@ -1,0 +1,749 @@
+{
+  "@@locale": "ja",
+  "appTitle": "KoiSide",
+  "appSubtitle": "Mac 向けの iPhone アプリサイドロードツール",
+  "navHome": "ホーム",
+  "navLibrary": "IPA ライブラリ",
+  "navDevice": "デバイス",
+  "navTools": "ツール",
+  "navGuide": "セットアップ",
+  "navSettings": "設定",
+  "navBack": "戻る",
+  "homeTitle": "アプリを準備",
+  "homeSubtitle": "iPhone用のアプリはご自身で用意してください。デバイスがなくてもオフラインで IPA を検査できます。",
+  "importIPA": "IPA をインポート",
+  "recentFiles": "最近のファイル",
+  "seeAll": "すべて見る",
+  "noRecentFiles": "まだ IPA を読み込んでいません",
+  "toolsSectionTitle": "ツールをセットアップする",
+  "toolsDetectedNote": "アプリが検出されても、それが正しく実行されているとは限りません。",
+  "homeImportDragHint": "クリックして IPA を選択するか、このウィンドウの任意の場所に .ipa をドロップします。",
+  "deviceCardTitle": "iPhone",
+  "deviceConnectedUSB": "デバイス: USB接続",
+  "deviceConnectedUnknown": "デバイス: 見つかりました、接続タイプは不明です",
+  "deviceDisconnected": "デバイス: 切断されました",
+  "deviceQueryFailed": "デバイス: クエリが失敗しました",
+  "deviceSideStoreSummary": "SideStore: 不明",
+  "deviceTitle": "デバイス",
+  "deviceSubtitle": "接続されている iOS デバイスのステータスとインストールされているアプリの読み取り専用クエリ。",
+  "deviceConnectionType": "接続: {kind}",
+  "deviceModelVersion": "モデル：{model}・iOS：{version}",
+  "deviceDisconnectedTitle": "デバイスが切断されました",
+  "deviceNoIPhoneHint": "iPhone が検出されませんでした。 USB ケーブルでデバイスを接続し、ロックを解除し、求められたら「信頼」をタップします。",
+  "deviceRefresh": "再試行",
+  "deviceWorkOffline": "オフラインで作業する",
+  "deviceSideStoreCardTitle": "SideStore",
+  "deviceSideStoreStatusUnknown": "ステータス不明",
+  "deviceSideStoreDesc": "読み取り専用のクエリ。 SideStore が検出されないこととステータスが不明であることを区別します。",
+  "deviceViewToolGuide": "ツールガイドを開く",
+  "deviceInstalledAppsTitle": "インストールされているアプリ",
+  "deviceInstalledAppsDesc": "フェーズ 1 は読み取り専用クエリを実行します。アプリ ID スロットと証明書の有効期限は、デバイスの SideStore に従います。",
+  "deviceInstalledAppsEmpty": "アプリリストがまだ読み込まれていないか、信頼できるデバイスが接続されていません。",
+  "deviceSideStoreDetected": "SideStore: 検出されました",
+  "deviceSideStoreEmbedded": "SideStore: LiveContainer に組み込まれています",
+  "deviceSideStoreNotDetected": "SideStore: 検出されませんでした",
+  "deviceToolDetected": "検出({version})・動作状態不明",
+  "deviceToolEmbeddedInLC": "LiveContainerに組み込まれています",
+  "deviceToolNotDetected": "インストールされているアプリでは検出されない",
+  "deviceAppsSummary": "{total} 個のユーザーアプリを読み込みました（サイドロード／開発者署名: {sideloaded} 個）",
+  "deviceSessionLocked": "デバイスはロックされています。 iPhoneのロックを解除し、「再試行」をクリックします。",
+  "deviceSessionUntrusted": "デバイスが信頼できないか、ペアリング レコードがありません。 iPhoneで「信頼」をタップします。",
+  "deviceSideStoreUSBReady": "USBファイル共有に対応・ドキュメントコンテナにアクセス可能",
+  "transferUSBVerified": "ドキュメント コンテナに到達可能 (読み取り専用リストが検証済み)。 Transfer は SHA-256 を書き込み、検証します。",
+  "transferSectionTitle": "転送ハンドオフ",
+  "transferGuideTitle": "IPA転送の準備",
+  "transferGuideSubtitle": "準備した IPA を iPhone に送信し、SideStore にインポートして署名します。",
+  "transferUSBStatusLabel": "USBファイル共有",
+  "transferUSBUnverified": "このデバイスでは、コンテナーの書き込みと可視性の可用性は未検証です。",
+  "transferExportAlt": "IPAをMacにエクスポート",
+  "transferExportAltDesc": "IPA をローカル フォルダー (ダウンロードなど) に保存し、AirDrop またはファイル経由で手動で転送します。",
+  "transferNextSteps": "次のステップ",
+  "transferNextStep1": "1. iPhone でファイルを開き、IPA が表示されていることを確認します。",
+  "transferNextStep2": "2. iPhone で LocalDevVPN を有効にします (USB 経由で接続している場合でも必要です)。",
+  "transferNextStep3": "3. IPA を SideStore にインポートして再署名し、インストールします。",
+  "transferStartHandoff": "SideStore への転送",
+  "transferNotStarted": "転送: 未開始",
+  "transferDoneNotInstalled": "ファイルは転送されましたが、まだインストールされていません",
+  "transferFailed": "転送に失敗しました",
+  "transferStatusPrefix": "転送: {status}",
+  "transferDoneBannerTitle": "iPhoneにファイルを転送",
+  "transferDoneBannerSubtitle": "インストールはまだ確認されていません",
+  "transferDoneBannerGuide": "iPhone でファイル アプリを開き、SideStore にインポートして署名とインストールを完了します。",
+  "transferAfterExportAction": "今すぐ SideStore に転送",
+  "libraryTitle": "IPA図書館",
+  "librarySubtitle": "来歴、暗号化、コンポーネントの影響を検査し、変更されたパッケージをエクスポートします。",
+  "libraryEmptyTitle": "IPAライブラリが空です",
+  "libraryEmptySubtitle": "まず、IPA ファイルをインポートします。オフラインでの検査と編集がサポートされています。",
+  "libraryOfflineSupported": "ローカルオフラインでの使用をサポート",
+  "libraryCheckingTitle": "IPAを確認中…",
+  "libraryCheckingSubtitle": "ZIP の安全性、Info.plist、コンポーネント、および Mach-O 暗号化フラグを分析します。",
+  "libraryCheckStep1": "IPAをチェックする",
+  "libraryCheckStep2": "準備する",
+  "libraryCheckStep3": "準備ができて",
+  "libraryCancel": "キャンセル",
+  "libraryCanceled": "検査中止",
+  "libraryEncryptedTitle": "IPA暗号化（FairPlay）",
+  "libraryEncryptedSubtitle": "この IPA には暗号化された Mach-O (cryptid 1) が含まれており、再署名することはできません。暗号化されていない IPA を選択します。",
+  "libraryChooseAnother": "別のIPAを選択してください",
+  "libraryViewDetails": "詳細を見る",
+  "libraryInspectFailed": "検査に失敗しました: {err}",
+  "libraryInspectFailedHint": "ファイルが完全で有効な iOS アプリケーション アーカイブであることを確認します。",
+  "libraryWaitingInspect": "検査待ち",
+  "libraryPrepareBtn": "準備とエクスポート",
+  "libraryUnknownName": "不明な名前",
+  "libraryUnknown": "未知",
+  "libraryBundleID": "バンドルID",
+  "libraryVersion": "バージョン",
+  "libraryMinOS": "最小OS",
+  "libraryCompatibility": "互換性",
+  "libraryCheckStatus": "状態",
+  "libraryArch": "建築",
+  "librarySHA256": "SHA-256",
+  "libraryAdvanced": "高度な",
+  "libraryToggleAdvanced": "表示/非表示",
+  "libraryComponentCount": "コンポーネント: {count}",
+  "libraryDylibCount": "ディリブ: {count}",
+  "libraryComponentsList": "コンポーネント (デフォルトで保持されます。エクスポート時に削除する場合にチェックを入れます)",
+  "libraryURLSchemes": "URL スキーム: {schemes}",
+  "libraryFindingsTitle": "調査結果:",
+  "libraryPreviewDiff": "レビューの差分",
+  "libraryRemoveComponent": "削除: {path} ({kind})",
+  "libraryFileInfo": "{filename}・{version}",
+  "libraryComponentsEmpty": "このアーカイブには、拡張機能や Watch バンドルを含まないメイン アプリのみが含まれています。",
+  "severityBlock": "ブロック",
+  "severityWarn": "警告する",
+  "severityUnknown": "未知",
+  "findingFairplay": "少なくとも 1 つの Mach-O スライスに cryptid 1 があります。FairPlay 保護は残っており、編集や再署名によって削除することはできません。",
+  "findingCryptidMissing": "実行可能スライスには暗号化コマンドがありません。再署名機能は判断できません。",
+  "findingProvenance": "cryptid 0、スタンドアロン dylib の欠如、または一致するハッシュだけでは、修正されていない公式ビルドであることは証明されません。",
+  "findingDylib": "スタンドアロンの dylib が見つかりました。これはファイルの存在を記録するだけであり、発信元や挿入は確立されません。",
+  "findingRegName": "表示名に非 ASCII 文字が含まれています。署名者はそれをアプリ ID 名として拒否する可能性があります。デスクトップ名と登録名は分割されません。",
+  "findingMultipleApps": "ペイロード内に複数のメイン アプリケーションが見つかりました。",
+  "findingNoMainApp": "メインアプリケーション Info.plist が見つかりません。",
+  "findingResign": "plist を編集すると、元の署名が無効になります。エクスポートされた IPA は、インストール前に再署名する必要があります。",
+  "findingSideStoreID": "SideStore はバンドル ID にチーム ID を追加する場合があります。署名後のウォッチ コンパニオン ID の一致は予測できません。",
+  "findingRemove": "このコンポーネントを削除すると、そのシステム エントリ ポイントが無効になります。デフォルトでは、これを保持することが推奨されます。",
+  "findingWatch": "コンパニオン ID がプレビューで同期されるのを確認します。署名者がメイン ID を書き換えると、インストールが失敗する可能性があります。",
+  "diffTitle": "編集とレビュー",
+  "diffSubtitle": "アプリのメタデータを変更し、エクスポートする前に変更を確認します。元のファイルは読み取り専用のままです。",
+  "diffNoPreview": "プレビューできる検査レポートはありません",
+  "diffMetadataTitle": "アプリのメタデータ",
+  "diffDisplayName": "表示名",
+  "diffDisplayNamePlaceholder": "表示名を入力してください",
+  "diffBundleID": "バンドルID",
+  "diffBundleIDPlaceholder": "バンドル ID を入力してください",
+  "diffLocalizedName": "ローカライズされた名前 (オプション)",
+  "diffLocalizedNamePlaceholder": ".lproj/InfoPlist.strings に同期する",
+  "diffResignTitle": "変更後は署名が必要",
+  "diffResignDesc": "変更すると、元の署名が無効になります。 SideStore はインストール時に再サインします。",
+  "diffIDChangedTitle": "最終的なIDは異なる場合があります",
+  "diffIDChangedDesc": "SideStore はチーム ID サフィックスを追加する場合があります。",
+  "diffPreviewTitle": "変更の確認",
+  "diffBefore": "前に",
+  "diffAfter": "後",
+  "diffItemsTitle": "差分アイテムをアーカイブする",
+  "diffNoChanges": "まだ変更はありません。コンポーネントと URL スキームはデフォルトで保持されます。",
+  "diffFindingsTitle": "お知らせを確認する",
+  "diffExportBtn": "IPAの輸出",
+  "diffExporting": "エクスポート中…",
+  "diffExportSuccess": "輸出された新しい IPA: {path}",
+  "diffExportFailed": "エクスポートに失敗しました: {err}",
+  "diffFieldComponent": "成分",
+  "diffFieldBundleID": "バンドルID",
+  "diffFieldDisplayName": "表示名",
+  "diffFieldLocalizedName": "ローカライズされた名前",
+  "diffFieldWatchID": "ウォッチコンパニオンID",
+  "diffActionRemove": "取り除く",
+  "diffComponentKindApp": "アプリ",
+  "diffComponentKindExt": "拡大",
+  "diffComponentKindWatch": "時計アプリ",
+  "diffComponentKindWatchExt": "ウォッチエクステンション",
+  "guideStepOf": "ステップ {step}/{total}",
+  "guideStep1Tab": "1.接続する",
+  "guideStep2Tab": "2. 準備する",
+  "guideStep3Tab": "3. 転送",
+  "guideStep1Title": "iPhoneを接続する",
+  "guideStep1Desc": "iPhone を USB ケーブルで接続し、ロックを解除し、求められたら「信頼」をタップします。 IPA をオフラインで検査することもできます。",
+  "guideStep1Waiting": "デバイスを待機中",
+  "guideStep1Connected": "接続されたiPhoneが検出されました",
+  "guideStep1CableHint": "USB ケーブルがしっかりと接続されており、デバイスが制限付きアクセサリ モードになっていないことを確認してください。",
+  "guideStep2Title": "IPAの準備と確認",
+  "guideStep2Desc": "IPA ファイルをインポートします。 KoiSide は、元のファイルを変更せずに、暗号化フラグとコンポーネントへの影響をオフラインでチェックします。",
+  "guideStep2Ready": "{count} 個の IPA を読み込みました。続けて内容を確認するか、引き渡しを準備してください。",
+  "guideStep2Empty": "IPAはまだインポートされていません。今すぐインポートするか、「ホーム」にスキップしてください。",
+  "guideStep3Title": "SideStore に引き渡す",
+  "guideStep3Desc": "USB 転送またはエクスポート後、ファイルで IPA を開き、SideStore にインポートして署名と更新を行います。",
+  "guideStep3Note": "SideStore をインストールまたは更新する前に、LocalDevVPN を有効にする必要があります。 USB 直接署名の場合は、デバイスまたはハンドオフでサインインした Apple ID を使用します。",
+  "guideRetry": "リトライ",
+  "guideConnectLater": "後で接続する",
+  "guideSkip": "セットアップをスキップする",
+  "guideContinue": "続く",
+  "guideFinish": "終わって家に帰る",
+  "guideSkipNote": "スキップしてもセットアップが完了したことはマークされず、インポートされたすべてのファイルが保持されます。",
+  "guideRestart": "再起動セットアップガイド",
+  "toolsTitle": "ツール",
+  "toolsSubtitle": "サイドローディング用のコアコンパニオンツール。公式ソースとセットアップガイド。",
+  "toolsOpenGuide": "公式ガイドを開く",
+  "toolsStatusPrefix": "ステータス: {state}",
+  "toolSideStoreState": "ステータス不明",
+  "toolSideStoreNext": "iPhone に IPA を手動でインポート、署名、インストールします。",
+  "toolVPNState": "接続が不明",
+  "toolVPNNext": "App Store からインストールし、デバイス上のプロンプトに従って接続します。",
+  "toolLCState": "インストール状況が不明",
+  "toolLCNext": "公式ドキュメントに従って SideStore 経由でインストールします。アプリのスロットはバージョンによって異なります。",
+  "settingsTitle": "設定",
+  "settingsSubtitle": "KoiSideの基本設定。",
+  "settingsGeneral": "一般的な",
+  "settingsAppearance": "外観",
+  "settingsAppearanceDesc": "デフォルトでは macOS システムの外観に従います。",
+  "settingsThemeSystem": "フォローシステム",
+  "settingsThemeLight": "ライト",
+  "settingsThemeDark": "暗い",
+  "settingsLanguage": "言語",
+  "settingsLanguageDesc": "表示言語を選択します。変更はすぐに反映されます。",
+  "settingsLangSystem": "フォローシステム",
+  "settingsLangZhHans": "简体中文",
+  "settingsLangEn": "English",
+  "settingsFileLocations": "ファイルの場所",
+  "settingsFileLocationsDesc": "ローカルの作業ディレクトリとエクスポートはこの Mac 上に残ります。",
+  "settingsCacheDir": "ローカル データ ディレクトリ: {path}",
+  "settingsPrivacy": "プライバシーとローカルデータ",
+  "settingsPrivacySummary": "ログはこの Mac に残ります",
+  "settingsPrivacyDesc": "すべてのログと一時ファイルはパスワードやキーなしでこの Mac に残り、自動的にアップロードされることはありません。",
+  "settingsLogsTitle": "ローカル診断ログ (編集済み)",
+  "settingsLogsEmpty": "現在のセッションにはエントリがありません。",
+  "settingsExportLogs": "ログのエクスポート",
+  "settingsClearLogs": "クリア",
+  "settingsSupport": "サポートとセットアップ",
+  "settingsSupportDesc": "セットアップを再起動しても、インポートされたファイル、デバイスの状態、または設定は削除されません。",
+  "settingsAbout": "コイサイドについて",
+  "settingsAboutDesc": "途中のガイダンスに従って、iPhone アプリを準備、署名、サイドロードします。",
+  "dialogNoWindowOpen": "アクティブなウィンドウがありません。ダイアログを開くがスキップされました",
+  "dialogNoWindowSave": "アクティブなウィンドウがありません。保存ダイアログがスキップされました",
+  "dialogOpenFailed": "ダイアログを開くのに失敗しました: {err}",
+  "dialogSaveFailed": "保存ダイアログが失敗しました: {err}",
+  "dialogOpenCanceled": "選択がキャンセルされました",
+  "dialogSaveCanceled": "保存がキャンセルされました",
+  "dialogWillSaveTo": "{path} に保存しています",
+  "dialogSelectedFiles": "{count} 個の IPA を選択しました",
+  "dialogExportDefaultFilename": "PreparedApp.ipa",
+  "riskTitle": "エクスポート後に署名が必要",
+  "riskBody": "変更すると、元の署名が無効になります。 SideStore インストール後の最終的なバンドル ID はプレビューとは異なる場合があります。",
+  "riskAck": "わかった",
+  "navTask": "サイドロードタスク",
+  "navHelpTools": "ヘルプとツール",
+  "needHelp": "助けが必要です",
+  "backToTask": "タスクに戻る",
+  "sidebarDeviceSingle": "単一の iPhone",
+  "sidebarDeviceConnected": "{name}・{conn}",
+  "homeHeroTitle": "iPhoneに独自のアプリをインストールする",
+  "homeHeroSubtitle": "IPA を選択すると、KoiSide がアーカイブを検査し、適切なサイドロード ルートを照合します。",
+  "homeContinueTask": "現在のタスクを続行",
+  "homeStartNew": "新しいアプリをサイドロードする",
+  "homeSideloadedMaintain": "インストール済みアプリのメンテナンス",
+  "homeHelpSummaryTitle": "いつでもステップバイステップのガイダンス",
+  "homeHelpSummaryDesc": "セットアップ、ハンドオフ、ファイル検索、および 7 日間の更新ガイドが必要に応じて表示されます。",
+  "homeOpenHelp": "サイドロードのヘルプを開く",
+  "homeViewDevice": "デバイスの表示",
+  "taskStage1": "1.IPAを確認する",
+  "taskStage2": "2. ルートを選択する",
+  "taskStage3": "3.IPAを準備する",
+  "taskStage4": "4. 引き継ぎと検証",
+  "taskStage5": "5. メンテナンス",
+  "checkReadyBannerTitle": "準備完了",
+  "checkReadyBannerDesc": "アーカイブ構造が渡されました。検査された実行可能ファイルに暗号化フラグが見つかりませんでした。",
+  "checkUncertainTitle": "互換性未確認",
+  "checkUncertainDesc": "一部のコンポーネントには、読み取り可能な暗号化フラグやクリア ステータスがありません。続行する前に、結果を確認してください。",
+  "checkDamagedTitle": "この IPA を読み取れません",
+  "checkDamagedDesc": "アーカイブが破損しているか、メイン アプリの Info.plist がありません。別の IPA を選択してください。",
+  "checkSourceLabel": "ファイルソースに関する注記",
+  "checkSourceGitHub": "オープンソース リリース (GitHub)",
+  "checkSourceSelfBuilt": "自社構築/輸出IPA",
+  "checkSourceLocalUnknown": "地元IPA（出所不明）",
+  "checkSourceNote": "ユーザーが注釈を付けたソース。静的検査では発行者の ID は検証されません。",
+  "checkChooseRouteBtn": "インストールルートの選択",
+  "routeTitle": "インストール方法を選択してください",
+  "routeSubtitle": "アプリ数と署名設定に基づいてルートを選択します。アプリごとに切り替えることができます。",
+  "routeSideStoreTitle": "スタンドアロン アプリ · 無料の個人チーム (推奨)",
+  "routeSideStoreDesc": "ホーム画面から起動されるいくつかのスタンドアロン アプリに最適です。 SideStore 経由で iPhone にインストールおよび更新されます。",
+  "routeContainerTitle": "LiveContainer内で実行",
+  "routeContainerDesc": "パーソナル チーム スロット (最大 3 つのアプリ/ID) がいっぱいになったときを考慮してください。コンテナ内で起動します。互換性を確認します。",
+  "routeAdvancedTitle": "デスクトップ USB 経由で直接署名してインストール",
+  "routeAdvancedDesc": "Apple ID を使用してこの Mac にサインオンし、USB 経由でインストールします。スタンドアロンのホーム画面アプリまたは初期セットアップに最適です。",
+  "routeSlotNotice": "デバイスで開発者署名または個人チームのアプリを {count} 個検出しました。無料の個人チームでは、サイドロード中のアプリ数に上限があります。",
+  "routeLiveContainerEvalTitle": "LiveContainerの評価",
+  "routeLiveContainerEvalDesc": "コンテナ内でさらに多くのアプリを試すときに便利です。ホーム画面のアイコンやシステム拡張機能が必要な場合は、スタンドアロンを選択してください。",
+  "routeLiveContainerStandalone": "スタンドアロン: 既存の SideStore セットアップを維持し、公式ドキュメントに従ってインストールします。",
+  "routeLiveContainerIntegrated": "SideStore との統合: 追加のパーソナル チーム アプリ スロットを節約します。",
+  "routeLiveContainerGuideTitle": "LiveContainerにIPAをインポート",
+  "routeLiveContainerSteps": "1. 公式バージョンのドキュメントに従って LiveContainer ホストをセットアップします。\n2. 準備した IPA を iPhone ファイルに保存します。\n3. LiveContainer を開き、「+」をタップして「ファイル」からインポートします。\n4. ホスト アプリの 7 日間の更新を追跡します。",
+  "routeAdvancedPhaseNotice": "デスクトップ署名では、サインインしている Apple ID の開発証明書とプロビジョニング プロファイルが発行され、USB 経由でインストールされます。無料の個人チームでは、7 日間と 3 つのアプリの制限が維持されます。",
+  "routeContinueBtn": "このルートを続行する",
+  "prepareTitle": "ハンドオフの前にこの IPA を変更しますか?",
+  "prepareSubtitle": "標準インストールの場合はアーカイブをそのまま保持するか、メタデータを編集してコピーを更新/インストールします。",
+  "prepareKeepAsIsTitle": "そのまま続行",
+  "prepareKeepAsIsDesc": "現在の表示名、バンドル ID、および元の署名 (暗号化されていない場合) を保持します。",
+  "prepareKeepAsIsBtn": "ハンドオフに進む",
+  "prepareEditTitle": "表示名またはバンドル ID を編集する",
+  "prepareEditDesc": "既存のアプリを更新するか、サイドバイサイド コピーをインストールします。編集すると元の署名が無効になります。",
+  "prepareEditBtn": "差分の編集とレビュー",
+  "prepareIntentTitle": "あなたの目標",
+  "prepareIntentUpdate": "既存の更新",
+  "prepareIntentCopy": "インストールコピー",
+  "prepareIntentUpdateHint": "元のバンドル ID を保持します。デバイス上の既存の署名者を確認します。",
+  "prepareIntentCopyHint": "独立したバンドル ID を使用して、サイドバイサイドでインストールします。",
+  "prepareConflictFound": "デバイス上の一致する ID: {name} ({bundleID} · v{version})。別の署名者による上書きは失敗する可能性があります。",
+  "prepareConflictClear": "接続されたデバイスで {bundleID} の競合は見つかりませんでした。",
+  "prepareConflictUnknown": "インストールされているアプリのリストはまだ読み込まれていません。バンドル ID の競合をチェックできません。",
+  "prepareBundleIDInvalid": "バンドル ID の形式が無効です。逆引き DNS (例: com.example.app) を使用します。",
+  "handoffStageTitle": "ハンドオフとインストールの検証",
+  "handoffStageSubtitle": "用意したIPAをiPhoneに納品し、SideStoreにインストールし、ここでインストールされたIDを確認します。",
+  "handoffDevicePathTitle": "iPhoneで探す",
+  "handoffDevicePathValue": "ファイル → 参照 → iPhone 上 → SideStore → {filename}",
+  "handoffMacPathTitle": "エクスポートされた Mac パス",
+  "handoffVerifyTitle": "デバイスのインストールを確認する",
+  "handoffVerifyMatch": "デバイスで検出されました: {name} ({bundleID} · v{version})。 iPhone で開いて、実行時の動作を確認します。",
+  "handoffVerifyNotFound": "{bundleID} (チーム ID サフィックスの有無にかかわらず) はまだ検出されていません。 SideStore のインストールが完了したら更新します。",
+  "handoffVerifyCheckBtn": "デバイスのリフレッシュとチェック",
+  "handoffUserConfirmBtn": "インストールしました · 更新ガイドを表示",
+  "handoffStageBadgeExported": "Macにエクスポート",
+  "handoffStageBadgeTransferred": "SideStore ドキュメントに転送",
+  "handoffStageBadgeDetected": "デバイス上で検出されました",
+  "handoffStageBadgeUserConfirmed": "ユーザーがインストールを確認しました",
+  "maintainTitle": "7日間のリフレッシュとメンテナンス",
+  "maintainSubtitle": "無料のパーソナル チーム プロファイルの有効期限は、署名後 7 日です。有効期限が切れる前に SideStore で更新してください。",
+  "maintainStepsTitle": "定期的な更新手順",
+  "maintainStep1": "1. iPhoneをWi-Fiに接続します。",
+  "maintainStep2": "2. LocalDevVPN を開いて有効にします。",
+  "maintainStep3": "3. SideStore → My Apps を開き、日バッジ (またはすべて更新) をタップします。",
+  "maintainExpiryNote": "残り日数は SideStore の「マイアプリ」で確認してください。フェーズ 1 では有効期限の推定や自動更新は行いません。",
+  "maintainRecoveryBtn": "更新に失敗しましたか、それとも期限切れですか?",
+  "maintainRecoveryTitle": "SideStore の更新が失敗したか、期限切れになりました",
+  "maintainRecoverySubtitle": "まず、SideStore 自体が iPhone 上でまだ開いているかどうかを確認します。",
+  "maintainRecoveryOpenableTitle": "SideStoreはまだ営業中",
+  "maintainRecoveryOpenableDesc": "Wi-Fi と LocalDevVPN がアクティブであることを確認し、SideStore で Apple セッションを確認し、マイ アプリで更新を再試行します。",
+  "maintainRecoveryExpiredTitle": "SideStore は開かなくなりました (7 日を過ぎて期限切れになりました)",
+  "maintainRecoveryExpiredDesc": "Mac に戻って SideStore を再インストール/復元し、タスクのメモを残しながらアプリに再署名します。",
+  "maintainBackToMaintain": "リフレッシュガイドに戻る",
+  "helpHubTitle": "サイドロードのヘルプとツール",
+  "helpHubSubtitle": "行き詰まった箇所のトラブルシューティングに進むか、SideStore、LocalDevVPN、LiveContainer の公式ドキュメントを開いてください。",
+  "helpTopicConnectTitle": "デバイスが接続しない、または信頼を要求しない",
+  "helpTopicConnectDesc": "USB ケーブルを確認し、iPhone 画面のロックを解除し、アクセサリ制限モードを終了し、検出を再試行します。",
+  "helpTopicSetupTitle": "SideStoreのセットアップとリカバリ",
+  "helpTopicSetupDesc": "開発者モード、信頼できる開発者プロファイル、LocalDevVPN、および初期セルフリフレッシュ。",
+  "helpTopicMissingFileTitle": "iPhoneで転送したIPAが見つからない",
+  "helpTopicMissingFileDesc": "「iPhone」→「ファイル」の「SideStore」にチェックを入れるか、Mac の AirDrop 用エクスポート フォルダにチェックを入れます。",
+  "helpTopicRefreshTitle": "アプリの有効期限が近づいているか、更新に失敗しました",
+  "helpTopicRefreshDesc": "7 日間のパーソナル チームの更新手順または SideStore のリカバリに従ってください。",
+  "deviceAppsFilterAll": "すべてのアプリ ({count})",
+  "deviceAppsFilterSideloaded": "サイドロード / 開発 ({count})",
+  "deviceAppsSearchPlaceholder": "アプリ名、バンドル ID、またはチーム ID を検索…",
+  "deviceAppsNoMatch": "マッチングアプリが見つかりませんでした。",
+  "deviceDocsTitle": "SideStoreドキュメント (/Documents)",
+  "deviceLCDocsTitle": "LiveContainer ドキュメント (/Documents)",
+  "deviceDocsItemsCount": "{count} 件",
+  "deviceDocsEmpty": "空のフォルダー",
+  "routeStatusInstalled": "{version}を取り付けました",
+  "routeStatusEmbeddedLC": "LiveContainerに組み込まれています",
+  "routeStatusNotInstalled": "インストールされていません",
+  "routeStatusUnknown": "ステータス不明",
+  "routeStatusPhase2": "デスクトップダイレクト",
+  "routeLiveContainerNotInstalledWarn": "この iPhone には LiveContainer がまだインストールされていません。コンテナ アプリをインポートする前に、まず LiveContainer ホストをインストールします。",
+  "transferInProgress": "SideStore への書き込みと SHA-256 の検証…",
+  "transferErrorDetail": "USB 転送に失敗しました: {err}",
+  "transferLiveContainerNote": "LiveContainer ルートの選択: LiveContainer 内にインストールしてアプリのスロットを節約するか、スタンドアロンのホーム画面アプリの場合は外部に切り替えます。",
+  "maintainTargetApp": "メンテナンス: {name}",
+  "settingsLogsExported": "エクスポートされたログ: {path}",
+  "navAccount": "アップルアカウント",
+  "accountTitle": "Apple アカウントと署名",
+  "accountSubtitle": "デスクトップ署名資格情報と Anisette v3 サーバーを管理します。パスワードは、オプトインした場合にのみ macOS キーチェーンに保存されます。",
+  "accountStatusSignedIn": "サインイン: {email}",
+  "accountStatusSignedOut": "サインインしていません",
+  "accountSignInTitle": "Apple IDでサインインする",
+  "accountEmailLabel": "Apple IDメール",
+  "accountEmailPlaceholder": "名前@example.com",
+  "accountPasswordLabel": "パスワード",
+  "accountPasswordPlaceholder": "Apple IDのパスワードを入力してください",
+  "accountRememberPassword": "macOS キーチェーンにパスワードを保存 (オプション)",
+  "accountRememberHint": "チェックを外した場合、パスワードはこのセッションの間のみメモリに残ります。キーとペアリング データは Keychain を個別に使用します。",
+  "accountSignInBtn": "サインイン",
+  "accountSigningIn": "サインインして開発者セッションを確立しています…",
+  "accountSignOutBtn": "サインアウト",
+  "accountSavedAccountsTitle": "記憶されているアカウント",
+  "accountUseSavedBtn": "サインイン",
+  "accountForgetSavedBtn": "取り除く",
+  "account2FATitle": "二要素認証",
+  "account2FADesc": "信頼できるデバイスから 6 桁の Apple 確認コードを入力するか、SMS をリクエストします。",
+  "account2FASMSDesc": "電話に送信された SMS 認証コード ({digits} で終わる) を入力します。",
+  "account2FACodePlaceholder": "6桁のコード",
+  "account2FASubmit": "確認して続行",
+  "account2FAResend": "再送信",
+  "account2FASendSMS": "SMS を送信: {number}",
+  "accountTeamLabel": "アクティブな開発者チーム",
+  "accountTeamFree": "無料の個人チーム",
+  "accountTeamPaid": "有料の開発者チーム",
+  "accountCertsTitle": "証明書とアプリ ID の割り当て",
+  "accountLoadCertsBtn": "証明書とクォータを更新する",
+  "accountCertEmpty": "「更新」をクリックして、Apple Developer Portal から証明書と App ID クォータをロードします。",
+  "accountRevokeCertBtn": "取り消す",
+  "accountMaxCertsTitle": "証明書の制限に達しました",
+  "accountMaxCertsDesc": "Apple はチームごとにアクティブな開発証明書を制限しています。取り消す証明書を選択して続行します。",
+  "accountMaxCertsRevokeContinue": "選択を取り消して続行",
+  "accountAnisetteTitle": "アニセット v3 サービス",
+  "accountAnisetteDesc": "マシン認証ヘッダーのみを提供します (パスワードを受信することはありません)。いつでもセルフホスト URL に置き換えてください。",
+  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteSaveBtn": "URLを保存",
+  "accountAnisetteResetBtn": "認証状態のリセット",
+  "accountAnisetteResetDone": "アニセット認証状態がクリアされました",
+  "accountStoreBoundaryNote": "App Store のダウンロードと開発者の署名は別のセッションのままです。",
+  "toolInstallSideStoreBtn": "SideStoreをインストールする",
+  "toolInstallLCSSBtn": "LiveContainer + SideStoreをインストールする",
+  "toolInstallLCBtn": "LiveContainerのインストール",
+  "toolInstallLocalDevVPNBtn": "App Store で LocalDevVPN を入手",
+  "toolLocalDevVPNLimitation": "LocalDevVPN は NetworkExtension を使用するため、無料のパーソナル チームと署名することはできません。無料ユーザーは App Store からインストールします (有料開発者チームはローカル IPA に直接署名できます)。",
+  "toolInstallNeedLogin": "デスクトップにインストールする前に、まず Apple アカウントにサインインしてください。",
+  "toolInstallNeedDevice": "まず USB 経由で iPhone を接続し、信頼します。",
+  "toolInstallRunning": "インストール中: {stage} ({pct}%)",
+  "toolInstallSucceeded": "インストール済み: {bundleID}",
+  "toolInstallFailed": "インストールに失敗しました: {err}",
+  "pairingSectionTitle": "ワイヤレスリフレッシュペアリング",
+  "pairingSectionDesc": "Wi-Fi デバッグを有効にしながら、Lockdown / RemotePairing ファイルを生成して SideStore、LiveContainer、および互換性のあるツールに配置します。",
+  "pairingOneClickBtn": "ペアリングの生成と配置",
+  "pairingExportBtn": "ペアリングファイルのエクスポート",
+  "pairingWriteDone": "{target} に配置されたペアリング",
+  "pairingWriteFailed": "ペアリングに失敗しました: {err}",
+  "transferDirectInstallTitle": "USB経由で直接署名＆インストール",
+  "transferDirectInstallDesc": "アクティブな Apple アカウントでこの IPA に署名し、USB 経由で直接インストールします。",
+  "transferDirectInstallBtn": "IPA に署名してインストールする",
+  "deviceDevModeOn": "開発者モード: 有効",
+  "deviceDevModeOff": "開発者モード: 無効 (サイドロードされたアプリを起動するために必要)",
+  "deviceDevModeUnknown": "開発者モード: 不明",
+  "deviceDevModeEnableBtn": "開発者モードを有効にする",
+  "deviceDevModeRevealed": "開発者モードは、iPhone の [設定] → [プライバシーとセキュリティ] → [開発者モード] に表示されます。オンに切り替えて再起動し、iPhone で確認します。",
+  "deviceDevModeFailed": "開発者モードのアクションが失敗しました: {err}",
+  "postInstallChecklistTitle": "インストール後に iPhone で必要な手順",
+  "postInstallStepDevMode": "1. [設定] → [プライバシーとセキュリティ] → [開発者モード] が有効になっていることを確認します (オフに切り替えて、再起動し、iPhone で確認します)。",
+  "postInstallStepTrust": "2. [設定] → [一般] → [VPN とデバイス管理] → [開発者アプリ] に移動し、Apple ID をタップして [信頼] をタップします (Apple ではデバイス上の確認が必要です)。",
+  "postInstallStepRefresh": "3. LocalDevVPN に接続します。スタンドアロンの SideStore を使用している場合は、ペアリング ファイルを選択し、Apple ID でサインインし、一度更新します。",
+  "postInstallStepLCSS": "4. LiveContainer + SideStore の場合: 組み込みの SideStore に切り替え → SideStore/Documents/PairingFile_RemoteRP.plist を選択 → サインインして更新 → LiveContainer の設定に戻り → SideStore から証明書をインポートします。",
+  "accountReturnBannerWaiting": "{from}からここにジャンプしました。以下の Apple ID にサインインし、「戻る」をクリックしてワークフローを再開します。",
+  "@accountReturnBannerWaiting": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "accountReturnBannerReady": "{email} としてサインインしています。 「戻る」をクリックして元に戻り、サイドローディング手順を続行します。",
+  "@accountReturnBannerReady": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "accountReturnBtn": "戻る",
+  "accountDismissBtn": "近い",
+  "accountReturnSourceTask": "サイドロードタスク",
+  "accountReturnSourceDevice": "デバイスとツール",
+  "accountReturnSourceGuide": "セットアップガイド",
+  "accountLocalKeyBadge": "ローカルキー",
+  "accountCertExpires": "有効期限: {date}",
+  "@accountCertExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAppIDQuotaFree": "7 日間のアプリ ID 割り当ての残り: {avail} / {max} (無料アカウントでは、7 日あたり {max} のアプリ ID が許可されます。アプリをアンインストールしても、早期にスロットは解放されません)",
+  "@accountAppIDQuotaFree": {
+    "placeholders": {
+      "avail": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "accountAppIDQuotaPaid": "登録アプリID：{count}",
+  "@accountAppIDQuotaPaid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountAppIDsTitle": "登録されているアプリID",
+  "accountAppIDExpires": "有効期限: {date}",
+  "@accountAppIDExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAppIDDeleteBtn": "消去",
+  "accountAppIDFreeDeleteHint": "無料の Personal Team の App ID は、Apple によって 7 日間のローリング期間中ロックされ、期限が切れると自動的に解除されます。",
+  "deviceDocDeleteBtn": "消去",
+  "deviceDocDeleted": "デバイスから削除されました: {name}",
+  "@deviceDocDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routeLCPlacementTitle": "LiveContainer の内部または外部にインストールする",
+  "routeLCPlacementInsideTitle": "LiveContainer 内 (アプリのスロットを節約)",
+  "routeLCPlacementInsideDesc": "IPA を LiveContainer ドキュメントに転送し、コンテナ内で起動します。追加のホーム画面スロットは 0 個を使用し、ホストの更新のみが必要です。",
+  "routeLCPlacementOutsideTitle": "LiveContainer 外部 (スタンドアロンのホーム画面アプリ)",
+  "routeLCPlacementOutsideDesc": "ウィジェット、拡張機能、またはスタンドアロン起動のために、ホーム画面に (デスクトップ署名またはSideStore経由で) 直接インストールします。アクティブなアプリ スロットを 1 つ使用します。",
+  "routePrecheckTitle": "前提条件とアカウント",
+  "routePrecheckDeviceOK": "接続されているiPhone: {name}",
+  "@routePrecheckDeviceOK": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routePrecheckDeviceMissing": "iPhone が接続されていません (オフライン IPA 検査とエクスポートは引き続き機能します)",
+  "routePrecheckAccountOK": "サインインした Apple ID: {email} ({teamType})",
+  "@routePrecheckAccountOK": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "teamType": {
+        "type": "String"
+      }
+    }
+  },
+  "routePrecheckAccountMissing": "Apple ID がサインインしていません (デスクトップのサインインまたはホスト ツールのインストールに必要)",
+  "routePrecheckSignInBtn": "Apple IDでサインインする",
+  "routePrecheckToolsReady": "デバイス上でホストツールが準備完了",
+  "routePrecheckToolsMissing": "SideStore / LiveContainer はまだ検出されていません — ここに直接インストールします",
+  "routePrecheckVPNMissing": "LocalDevVPN が検出されません (ワイヤレス更新に必要。App Store では非 CN リージョンが必要な場合があります)",
+  "handoffSendToLCBtn": "LiveContainer ドキュメントに送信",
+  "handoffLCDevicePathValue": "ファイル → 参照 → iPhone 上 → LiveContainer → {filename}",
+  "@handoffLCDevicePathValue": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffLCStepsTitle": "LiveContainer でのインポートと起動",
+  "handoffLCStep1": "1. 開発者モードがオンであり、開発者プロファイルが信頼されており、LiveContainer が SideStore から証明書をインポートしていることを確認します。",
+  "handoffLCStep2": "2. iPhone で LiveContainer を開く → + (左上) をタップ → IPA ファイルからインストールします。",
+  "handoffLCStep3": "3. 「On My iPhone」→「LiveContainer」で「{filename}」を選択し、「Launch」をタップして確認します。",
+  "@handoffLCStep3": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffVerifyLCReady": "LiveContainer ホストの準備ができました ({bundleID})。 LiveContainer 内にインストールされたアプリは、iOS システム アプリのリストには表示されません。 LiveContainer 内で起動して確認します。",
+  "@handoffVerifyLCReady": {
+    "placeholders": {
+      "bundleID": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffVerifyLCConfirmBtn": "LiveContainer で起動 · 更新ガイドを表示",
+  "handoffPlacementBadgeInside": "ターゲット: LiveContainer 内",
+  "handoffPlacementBadgeOutside": "対象：LiveContainer外部（スタンドアロン）",
+  "handoffSwitchToInside": "LiveContainer 内に切り替える",
+  "handoffSwitchToOutside": "外部に切り替える (スタンドアロン アプリ)",
+  "maintainLCHint": "LiveContainer 内での実行では、追加のスタンドアロン アプリ スロットは 0 個使用され、個別の更新は必要ありません。SideStore の LiveContainer ホストを 7 日ごとに更新するだけです。",
+  "openPathBtn": "パスで開く…",
+  "openPathTitle": "パスから IPA を開く",
+  "openPathDesc": "システム ファイル パネルを開かずに、.ipa ファイルへのフル パスを入力または貼り付けます。",
+  "openPathPlaceholder": "/ユーザー/.../App.ipa",
+  "openPathConfirm": "開いて検査する",
+  "openPathNotFound": "ファイルが見つからないか、パスがディレクトリです。",
+  "handoffVerifyLCDetected": "LiveContainer 内で検出しました: {name} ({bundleID}・v{version})。LiveContainer 内で「起動」をタップして実行を確認してください。",
+  "@handoffVerifyLCDetected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "bundleID": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceLatestSideStoreLog": "最新の SideStore ログ: {op} · {status} ({file})",
+  "@deviceLatestSideStoreLog": {
+    "placeholders": {
+      "op": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "toolConfirmTitle": "{tool}のインストールを確認する",
+  "@toolConfirmTitle": {
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "toolConfirmInstallBtn": "今すぐインストール",
+  "toolConfirmSideStoreDesc": "• 独自のホーム画面アイコンを備えたスタンドアロン SideStore (公式最新リリース)。\n• 無料の Personal Team アプリ スロットを 1 つ使用します（スタンドアロン LiveContainer とペアリングした場合は 2 スロット）。\n• ワイヤレス更新には iPhone で LocalDevVPN が必要です。",
+  "toolConfirmLCSSDesc": "• 組み込みの SideStore を備えた統合 LiveContainer + SideStore バンドル (夜間チャネル)。\n• 無料の Personal Team アプリ スロットを 1 つだけ使用し、同じサンドボックス内で証明書を共有します。\n• LiveContainer ホストを 7 日ごとに更新すると、両方のホストが更新されます。",
+  "toolConfirmLCOnlyDesc": "• 単独版 LiveContainer ホスト（Nightly チャンネル）。無料の Personal Team アプリ枠を 1 つ使用します。\n• 単独版 SideStore を既にインストールしている場合に適しています。設定で SideStore から証明書を読み込んでください。",
+  "toolConfirmConflictEmbedded": "この iPhone では LiveContainer + SideStore (統合) がすでに検出されています。スタンドアロン SideStore をインストールすると追加のスロットが使用されるため、最初に統合アプリを削除しないとペアリング ファイルが混乱する可能性があります。",
+  "toolConfirmConflictStandalone": "この iPhone ではスタンドアロン SideStore がすでに検出されています。統合された LiveContainer + SideStore バンドルに切り替える前に、まず削除することを検討してください。",
+  "lcAdvancedTitle": "上級者向け: 複数起動とホーム画面のショートカット",
+  "lcAdvancedMultiTitle": "1. コンテナアプリを同時に実行する (共有アプリ)",
+  "lcAdvancedMultiDesc": "LiveContainer でアプリ カードを開き、→ [設定] → [共有アプリに変換] を選択すると、マルチタスク/マルチコンテナ モードで他のアプリと一緒に実行できるようになります。",
+  "lcAdvancedShortcutTitle": "2. iOS ショートカット経由でホーム画面アイコンを追加する (7 ステップ)",
+  "lcAdvancedShortcutSteps": "1. LiveContainer → アプリを開き、アプリを長押しします。\n2. 「ホーム画面に追加」→「アプリアイコンを保存」をタップし、スタイルを選択して保存します。\n3. もう一度長押し→ホーム画面に追加→起動URLをコピーします。\n4. Apple ショートカットを開き、+ をタップして新しいショートカットを作成します。\n5. 「Launch App」を検索し、「LiveContainer」アクションを選択します。\n6. 「URL の起動」をタップし、コピーした URL を貼り付け、テストのために 1 回実行します。\n7. 「共有」→「ホーム画面に追加」をタップし、名前を設定し、保存したアイコンを選択します。 (iOS サンドボックスでは、デバイス上のホーム画面アイコンのショートカットが必要です。)",
+  "transferUSBVerifiedLC": "LiveContainer ドキュメントコンテナに到達可能。転送は /Documents に書き込み、SHA-256 を検証します。",
+  "transferUSBVerifiedSS": "SideStore ドキュメント コンテナに到達可能。転送は /Documents に書き込み、SHA-256 を検証します。",
+  "accountRevokeConfirmTitle": "開発証明書を取り消しますか?",
+  "accountRevokeConfirmDesc": "これにより、証明書 {serial} (マシン: {machine}) が完全に取り消されます。これで署名されたアプリは更新を停止します。",
+  "@accountRevokeConfirmDesc": {
+    "placeholders": {
+      "serial": {
+        "type": "String"
+      },
+      "machine": {
+        "type": "String"
+      }
+    }
+  },
+  "accountRevokeConfirmLocalKeyWarn": "警告: この証明書は Mac のローカル秘密キーと一致します。これを取り消すと、この Mac からインストールされた SideStore / LiveContainer に影響します。",
+  "accountRevokeConfirmBtn": "証明書の取り消し",
+  "archiveRemoveBtn": "取り除く",
+  "errFriendlyLocked": "iPhoneはロックされています。 iPhone 画面のロックを解除して、再試行してください。",
+  "errFriendlyUntrusted": "iPhone はまだこの Mac を信頼していません。 iPhone で「信頼」をタップし、パスコードを入力します。",
+  "errFriendlyNoDevice": "USB 経由で iPhone が検出されませんでした。ケーブルと接続を確認してください。",
+  "errFriendlyAuth": "Apple ID セッションが期限切れか無効です。 Apple アカウントで再度サインインします。",
+  "errFriendlyNetwork": "タイムアウトしたか、Apple / Anisette サーバーへのアクセスに失敗しました。ネットワークを確認して再試行してください。",
+  "errFriendlyMaxCerts": "開発証明書の制限に達しました。 Apple アカウントで未使用の証明書を取り消します。",
+  "errFriendlyMaxAppIDs": "無料のパーソナル チームは、7 日間あたり 10 個のアプリ ID に制限されています。既存の ID の有効期限が切れるまで待ちます。",
+  "toolsManageOnDeviceBtn": "デバイスへのインストールと管理",
+  "navStore": "店",
+  "storeTitle": "App Storeで入手",
+  "storeSubtitle": "リージョン全体を検索し、バージョン履歴を取得し、SINF ライセンスの IPA をダウンロードし、USB 経由で直接インストールします。",
+  "storeAccountSectionTitle": "App Store アカウント (ダウンロードと地域)",
+  "storeAccountSectionDesc": "App Storeの検索、無料ライセンスの取得、バージョンのダウンロードに使用されます。開発者署名アカウントから独立しています。",
+  "storeAccountSignedIn": "アクティブなストアアカウント: {email}",
+  "@storeAccountSignedIn": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "storeAccountRegion": "地域: {country} (ストアフロント: {storefront})",
+  "@storeAccountRegion": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "storefront": {
+        "type": "String"
+      }
+    }
+  },
+  "storeAccountSwitchBtn": "アカウントを使用する",
+  "storeAccountActiveBadge": "アクティブ",
+  "storeAccountSignOutBtn": "サインアウトストア",
+  "storeAccountForgetBtn": "取り除く",
+  "storeAccountSignInTitle": "App Storeにサインインする",
+  "storeAccountSignInBtn": "サインイン",
+  "storeAccountSigningIn": "SAP ハンドシェイク経由でサインインしています…",
+  "storeAccountNeedTitle": "App Store アカウントにサインインしていません",
+  "storeAccountNeedDesc": "検索はサインインしなくても機能します。バージョン ID の取得と IPA のダウンロードには、そのストアフロントの Apple ID が必要です。",
+  "storeAccountOpenBtn": "ストアに移動 サインイン",
+  "store2FATitle": "App Storeの2要素認証",
+  "store2FADesc": "{email} の 6 桁の確認コードを入力します。",
+  "@store2FADesc": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "storeSearchPlaceholder": "アプリ名またはキーワードを検索…",
+  "storeCountryLabel": "地域",
+  "storeSearchBtn": "検索",
+  "storeSearching": "App Storeを検索中…",
+  "storeSearchEmpty": "キーワードを入力して App Store を検索します (例: WeChat、Telegram、Bilibili)。",
+  "storeNoResults": "マッチングアプリが見つかりませんでした。ストアフロントの地域を切り替えてみてください。",
+  "storeVersionsBtn": "バージョン",
+  "storeVersionsLoading": "バージョン履歴を取得しています…",
+  "storeVersionLatest": "最新",
+  "storeDownloadBtn": "IPAをダウンロード",
+  "storeDownloadInstallBtn": "ダウンロードとインストール",
+  "storeDownloading": "ライセンスを取得してダウンロード中 ({pct}%)…",
+  "@storeDownloading": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "storeDownloadDone": "保存されたライセンス付き IPA: {path}",
+  "@storeDownloadDone": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInstallDone": "USB 経由でインストールされた Store IPA: {bundleID}",
+  "@storeInstallDone": {
+    "placeholders": {
+      "bundleID": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInspectBtn": "IPAワークベンチで開く",
+  "storeSinfReadyTitle": "App Store ライセンス (SINF) が含まれています",
+  "storeSinfReadyDesc": "この IPA は FairPlay 保護を使用しており、無料のパーソナル チームで変更したり再署名したりすることはできませんが、購入した Apple ID に対して認証されたデバイスに USB 経由で直接インストールできます。",
+  "storeSinfDirectInstallBtn": "Store IPA を USB 経由でインストールする",
+  "settingsAboutTagline": "サイドローディングがシンプルになりました。",
+  "settingsAboutVersion": "バージョン0.1.0",
+  "settingsAboutSource": "プロジェクトホーム",
+  "settingsLangRu": "Русский",
+  "settingsLangJa": "日本語",
+  "sidebarExpand": "サイドバーを展開",
+  "sidebarCollapse": "サイドバーを折りたたむ",
+  "progressStageDownload": "ダウンロード中",
+  "progressStageCertificate": "証明書を準備中",
+  "progressStageSigning": "署名中",
+  "progressStageUSBInstall": "USB 経由でインストール中",
+  "progressStagePairing": "ペアリングファイルを配置中",
+  "progressStageComplete": "完了",
+  "progressStageConnectAFC": "デバイスのストレージに接続中",
+  "progressStageUploadApp": "アプリをアップロード中",
+  "progressStageUploadIPA": "IPA をアップロード中",
+  "progressStageConnectInstallProxy": "インストールサービスに接続中",
+  "errFriendlyUnexpected": "操作に失敗しました: {err}",
+  "@errFriendlyUnexpected": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "progressStagePreparing": "準備中"
+}

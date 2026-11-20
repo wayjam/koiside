@@ -15,7 +15,7 @@
 
 Start with an IPA and follow a guided sideloading workflow. KoiSide helps you inspect the file, choose an installation route, make optional changes, and find the next step on your iPhone. Return later to continue a task or review refresh instructions.
 
-Built in Go with [mygo](https://github.com/egoist/mygo), KoiSide uses GPU-rendered native UI with light and dark appearances and Chinese / English localization. Device communication and IPA preparation run within the app, with macOS system services handling the connection to your iPhone.
+Built in Go with [mygo](https://github.com/egoist/mygo), KoiSide uses GPU-rendered native UI with light and dark appearances. Device communication and IPA preparation run within the app, with macOS system services handling the connection to your iPhone.
 
 ## Features
 
@@ -23,6 +23,7 @@ Built in Go with [mygo](https://github.com/egoist/mygo), KoiSide uses GPU-render
 - **Choose how to sideload.** Hand off an IPA over USB to SideStore or LiveContainer where file sharing is available, or use desktop signing and USB installation. Free Personal Team accounts are supported for development signing.
 - **Set up your device.** Check connected iPhones and installed apps, prepare pairing files, and follow setup instructions for SideStore, LocalDevVPN, and LiveContainer.
 - **Manage Apple accounts.** Use a shared account interface for App Store and developer services, with service-specific sessions and signing credentials. App Store search and downloads depend on Apple's services and account region.
+- **Use KoiSide in your language.** Switch between Simplified Chinese, English, Russian, and Japanese.
 - **Use the CLI or MCP server.** Inspect files, query devices, and automate supported operations from the same executable.
 
 ## Screenshots

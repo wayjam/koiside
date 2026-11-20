@@ -1,0 +1,749 @@
+{
+  "@@locale": "ru",
+  "appTitle": "KoiSide",
+  "appSubtitle": "Помощник по загрузке неопубликованных приложений Mac для iPhone",
+  "navHome": "Главная",
+  "navLibrary": "Библиотека IPA",
+  "navDevice": "Устройство",
+  "navTools": "Инструменты",
+  "navGuide": "Настройка",
+  "navSettings": "Настройки",
+  "navBack": "Назад",
+  "homeTitle": "Подготовьте приложение",
+  "homeSubtitle": "Подготовьте собственное приложение для iPhone. Проверяйте IPA в автономном режиме даже без устройства.",
+  "importIPA": "Импортировать IPA",
+  "recentFiles": "Последние файлы",
+  "seeAll": "Посмотреть все",
+  "noRecentFiles": "IPA еще не импортирован",
+  "toolsSectionTitle": "Настройка инструментов",
+  "toolsDetectedNote": "Обнаружение приложения не подтверждает его правильную работу.",
+  "homeImportDragHint": "Нажмите, чтобы выбрать IPA, или перетащите .ipa в любое место этого окна.",
+  "deviceCardTitle": "айфон",
+  "deviceConnectedUSB": "Устройство: USB-подключение",
+  "deviceConnectedUnknown": "Устройство: найдено, тип подключения неизвестен.",
+  "deviceDisconnected": "Устройство: Отключено",
+  "deviceQueryFailed": "Устройство: запрос не выполнен",
+  "deviceSideStoreSummary": "SideStore: Неизвестно",
+  "deviceTitle": "Устройство",
+  "deviceSubtitle": "Доступный только для чтения запрос о состоянии подключенного устройства iOS и установленных приложениях.",
+  "deviceConnectionType": "Тип подключения: {kind}",
+  "deviceModelVersion": "Модель: {model} · iOS: {version}",
+  "deviceDisconnectedTitle": "Устройство отключено",
+  "deviceNoIPhoneHint": "iPhone не обнаружен. Подключите устройство с помощью USB-кабеля, разблокируйте его и нажмите «Доверять», если появится соответствующий запрос.",
+  "deviceRefresh": "Повторить попытку",
+  "deviceWorkOffline": "Работать офлайн",
+  "deviceSideStoreCardTitle": "SideStore",
+  "deviceSideStoreStatusUnknown": "Статус неизвестен",
+  "deviceSideStoreDesc": "Запрос только для чтения. Различайте SideStore не обнаружен и статус неизвестен.",
+  "deviceViewToolGuide": "Открыть руководство по инструменту",
+  "deviceInstalledAppsTitle": "Установленные приложения",
+  "deviceInstalledAppsDesc": "На этапе 1 выполняются запросы только для чтения. Слоты идентификатора приложения и срок действия сертификата следуют за SideStore на устройстве.",
+  "deviceInstalledAppsEmpty": "Список приложений еще не прочитан или доверенное устройство не подключено.",
+  "deviceSideStoreDetected": "SideStore: Обнаружено",
+  "deviceSideStoreEmbedded": "SideStore: встроен в LiveContainer.",
+  "deviceSideStoreNotDetected": "SideStore: не обнаружено",
+  "deviceToolDetected": "Обнаружено ({version}) · статус работы неизвестен",
+  "deviceToolEmbeddedInLC": "Встроенный в LiveContainer",
+  "deviceToolNotDetected": "Не обнаружен в установленных приложениях",
+  "deviceAppsSummary": "Прочитано {total, plural, one {# пользовательское приложение} few {# пользовательских приложения} many {# пользовательских приложений} other {# пользовательского приложения}} ({sideloaded} с sideload / подписью разработчика)",
+  "deviceSessionLocked": "Устройство заблокировано. Разблокируйте iPhone и нажмите «Повторить».",
+  "deviceSessionUntrusted": "Устройство не является доверенным или отсутствует запись о сопряжении. Нажмите «Доверять» на своем iPhone.",
+  "deviceSideStoreUSBReady": "Готов к обмену файлами через USB · Доступен контейнер для документов",
+  "transferUSBVerified": "Контейнер документов доступен (список только для чтения проверен). Передача записывает и проверяет SHA-256.",
+  "transferSectionTitle": "Передача передачи",
+  "transferGuideTitle": "Подготовьте перевод IPA",
+  "transferGuideSubtitle": "Отправьте подготовленный IPA на свой iPhone, затем импортируйте и подпишите его в SideStore.",
+  "transferUSBStatusLabel": "Общий доступ к файлам через USB",
+  "transferUSBUnverified": "Доступность записи и видимости контейнера на этом устройстве не проверена.",
+  "transferExportAlt": "Экспорт IPA на Mac",
+  "transferExportAltDesc": "Сохраните IPA в локальную папку (например, «Загрузки») и перенесите вручную через AirDrop или Files.",
+  "transferNextSteps": "Следующие шаги",
+  "transferNextStep1": "1. Откройте «Файлы» на своем iPhone и убедитесь, что IPA виден.",
+  "transferNextStep2": "2. Включите LocalDevVPN на вашем iPhone (требуется даже при подключении через USB).",
+  "transferNextStep3": "3. Импортируйте IPA в SideStore, чтобы повторно подписать и установить.",
+  "transferStartHandoff": "Перенос в SideStore",
+  "transferNotStarted": "Передача: Не началась",
+  "transferDoneNotInstalled": "Файл передан, еще не установлен",
+  "transferFailed": "Передача не удалась",
+  "transferStatusPrefix": "Трансфер: {status}",
+  "transferDoneBannerTitle": "Файл перенесен на iPhone",
+  "transferDoneBannerSubtitle": "Установка еще не подтверждена",
+  "transferDoneBannerGuide": "Откройте приложение «Файлы» на своем iPhone, затем импортируйте его в SideStore, чтобы завершить подписание и установку.",
+  "transferAfterExportAction": "Перенесите в SideStore прямо сейчас",
+  "libraryTitle": "Библиотека IPA",
+  "librarySubtitle": "Проверьте происхождение, шифрование, влияние компонентов и экспортируйте измененные пакеты.",
+  "libraryEmptyTitle": "Библиотека IPA пуста.",
+  "libraryEmptySubtitle": "Импортируйте файл IPA, чтобы начать. Поддерживается автономная проверка и редактирование.",
+  "libraryOfflineSupported": "Поддерживается локальное автономное использование",
+  "libraryCheckingTitle": "Проверка IPA…",
+  "libraryCheckingSubtitle": "Анализ безопасности ZIP, Info.plist, компонентов и флагов шифрования Mach-O.",
+  "libraryCheckStep1": "Проверьте IPA",
+  "libraryCheckStep2": "Подготовить",
+  "libraryCheckStep3": "Готовый",
+  "libraryCancel": "Отмена",
+  "libraryCanceled": "Проверка отменена",
+  "libraryEncryptedTitle": "Зашифрованное IPA (FairPlay)",
+  "libraryEncryptedSubtitle": "Этот IPA содержит зашифрованный Mach-O (криптид 1) и не может быть повторно подписан. Выберите незашифрованный IPA.",
+  "libraryChooseAnother": "Выбрать другой IPA",
+  "libraryViewDetails": "Посмотреть детали",
+  "libraryInspectFailed": "Проверка не удалась: {err}",
+  "libraryInspectFailedHint": "Убедитесь, что файл представляет собой полный и действительный архив приложения iOS.",
+  "libraryWaitingInspect": "Ожидание проверки",
+  "libraryPrepareBtn": "Подготовка и экспорт",
+  "libraryUnknownName": "Неизвестное имя",
+  "libraryUnknown": "Неизвестный",
+  "libraryBundleID": "Идентификатор пакета",
+  "libraryVersion": "Версия",
+  "libraryMinOS": "Минимальная ОС",
+  "libraryCompatibility": "Совместимость",
+  "libraryCheckStatus": "Статус",
+  "libraryArch": "Архитектура",
+  "librarySHA256": "ША-256",
+  "libraryAdvanced": "Передовой",
+  "libraryToggleAdvanced": "Показать/Скрыть",
+  "libraryComponentCount": "Компоненты: {count}",
+  "libraryDylibCount": "Дилибы: {count}",
+  "libraryComponentsList": "Компоненты (по умолчанию сохраняются, установите флажок для удаления при экспорте)",
+  "libraryURLSchemes": "Схемы URL: {schemes}",
+  "libraryFindingsTitle": "Выводы:",
+  "libraryPreviewDiff": "Обзор различий",
+  "libraryRemoveComponent": "Удалить: {path} ({kind})",
+  "libraryFileInfo": "{filename} · {version}",
+  "libraryComponentsEmpty": "Этот архив содержит только основное приложение без расширений и пакетов Watch.",
+  "severityBlock": "Блокировать",
+  "severityWarn": "Предупреждать",
+  "severityUnknown": "Неизвестный",
+  "findingFairplay": "По крайней мере один фрагмент Mach-O имеет криптид 1. Защита FairPlay сохраняется и не может быть удалена путем редактирования или повторной подписи.",
+  "findingCryptidMissing": "В исполняемом фрагменте отсутствует команда шифрования; возможность повторного подписания не может быть определена.",
+  "findingProvenance": "cryptid 0, отсутствие отдельных dylibs или совпадающие хеши сами по себе не доказывают немодифицированную официальную сборку.",
+  "findingDylib": "Найден автономный dylib. Это только отмечает наличие файла и не устанавливает его происхождение или внедрение.",
+  "findingRegName": "Отображаемое имя содержит символы, отличные от ASCII. Подписывающая сторона может отклонить его как имя идентификатора приложения; имена рабочего стола и регистрации не разделяются.",
+  "findingMultipleApps": "В Payload найдено несколько основных приложений.",
+  "findingNoMainApp": "Основное приложение Info.plist не найдено.",
+  "findingResign": "Редактирование plist делает недействительной исходную подпись. Экспортированный IPA необходимо повторно подписать перед установкой.",
+  "findingSideStoreID": "SideStore может добавить идентификатор группы к идентификатору пакета. Соответствие идентификатора компаньона просмотра после подписания невозможно предсказать.",
+  "findingRemove": "Удаление этого компонента отключает его точки входа в систему. По умолчанию рекомендуется сохранить его.",
+  "findingWatch": "Идентификатор собеседника при просмотре синхронизируется в предварительной версии. Установка по-прежнему может завершиться неудачно, если подписывающая сторона перезапишет основной идентификатор.",
+  "diffTitle": "Редактировать и просматривать",
+  "diffSubtitle": "Измените метаданные приложения и просмотрите изменения перед экспортом. Исходный файл остается доступным только для чтения.",
+  "diffNoPreview": "Отчет о проверке недоступен для предварительного просмотра",
+  "diffMetadataTitle": "Метаданные приложения",
+  "diffDisplayName": "Отображаемое имя",
+  "diffDisplayNamePlaceholder": "Введите отображаемое имя",
+  "diffBundleID": "Идентификатор пакета",
+  "diffBundleIDPlaceholder": "Введите идентификатор пакета",
+  "diffLocalizedName": "Локализованное имя (необязательно)",
+  "diffLocalizedNamePlaceholder": "Синхронизировать с .lproj/InfoPlist.strings.",
+  "diffResignTitle": "После внесения изменений требуется подпись",
+  "diffResignDesc": "Изменения делают недействительной исходную подпись. SideStore повторно подпишется при установке.",
+  "diffIDChangedTitle": "Окончательный идентификатор может отличаться",
+  "diffIDChangedDesc": "SideStore может добавить суффикс вашего идентификатора команды.",
+  "diffPreviewTitle": "Обзор изменений",
+  "diffBefore": "До",
+  "diffAfter": "После",
+  "diffItemsTitle": "Архивировать элементы различий",
+  "diffNoChanges": "Никаких изменений пока нет. Компоненты и схемы URL-адресов сохраняются по умолчанию.",
+  "diffFindingsTitle": "Проверьте уведомления",
+  "diffExportBtn": "Экспортировать IPA",
+  "diffExporting": "Экспорт…",
+  "diffExportSuccess": "Экспортирован новый IPA: {path}.",
+  "diffExportFailed": "Не удалось экспортировать: {err}.",
+  "diffFieldComponent": "Компонент",
+  "diffFieldBundleID": "Идентификатор пакета",
+  "diffFieldDisplayName": "Отображаемое имя",
+  "diffFieldLocalizedName": "Локализованное имя",
+  "diffFieldWatchID": "Идентификатор сопутствующего видео для просмотра",
+  "diffActionRemove": "Удалять",
+  "diffComponentKindApp": "Приложение",
+  "diffComponentKindExt": "Расширение",
+  "diffComponentKindWatch": "Смотреть приложение",
+  "diffComponentKindWatchExt": "Смотреть расширение",
+  "guideStepOf": "Шаг {step} из {total}",
+  "guideStep1Tab": "1. Подключитесь",
+  "guideStep2Tab": "2. Подготовьтесь",
+  "guideStep3Tab": "3. Трансфер",
+  "guideStep1Title": "Подключите свой iPhone",
+  "guideStep1Desc": "Подключите iPhone с помощью USB-кабеля, разблокируйте его и нажмите «Доверять», если появится соответствующий запрос. Вы также можете проверить IPA в автономном режиме.",
+  "guideStep1Waiting": "Ожидание устройства",
+  "guideStep1Connected": "Обнаружен подключенный iPhone",
+  "guideStep1CableHint": "Убедитесь, что USB-кабель надежно подключен и устройство не находится в режиме ограниченного использования аксессуаров.",
+  "guideStep2Title": "Подготовьте и проверьте IPA",
+  "guideStep2Desc": "Импортируйте файл IPA. KoiSide проверяет флаги шифрования и влияние компонентов в автономном режиме, не изменяя исходный файл.",
+  "guideStep2Ready": "Импортировано {count, plural, one {# IPA-файл} few {# IPA-файла} many {# IPA-файлов} other {# IPA-файла}}. Продолжите проверку или подготовьте передачу.",
+  "guideStep2Empty": "IPA пока не импортирован. Импортируйте его сейчас или перейдите на главную страницу.",
+  "guideStep3Title": "Передать в SideStore",
+  "guideStep3Desc": "После переноса или экспорта через USB откройте IPA в «Файлах» и импортируйте его в SideStore для подписания и обновления.",
+  "guideStep3Note": "LocalDevVPN необходимо включить перед установкой или обновлением SideStore. Для прямого подписания USB используйте свой Apple ID, для которого выполнен вход, в разделе «Устройство» или «Передача».",
+  "guideRetry": "Повторить попытку",
+  "guideConnectLater": "Подключиться позже",
+  "guideSkip": "Пропустить настройку",
+  "guideContinue": "Продолжать",
+  "guideFinish": "Закончить и вернуться домой",
+  "guideSkipNote": "Пропуск не означает завершение установки и сохраняет все импортированные файлы.",
+  "guideRestart": "Руководство по настройке перезапуска",
+  "toolsTitle": "Инструменты",
+  "toolsSubtitle": "Основные сопутствующие инструменты для загрузки неопубликованных приложений. Официальные источники и руководства по настройке.",
+  "toolsOpenGuide": "Открыть официальное руководство",
+  "toolsStatusPrefix": "Статус: {state}",
+  "toolSideStoreState": "Статус неизвестен",
+  "toolSideStoreNext": "Импортируйте, подпишите и установите IPA на свой iPhone вручную.",
+  "toolVPNState": "Соединение неизвестно",
+  "toolVPNNext": "Установите из App Store и подключитесь, следуя инструкциям на устройстве.",
+  "toolLCState": "Статус установки неизвестен",
+  "toolLCNext": "Установить через SideStore согласно официальной документации; Слоты приложений зависят от версии.",
+  "settingsTitle": "Настройки",
+  "settingsSubtitle": "Основные настройки KoiSide.",
+  "settingsGeneral": "Общий",
+  "settingsAppearance": "Появление",
+  "settingsAppearanceDesc": "По умолчанию соответствует внешнему виду системы macOS.",
+  "settingsThemeSystem": "Следовать за системой",
+  "settingsThemeLight": "Свет",
+  "settingsThemeDark": "Темный",
+  "settingsLanguage": "Язык",
+  "settingsLanguageDesc": "Выберите язык интерфейса. Изменения применяются сразу.",
+  "settingsLangSystem": "Следовать за системой",
+  "settingsLangZhHans": "简体中文",
+  "settingsLangEn": "English",
+  "settingsFileLocations": "Расположение файлов",
+  "settingsFileLocationsDesc": "Локальные рабочие каталоги и файлы экспорта остаются на этом Mac.",
+  "settingsCacheDir": "Каталог локальных данных: {path}.",
+  "settingsPrivacy": "Конфиденциальность и локальные данные",
+  "settingsPrivacySummary": "Журналы остаются на этом Mac",
+  "settingsPrivacyDesc": "Все журналы и временные файлы остаются на этом Mac без паролей и ключей и никогда не загружаются автоматически.",
+  "settingsLogsTitle": "Локальный журнал диагностики (отредактировано)",
+  "settingsLogsEmpty": "В текущем сеансе нет записей.",
+  "settingsExportLogs": "Экспорт журналов",
+  "settingsClearLogs": "Прозрачный",
+  "settingsSupport": "Поддержка и настройка",
+  "settingsSupportDesc": "Перезапуск установки не удаляет импортированные файлы, состояние устройства или настройки.",
+  "settingsAbout": "О KoiSideе",
+  "settingsAboutDesc": "Подготовьте, подпишите и загрузите приложения для iPhone с инструкциями.",
+  "dialogNoWindowOpen": "Нет активного окна; диалоговое окно открытия пропущено",
+  "dialogNoWindowSave": "Нет активного окна; диалог сохранения пропущен",
+  "dialogOpenFailed": "Не удалось открыть диалоговое окно: {err}.",
+  "dialogSaveFailed": "Не удалось сохранить диалоговое окно: {err}.",
+  "dialogOpenCanceled": "Выбор отменен",
+  "dialogSaveCanceled": "Сохранение отменено",
+  "dialogWillSaveTo": "Сохраняем в {path}.",
+  "dialogSelectedFiles": "Выбрано {count, plural, one {# IPA-файл} few {# IPA-файла} many {# IPA-файлов} other {# IPA-файла}}",
+  "dialogExportDefaultFilename": "Подготовленное приложение.ipa",
+  "riskTitle": "Требуется подпись после экспорта",
+  "riskBody": "Изменения делают недействительной исходную подпись. Окончательный идентификатор пакета после установки SideStore может отличаться от предварительной версии.",
+  "riskAck": "Понятно",
+  "navTask": "Задача неопубликованной загрузки",
+  "navHelpTools": "Помощь и инструменты",
+  "needHelp": "Нужна помощь",
+  "backToTask": "Вернуться к задаче",
+  "sidebarDeviceSingle": "Один iPhone",
+  "sidebarDeviceConnected": "{name} · {conn}",
+  "homeHeroTitle": "Установите собственное приложение на iPhone",
+  "homeHeroSubtitle": "Выберите IPA, и KoiSide проверит архив и подберет подходящий маршрут для боковой загрузки.",
+  "homeContinueTask": "Продолжить текущую задачу",
+  "homeStartNew": "Загрузить новое приложение",
+  "homeSideloadedMaintain": "Обслуживание установленного приложения",
+  "homeHelpSummaryTitle": "Пошаговое руководство в любое время",
+  "homeHelpSummaryDesc": "Руководства по настройке, передаче обслуживания, поиску файлов и 7-дневному обновлению появляются всякий раз, когда это необходимо.",
+  "homeOpenHelp": "Открыть справку по боковой загрузке",
+  "homeViewDevice": "Посмотреть устройство",
+  "taskStage1": "1. Проверьте IPA",
+  "taskStage2": "2. Выберите маршрут",
+  "taskStage3": "3. Подготовьте IPA",
+  "taskStage4": "4. Передача и проверка",
+  "taskStage5": "5. Поддерживать",
+  "checkReadyBannerTitle": "Готов подготовить",
+  "checkReadyBannerDesc": "Структура архива передана. В проверенных исполняемых файлах флаг шифрования не обнаружен.",
+  "checkUncertainTitle": "Совместимость не подтверждена",
+  "checkUncertainDesc": "У некоторых компонентов отсутствуют читаемые флаги шифрования или четкий статус. Прежде чем продолжить, просмотрите результаты.",
+  "checkDamagedTitle": "Не могу прочитать этот IPA",
+  "checkDamagedDesc": "Архив поврежден или отсутствует основной файл приложения Info.plist. Выберите другой IPA.",
+  "checkSourceLabel": "Примечание об источнике файла",
+  "checkSourceGitHub": "Релиз с открытым исходным кодом (GitHub)",
+  "checkSourceSelfBuilt": "Самостоятельный/экспортированный IPA",
+  "checkSourceLocalUnknown": "Местный IPA (источник неизвестен)",
+  "checkSourceNote": "Аннотированный пользователем источник; статическая проверка не проверяет личность издателя.",
+  "checkChooseRouteBtn": "Выберите маршрут установки",
+  "routeTitle": "Выберите способ установки",
+  "routeSubtitle": "Выберите маршрут на основе количества приложений и настроек подписи. Вы можете переключаться для каждого приложения.",
+  "routeSideStoreTitle": "Автономное приложение · Бесплатная персональная команда (рекомендуется)",
+  "routeSideStoreDesc": "Лучше всего подходит для нескольких автономных приложений, запускаемых с главного экрана. Установлен и обновлен на iPhone через SideStore.",
+  "routeContainerTitle": "Запуск внутри LiveContainer",
+  "routeContainerDesc": "Учитывайте, когда слоты личной команды (~3 приложения/идентификатора) заполнены. Запускает внутри контейнера; проверьте совместимость.",
+  "routeAdvancedTitle": "Подпишите и установите напрямую через USB-накопитель на рабочем столе",
+  "routeAdvancedDesc": "Войдите на этот Mac, используя свой Apple ID, и установите его через USB. Лучше всего подходит для автономных приложений главного экрана или начальной настройки.",
+  "routeSlotNotice": "На устройстве обнаружено {count, plural, one {# приложение с подписью разработчика или личной командой} few {# приложения с подписью разработчика или личной командой} many {# приложений с подписью разработчика или личной командой} other {# приложений с подписью разработчика или личной командой}}. Бесплатная личная команда ограничивает число активных приложений с sideload.",
+  "routeLiveContainerEvalTitle": "Оцените LiveContainer",
+  "routeLiveContainerEvalDesc": "Полезно при попытке использовать больше приложений внутри контейнера; выберите автономный, если требуются значки главного экрана или системные расширения.",
+  "routeLiveContainerStandalone": "Автономный режим: сохраните существующие настройки SideStore и установите их в соответствии с официальной документацией.",
+  "routeLiveContainerIntegrated": "Интеграция с SideStore: сохраняет дополнительный слот для приложения Personal Team.",
+  "routeLiveContainerGuideTitle": "Импортируйте IPA в LiveContainer",
+  "routeLiveContainerSteps": "1. Настройте хост LiveContainer в соответствии с официальной версией документации.\n2. Сохраните подготовленный IPA в файлы iPhone.\n3. Откройте LiveContainer, нажмите + и импортируйте из файлов.\n4. Следите за 7-дневным обновлением хост-приложения.",
+  "routeAdvancedPhaseNotice": "Подписание на рабочем столе выдаст сертификат разработки и профиль обеспечения для вашего Apple ID, для которого выполнен вход, и установит их через USB. Бесплатные персональные команды сохраняют ограничения на 7 дней и 3 приложения.",
+  "routeContinueBtn": "Продолжить этот маршрут",
+  "prepareTitle": "Изменить этот IPA перед передачей?",
+  "prepareSubtitle": "Сохраните архив как есть для стандартной установки или отредактируйте метаданные, чтобы обновить/установить копию.",
+  "prepareKeepAsIsTitle": "Продолжить как есть",
+  "prepareKeepAsIsDesc": "Сохраните текущее отображаемое имя, идентификатор пакета и оригинальную подпись (если она не зашифрована).",
+  "prepareKeepAsIsBtn": "Перейдите к передаче",
+  "prepareEditTitle": "Изменить отображаемое имя или идентификатор пакета",
+  "prepareEditDesc": "Обновите существующее приложение или установите его параллельную копию. Редактирование делает оригинальную подпись недействительной.",
+  "prepareEditBtn": "Редактировать и просматривать различия",
+  "prepareIntentTitle": "Ваша цель",
+  "prepareIntentUpdate": "Обновить существующие",
+  "prepareIntentCopy": "Установить копию",
+  "prepareIntentUpdateHint": "Сохраните исходный идентификатор пакета; проверьте существующего подписывающего лица на устройстве.",
+  "prepareIntentCopyHint": "Используйте независимый идентификатор пакета для параллельной установки.",
+  "prepareConflictFound": "Соответствующий идентификатор на устройстве: {name} ({bundleID} · v{version}). Перезапись другим подписывающим лицом может оказаться неудачной.",
+  "prepareConflictClear": "Конфликтов для {bundleID} на подключенном устройстве не обнаружено.",
+  "prepareConflictUnknown": "Список установленных приложений еще не прочитан; не удается проверить конфликты идентификаторов пакетов.",
+  "prepareBundleIDInvalid": "Неверный формат идентификатора пакета. Используйте обратный DNS (например, com.example.app).",
+  "handoffStageTitle": "Передача и проверка установки",
+  "handoffStageSubtitle": "Доставьте подготовленный IPA на iPhone, установите его в SideStore, затем проверьте установленный идентификатор здесь.",
+  "handoffDevicePathTitle": "Найдите на iPhone",
+  "handoffDevicePathValue": "Файлы → Обзор → На моем iPhone → SideStore → {filename}",
+  "handoffMacPathTitle": "Экспортированный путь Mac",
+  "handoffVerifyTitle": "Проверка установки устройства",
+  "handoffVerifyMatch": "Обнаружено на устройстве: {name} ({bundleID} · v{version}). Откройте его на iPhone, чтобы проверить поведение во время выполнения.",
+  "handoffVerifyNotFound": "Для {bundleID} (с суффиксом Team ID или без него) пока не обнаружено. Обновите после завершения установки SideStore.",
+  "handoffVerifyCheckBtn": "Обновить и проверить устройство",
+  "handoffUserConfirmBtn": "Я установил · Посмотреть руководство по обновлению",
+  "handoffStageBadgeExported": "Экспортировано на Mac",
+  "handoffStageBadgeTransferred": "Перенесено в документы SideStore",
+  "handoffStageBadgeDetected": "Обнаружено на устройстве",
+  "handoffStageBadgeUserConfirmed": "Пользователь подтвердил установку",
+  "maintainTitle": "7-дневное обновление и обслуживание",
+  "maintainSubtitle": "Срок действия бесплатных профилей личной команды истекает через 7 дней после подписания. Обновите в SideStore до истечения срока действия.",
+  "maintainStepsTitle": "Регулярные шаги обновления",
+  "maintainStep1": "1. Подключите свой iPhone к Wi-Fi.",
+  "maintainStep2": "2. Откройте и включите LocalDevVPN.",
+  "maintainStep3": "3. Откройте SideStore → Мои приложения и коснитесь значка дней (или «Обновить все»).",
+  "maintainExpiryNote": "Проверьте точное число оставшихся дней на вкладке «Мои приложения» в SideStore. На этапе 1 срок действия не определяется и автоматическое обновление не выполняется.",
+  "maintainRecoveryBtn": "Обновить не удалось или срок действия истек?",
+  "maintainRecoveryTitle": "Ошибка обновления SideStore или срок действия истек",
+  "maintainRecoverySubtitle": "Сначала проверьте, открывается ли сам SideStore на вашем iPhone:",
+  "maintainRecoveryOpenableTitle": "SideStore все еще открыт",
+  "maintainRecoveryOpenableDesc": "Убедитесь, что Wi-Fi и LocalDevVPN активны, проверьте сеанс Apple в SideStore и повторите попытку обновления в «Моих приложениях».",
+  "maintainRecoveryExpiredTitle": "SideStore больше не открывается (срок действия истек более 7 дней)",
+  "maintainRecoveryExpiredDesc": "Вернитесь на свой Mac, чтобы переустановить/восстановить SideStore и повторно подписать свои приложения, сохраняя при этом заметки о задачах.",
+  "maintainBackToMaintain": "Вернуться к руководству по обновлению",
+  "helpHubTitle": "Справка и инструменты для неопубликованной загрузки",
+  "helpHubSubtitle": "Перейдите к устранению неполадок или откройте официальные документы SideStore, LocalDevVPN и LiveContainer.",
+  "helpTopicConnectTitle": "Устройство не подключается или не запрашивает доверие",
+  "helpTopicConnectDesc": "Проверьте USB-кабель, разблокируйте экран iPhone, выйдите из режима ограниченного доступа к аксессуарам и повторите попытку обнаружения.",
+  "helpTopicSetupTitle": "Настройка и восстановление SideStore",
+  "helpTopicSetupDesc": "Режим разработчика, профиль доверенного разработчика, LocalDevVPN и первоначальное самообновление.",
+  "helpTopicMissingFileTitle": "Не могу найти переданный IPA на iPhone",
+  "helpTopicMissingFileDesc": "Проверьте «На моем iPhone» → SideStore в «Файлах» или папку экспорта Mac для AirDrop.",
+  "helpTopicRefreshTitle": "Срок действия приложения скоро истечет или не удалось обновить",
+  "helpTopicRefreshDesc": "Выполните 7-дневные действия по обновлению персональной группы или восстановлению SideStore.",
+  "deviceAppsFilterAll": "Все приложения ({count})",
+  "deviceAppsFilterSideloaded": "Загружено неопубликовано / Разработчик ({count})",
+  "deviceAppsSearchPlaceholder": "Найдите название приложения, идентификатор пакета или идентификатор команды…",
+  "deviceAppsNoMatch": "Подходящих приложений не найдено.",
+  "deviceDocsTitle": "Документы SideStore (/Documents)",
+  "deviceLCDocsTitle": "Документы LiveContainer (/Documents)",
+  "deviceDocsItemsCount": "{count, plural, one {# элемент} few {# элемента} many {# элементов} other {# элемента}}",
+  "deviceDocsEmpty": "Пустая папка",
+  "routeStatusInstalled": "Установлен {version}",
+  "routeStatusEmbeddedLC": "Встроенный в LiveContainer",
+  "routeStatusNotInstalled": "Не установлено",
+  "routeStatusUnknown": "Статус неизвестен",
+  "routeStatusPhase2": "Рабочий стол Прямой",
+  "routeLiveContainerNotInstalledWarn": "LiveContainer еще не установлен на этом iPhone. Прежде чем импортировать приложения-контейнеры, сначала установите хост LiveContainer.",
+  "transferInProgress": "Запись в SideStore и проверка SHA-256…",
+  "transferErrorDetail": "Передача через USB не удалась: {err}",
+  "transferLiveContainerNote": "Выбран маршрут LiveContainer: установите внутри LiveContainer, чтобы сохранить слоты приложений, или переключитесь на внешний режим для автономного приложения на главном экране.",
+  "maintainTargetApp": "Ведение: {name}",
+  "settingsLogsExported": "Журналы экспортированы: {path}",
+  "navAccount": "учетная запись Apple",
+  "accountTitle": "Учетная запись Apple и подписание",
+  "accountSubtitle": "Управление учетными данными для подписи на рабочем столе и сервером Anisette v3; пароли сохраняются в связке ключей macOS только в том случае, если вы дадите свое согласие.",
+  "accountStatusSignedIn": "Выполнен вход: {email}",
+  "accountStatusSignedOut": "Не авторизован",
+  "accountSignInTitle": "Войти с помощью Apple ID",
+  "accountEmailLabel": "Электронная почта Apple ID",
+  "accountEmailPlaceholder": "имя@example.com",
+  "accountPasswordLabel": "Пароль",
+  "accountPasswordPlaceholder": "Введите пароль Apple ID",
+  "accountRememberPassword": "Сохраните пароль в связке ключей macOS (необязательно)",
+  "accountRememberHint": "Если флажок снят, пароль сохраняется в памяти только для этого сеанса. Ключи и данные сопряжения используют Keychain отдельно.",
+  "accountSignInBtn": "Войти",
+  "accountSigningIn": "Вход в систему и создание сеанса разработчика…",
+  "accountSignOutBtn": "Выход",
+  "accountSavedAccountsTitle": "Запомненные аккаунты",
+  "accountUseSavedBtn": "Войти",
+  "accountForgetSavedBtn": "Удалять",
+  "account2FATitle": "Двухфакторная аутентификация",
+  "account2FADesc": "Введите 6-значный код подтверждения Apple со своего доверенного устройства или запросите SMS.",
+  "account2FASMSDesc": "Введите код подтверждения по SMS, отправленный на телефон и заканчивающийся на {digits}.",
+  "account2FACodePlaceholder": "6-значный код",
+  "account2FASubmit": "Подтвердить и продолжить",
+  "account2FAResend": "Отправить повторно",
+  "account2FASendSMS": "Отправить СМС: {number}",
+  "accountTeamLabel": "Активная команда разработчиков",
+  "accountTeamFree": "Бесплатная персональная команда",
+  "accountTeamPaid": "Платная команда разработчиков",
+  "accountCertsTitle": "Сертификаты и квота идентификатора приложения",
+  "accountLoadCertsBtn": "Обновить сертификаты и квоты",
+  "accountCertEmpty": "Нажмите «Обновить», чтобы загрузить сертификаты и квоту App ID с портала разработчиков Apple.",
+  "accountRevokeCertBtn": "Отозвать",
+  "accountMaxCertsTitle": "Достигнут предел сертификата",
+  "accountMaxCertsDesc": "Apple ограничивает количество активных сертификатов разработки для каждой команды. Выберите сертификат для отзыва и продолжите:",
+  "accountMaxCertsRevokeContinue": "Отменить выбранное и продолжить",
+  "accountAnisetteTitle": "Анисетка v3 Сервис",
+  "accountAnisetteDesc": "Предоставляет только заголовки аттестации машины (никогда не получает ваш пароль). Замените на собственный URL-адрес в любое время.",
+  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteSaveBtn": "Сохранить URL-адрес",
+  "accountAnisetteResetBtn": "Сбросить состояние аттестации",
+  "accountAnisetteResetDone": "Состояние аттестации Anisette очищено",
+  "accountStoreBoundaryNote": "Загрузка App Store и подписание разработчика остаются отдельными сеансами.",
+  "toolInstallSideStoreBtn": "Установить SideStore",
+  "toolInstallLCSSBtn": "Установите LiveContainer + SideStore.",
+  "toolInstallLCBtn": "Установить LiveContainer",
+  "toolInstallLocalDevVPNBtn": "Загрузите LocalDevVPN в App Store.",
+  "toolLocalDevVPNLimitation": "LocalDevVPN использует NetworkExtension и не может быть подписан с помощью бесплатной персональной команды; бесплатные пользователи устанавливают из App Store (платные команды разработчиков могут напрямую подписать локальный IPA).",
+  "toolInstallNeedLogin": "Перед установкой на настольный компьютер войдите в свою учетную запись Apple.",
+  "toolInstallNeedDevice": "Сначала подключите и настройте свой iPhone через USB.",
+  "toolInstallRunning": "Установка: {stage} ({pct}%)",
+  "toolInstallSucceeded": "Установлено: {bundleID}",
+  "toolInstallFailed": "Установка не удалась: {err}",
+  "pairingSectionTitle": "Беспроводное обновление сопряжения",
+  "pairingSectionDesc": "Создавайте и размещайте файлы Lockdown/RemotePairing в SideStore, LiveContainer и совместимых инструментах, включив при этом отладку Wi-Fi.",
+  "pairingOneClickBtn": "Создать и разместить пару",
+  "pairingExportBtn": "Экспортировать файл сопряжения",
+  "pairingWriteDone": "Пейринг размещен в {target}",
+  "pairingWriteFailed": "Не удалось выполнить сопряжение: {err}.",
+  "transferDirectInstallTitle": "Подпишите и установите напрямую через USB",
+  "transferDirectInstallDesc": "Подпишите этот IPA с помощью своей активной учетной записи Apple и установите его непосредственно через USB.",
+  "transferDirectInstallBtn": "Подпишите и установите IPA",
+  "deviceDevModeOn": "Режим разработчика: включен",
+  "deviceDevModeOff": "Режим разработчика: отключен (требуется для запуска загруженных приложений)",
+  "deviceDevModeUnknown": "Режим разработчика: Неизвестно",
+  "deviceDevModeEnableBtn": "Включить режим разработчика",
+  "deviceDevModeRevealed": "Режим разработчика теперь доступен в настройках iPhone → Конфиденциальность и безопасность → Режим разработчика. Включите его, перезагрузите компьютер и подтвердите на iPhone.",
+  "deviceDevModeFailed": "Не удалось выполнить действие в режиме разработчика: {err}.",
+  "postInstallChecklistTitle": "Необходимые действия на iPhone после установки",
+  "postInstallStepDevMode": "1. Убедитесь, что «Настройки» → «Конфиденциальность и безопасность» → «Режим разработчика» включены (включите, перезагрузите компьютер и подтвердите на iPhone, если он выключен).",
+  "postInstallStepTrust": "2. Перейдите в «Настройки» → «Основные» → «VPN и управление устройствами» → «Приложение разработчика», коснитесь своего Apple ID и коснитесь «Доверие» (Apple требует подтверждения на устройстве).",
+  "postInstallStepRefresh": "3. Подключите LocalDevVPN; При использовании автономного SideStore выберите файл сопряжения, войдите в систему с помощью Apple ID и обновите один раз.",
+  "postInstallStepLCSS": "4. Для LiveContainer + SideStore: переключитесь на встроенный SideStore → выберите SideStore/Documents/PairingFile_RemoteRP.plist → войдите и обновите → вернитесь в настройки LiveContainer → Импортировать сертификат из SideStore.",
+  "accountReturnBannerWaiting": "Перескочил сюда с {from}. Войдите в свой Apple ID ниже, затем нажмите «Вернуться», чтобы возобновить рабочий процесс.",
+  "@accountReturnBannerWaiting": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "accountReturnBannerReady": "Выполнен вход как {email}. Нажмите «Возврат», чтобы вернуться назад и продолжить загрузку неопубликованных приложений.",
+  "@accountReturnBannerReady": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "accountReturnBtn": "Возвращаться",
+  "accountDismissBtn": "Закрывать",
+  "accountReturnSourceTask": "Задача неопубликованной загрузки",
+  "accountReturnSourceDevice": "Устройство и инструменты",
+  "accountReturnSourceGuide": "Руководство по установке",
+  "accountLocalKeyBadge": "Локальный ключ",
+  "accountCertExpires": "Срок действия истекает: {date}",
+  "@accountCertExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAppIDQuotaFree": "Оставшаяся 7-дневная квота идентификатора приложения: {avail} / {max} (бесплатные учетные записи допускают использование идентификаторов приложений {max} на 7 дней; удаление приложений не приводит к досрочному освобождению слотов)",
+  "@accountAppIDQuotaFree": {
+    "placeholders": {
+      "avail": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "accountAppIDQuotaPaid": "Зарегистрированные идентификаторы приложений: {count}.",
+  "@accountAppIDQuotaPaid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accountAppIDsTitle": "Зарегистрированные идентификаторы приложений",
+  "accountAppIDExpires": "Срок действия истекает: {date}",
+  "@accountAppIDExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAppIDDeleteBtn": "Удалить",
+  "accountAppIDFreeDeleteHint": "Бесплатные идентификаторы приложений Personal Team блокируются Apple на скользящий 7-дневный период, срок действия которых истекает автоматически.",
+  "deviceDocDeleteBtn": "Удалить",
+  "deviceDocDeleted": "Удалено с устройства: {name}.",
+  "@deviceDocDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routeLCPlacementTitle": "Установите внутри или снаружи LiveContainer",
+  "routeLCPlacementInsideTitle": "Внутри LiveContainer (сохраняет слоты приложений)",
+  "routeLCPlacementInsideDesc": "Перенести IPA в LiveContainer Documents и запустить внутри контейнера; использует 0 дополнительных слотов главного экрана и требует только обновления хоста.",
+  "routeLCPlacementOutsideTitle": "Вне LiveContainer (автономное приложение для главного экрана)",
+  "routeLCPlacementOutsideDesc": "Установите непосредственно на главный экран (через подписывание рабочего стола или SideStore) для виджетов, расширений или автономного запуска; использует 1 активный слот приложения.",
+  "routePrecheckTitle": "Предварительные условия и учетная запись",
+  "routePrecheckDeviceOK": "iPhone подключен: {name}",
+  "@routePrecheckDeviceOK": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routePrecheckDeviceMissing": "iPhone не подключен (офлайн-проверка и экспорт IPA все еще работают)",
+  "routePrecheckAccountOK": "Apple ID выполнил вход: {email} ({teamType})",
+  "@routePrecheckAccountOK": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "teamType": {
+        "type": "String"
+      }
+    }
+  },
+  "routePrecheckAccountMissing": "Apple ID не выполнен вход (требуется для подписи на рабочем столе или установки инструментов хоста)",
+  "routePrecheckSignInBtn": "Войти в Apple ID",
+  "routePrecheckToolsReady": "Инструменты размещения готовы на устройстве",
+  "routePrecheckToolsMissing": "SideStore/LiveContainer пока не обнаружен — установите прямо здесь",
+  "routePrecheckVPNMissing": "LocalDevVPN не обнаружен (требуется для беспроводного обновления; для App Store может потребоваться регион, отличный от CN)",
+  "handoffSendToLCBtn": "Отправить в документы LiveContainer",
+  "handoffLCDevicePathValue": "Файлы → Обзор → На моем iPhone → LiveContainer → {filename}",
+  "@handoffLCDevicePathValue": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffLCStepsTitle": "Импорт и запуск в LiveContainer",
+  "handoffLCStep1": "1. Убедитесь, что режим разработчика включен, вашему профилю разработчика доверяют, а LiveContainer импортировал сертификат из SideStore.",
+  "handoffLCStep2": "2. Откройте LiveContainer на iPhone → нажмите + (вверху слева) → Установить из файла IPA.",
+  "handoffLCStep3": "3. Выберите {filename} в разделе «На моем iPhone» → LiveContainer, затем нажмите «Запустить» для проверки.",
+  "@handoffLCStep3": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffVerifyLCReady": "Хост LiveContainer готов ({bundleID}). Приложения, установленные внутри LiveContainer, не отображаются в списке системных приложений iOS; проверьте, запустив внутри LiveContainer.",
+  "@handoffVerifyLCReady": {
+    "placeholders": {
+      "bundleID": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffVerifyLCConfirmBtn": "Запущен в LiveContainer · Посмотреть руководство по обновлению",
+  "handoffPlacementBadgeInside": "Цель: внутри LiveContainer",
+  "handoffPlacementBadgeOutside": "Цель: за пределами LiveContainer (автономно)",
+  "handoffSwitchToInside": "Переключиться на внутреннюю часть LiveContainer",
+  "handoffSwitchToOutside": "Переключиться на внешний режим (автономное приложение)",
+  "maintainLCHint": "При работе внутри LiveContainer не используется дополнительных слотов для автономных приложений и не требуется отдельного обновления — просто обновляйте хост LiveContainer в SideStore каждые 7 дней.",
+  "openPathBtn": "Открыть по пути…",
+  "openPathTitle": "Открыть IPA из пути",
+  "openPathDesc": "Введите или вставьте полный путь к файлу .ipa, не открывая панель системных файлов.",
+  "openPathPlaceholder": "/Пользователи/.../App.ipa",
+  "openPathConfirm": "Открыть и проверить",
+  "openPathNotFound": "Файл не найден или путь является каталогом.",
+  "handoffVerifyLCDetected": "Внутри LiveContainer обнаружено: {name} ({bundleID} · v{version}). Нажмите «Запустить» внутри LiveContainer, чтобы запустить.",
+  "@handoffVerifyLCDetected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "bundleID": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceLatestSideStoreLog": "Последний журнал SideStore: {op} · {status} ({file})",
+  "@deviceLatestSideStoreLog": {
+    "placeholders": {
+      "op": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "toolConfirmTitle": "Подтвердите установку {tool}",
+  "@toolConfirmTitle": {
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "toolConfirmInstallBtn": "Установить сейчас",
+  "toolConfirmSideStoreDesc": "• Автономный SideStore (последняя официальная версия) с собственным значком на главном экране.\n• Использует 1 бесплатный слот для приложения Personal Team (2 слота в сочетании с автономным LiveContainer).\n• Для беспроводного обновления на iPhone требуется LocalDevVPN.",
+  "toolConfirmLCSSDesc": "• Интегрированный пакет LiveContainer + SideStore (ночной канал) со встроенным SideStore.\n• Использует только 1 бесплатный слот приложения Personal Team и совместно использует сертификаты в одной изолированной программной среде.\n• Обновление хоста LiveContainer каждые 7 дней обновляет оба.",
+  "toolConfirmLCOnlyDesc": "• Автономный хост LiveContainer (ночной канал) с использованием 1 бесплатного слота приложения Personal Team.\n• Лучше всего, если уже установлен автономный SideStore; импортируйте сертификат из SideStore в настройках.",
+  "toolConfirmConflictEmbedded": "LiveContainer + SideStore (интегрированный) уже обнаружен на этом iPhone. При установке автономного SideStore используется дополнительный слот, что может привести к путанице в файлах сопряжения, если вы сначала не удалите интегрированное приложение.",
+  "toolConfirmConflictStandalone": "Автономный SideStore уже обнаружен на этом iPhone. Рассмотрите возможность его удаления, прежде чем переходить на интегрированный пакет LiveContainer + SideStore.",
+  "lcAdvancedTitle": "Расширенные возможности: многократный запуск и ярлыки на главном экране",
+  "lcAdvancedMultiTitle": "1. Одновременно запускайте приложения-контейнеры (общее приложение).",
+  "lcAdvancedMultiDesc": "В LiveContainer откройте карточку приложения → Настройки → Преобразовать в общее приложение, чтобы оно могло работать вместе с другими приложениями в многозадачном/многоконтейнерном режиме.",
+  "lcAdvancedShortcutTitle": "2. Добавьте значок главного экрана с помощью ярлыков iOS (7 шагов)",
+  "lcAdvancedShortcutSteps": "1. Откройте LiveContainer → Приложения и нажмите и удерживайте приложение.\n2. Нажмите «Добавить на главный экран» → «Сохранить значок приложения», выберите стиль и сохраните.\n3. Снова нажмите и удерживайте → Добавить на главный экран → Копировать URL-адрес запуска.\n4. Откройте «Ярлыки Apple» и нажмите «+», чтобы создать новый ярлык.\n5. Найдите «Запустить приложение» и выберите действие LiveContainer.\n6. Нажмите «URL-адрес запуска», вставьте скопированный URL-адрес и запустите один раз для проверки.\n7. Нажмите «Поделиться» → «Добавить на главный экран», задайте имя и выберите сохраненный значок. (Песочница iOS требует наличия на устройстве ярлыков для значков главного экрана.)",
+  "transferUSBVerifiedLC": "Контейнер документов LiveContainer доступен. Передача записывает в /Documents и проверяет SHA-256.",
+  "transferUSBVerifiedSS": "Контейнер документов SideStore доступен. Передача записывает в /Documents и проверяет SHA-256.",
+  "accountRevokeConfirmTitle": "Отозвать сертификат разработки?",
+  "accountRevokeConfirmDesc": "Это приведет к безвозвратному отзыву сертификата {serial} (машина: {machine}). Приложения, подписанные с его помощью, перестанут обновляться.",
+  "@accountRevokeConfirmDesc": {
+    "placeholders": {
+      "serial": {
+        "type": "String"
+      },
+      "machine": {
+        "type": "String"
+      }
+    }
+  },
+  "accountRevokeConfirmLocalKeyWarn": "Внимание: этот сертификат соответствует локальному закрытому ключу вашего Mac. Отзыв повлияет на SideStore/LiveContainer, установленный с этого Mac.",
+  "accountRevokeConfirmBtn": "Отозвать сертификат",
+  "archiveRemoveBtn": "Удалять",
+  "errFriendlyLocked": "Айфон заблокирован. Разблокируйте экран iPhone и повторите попытку.",
+  "errFriendlyUntrusted": "iPhone еще не доверял этому Mac. Нажмите «Доверять» на своем iPhone и введите свой пароль.",
+  "errFriendlyNoDevice": "iPhone не обнаружен через USB. Проверьте кабель и подключение.",
+  "errFriendlyAuth": "Сеанс Apple ID истек или недействителен. Войдите еще раз под учетной записью Apple.",
+  "errFriendlyNetwork": "Время ожидания истекло или не удалось связаться с серверами Apple/Anisette. Проверьте свою сеть и повторите попытку.",
+  "errFriendlyMaxCerts": "Достигнут предел сертификата разработки. Отозвать неиспользуемый сертификат под учетной записью Apple.",
+  "errFriendlyMaxAppIDs": "Бесплатные персональные команды ограничены 10 идентификаторами приложений в течение 7 дней. Подождите, пока истечет срок действия существующего идентификатора.",
+  "toolsManageOnDeviceBtn": "Установка и управление на устройстве",
+  "navStore": "Магазин",
+  "storeTitle": "Приобретение в магазине приложений",
+  "storeSubtitle": "Выполняйте поиск по регионам, получайте историю версий, загружайте IPA с лицензией SINF и устанавливайте непосредственно через USB.",
+  "storeAccountSectionTitle": "Учетные записи App Store (загрузки и регионы)",
+  "storeAccountSectionDesc": "Используется для поиска в App Store, бесплатного приобретения лицензий и загрузки версий. Независимо от вашей учетной записи разработчика.",
+  "storeAccountSignedIn": "Активная учетная запись магазина: {email}",
+  "@storeAccountSignedIn": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "storeAccountRegion": "Регион: {country} (Витрина: {storefront})",
+  "@storeAccountRegion": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "storefront": {
+        "type": "String"
+      }
+    }
+  },
+  "storeAccountSwitchBtn": "Использовать учетную запись",
+  "storeAccountActiveBadge": "Активный",
+  "storeAccountSignOutBtn": "Выйти Магазин",
+  "storeAccountForgetBtn": "Удалять",
+  "storeAccountSignInTitle": "Войдите в App Store",
+  "storeAccountSignInBtn": "Войти в магазин",
+  "storeAccountSigningIn": "Вход в систему через рукопожатие SAP…",
+  "storeAccountNeedTitle": "Нет входа в учетную запись App Store",
+  "storeAccountNeedDesc": "Поиск работает без входа в систему; для получения идентификаторов версий и загрузки IPA требуется Apple ID для этой витрины.",
+  "storeAccountOpenBtn": "Перейти к входу в магазин",
+  "store2FATitle": "Двухфакторная аутентификация в магазине приложений",
+  "store2FADesc": "Введите 6-значный код подтверждения для {email}.",
+  "@store2FADesc": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "storeSearchPlaceholder": "Поиск по названию приложения или ключевым словам…",
+  "storeCountryLabel": "Область",
+  "storeSearchBtn": "Поиск",
+  "storeSearching": "Поиск в магазине приложений…",
+  "storeSearchEmpty": "Введите ключевые слова для поиска в App Store (например, WeChat, Telegram, Bilibili).",
+  "storeNoResults": "Подходящих приложений не найдено. Попробуйте сменить регион витрины.",
+  "storeVersionsBtn": "Версии",
+  "storeVersionsLoading": "Получение истории версий…",
+  "storeVersionLatest": "Последний",
+  "storeDownloadBtn": "Скачать IPA",
+  "storeDownloadInstallBtn": "Скачать и установить",
+  "storeDownloading": "Получение лицензии и загрузка ({pct}%)…",
+  "@storeDownloading": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "storeDownloadDone": "Сохранен лицензионный IPA: {path}.",
+  "@storeDownloadDone": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInstallDone": "Установлен Store IPA через USB: {bundleID}",
+  "@storeInstallDone": {
+    "placeholders": {
+      "bundleID": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInspectBtn": "Открыть в IPA Workbench",
+  "storeSinfReadyTitle": "Содержит лицензию App Store (SINF)",
+  "storeSinfReadyDesc": "Этот IPA использует защиту FairPlay и не может быть изменен или повторно подписан с помощью бесплатной личной команды, но его можно установить непосредственно через USB на устройства, авторизованные для покупки Apple ID.",
+  "storeSinfDirectInstallBtn": "Установите Store IPA через USB",
+  "settingsAboutTagline": "Боковая загрузка — это просто.",
+  "settingsAboutVersion": "Версия 0.1.0",
+  "settingsAboutSource": "Проект дома",
+  "settingsLangRu": "Русский",
+  "settingsLangJa": "日本語",
+  "sidebarExpand": "Развернуть боковую панель",
+  "sidebarCollapse": "Свернуть боковую панель",
+  "progressStageDownload": "Загрузка",
+  "progressStageCertificate": "Подготовка сертификата",
+  "progressStageSigning": "Подписание",
+  "progressStageUSBInstall": "Установка через USB",
+  "progressStagePairing": "Размещение файлов сопряжения",
+  "progressStageComplete": "Готово",
+  "progressStageConnectAFC": "Подключение к хранилищу устройства",
+  "progressStageUploadApp": "Загрузка приложения",
+  "progressStageUploadIPA": "Загрузка IPA",
+  "progressStageConnectInstallProxy": "Подключение к службе установки",
+  "errFriendlyUnexpected": "Не удалось выполнить операцию: {err}",
+  "@errFriendlyUnexpected": {
+    "placeholders": {
+      "err": {
+        "type": "String"
+      }
+    }
+  },
+  "progressStagePreparing": "Подготовка"
+}

@@ -361,7 +361,7 @@ func (m *Model) transferStatusText(msg locales.Messages) string {
 		return msg.TransferStatusPrefix(msg.TransferDoneNotInstalled())
 	case "failed":
 		if errDetail != "" {
-			return msg.TransferErrorDetail(errDetail)
+			return msg.TransferErrorDetail(friendlyError(msg, errDetail))
 		}
 		return msg.TransferStatusPrefix(msg.TransferFailed())
 	default:
@@ -606,7 +606,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					}
 					ui.Text(c.Key("device-devmode-status"), devModeLabel).FontSize(12).Bold().TextColor(devModeColor)
 					if m.devModeErr != "" {
-						ui.Text(c, msg.DeviceDevModeFailed(m.devModeErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
+						ui.Text(c, msg.DeviceDevModeFailed(friendlyError(msg, m.devModeErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
 					} else if m.devModeMsg != "" {
 						ui.Text(c, m.devModeMsg).FontSize(11).TextColor(accentInk(t))
 					}
@@ -617,7 +617,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 						} else if errors.Is(m.sessionErr, device.ErrUntrusted) {
 							hint = msg.DeviceSessionUntrusted()
 						}
-						ui.Text(c, hint).FontSize(12).TextColor(ui.Hex("#F59E0B"))
+						ui.Text(c, friendlyError(msg, hint)).FontSize(12).TextColor(ui.Hex("#F59E0B"))
 					}
 				})
 				ui.Column(c).Gap(6).AlignItems(ui.End).Children(func() {
@@ -763,7 +763,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			if pBusy {
 				ui.Spinner(c).Label(msg.PairingOneClickBtn())
 			} else if pErr != "" {
-				ui.Text(c, msg.PairingWriteFailed(pErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
+				ui.Text(c, msg.PairingWriteFailed(friendlyError(msg, pErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
 			} else if pMsg != "" {
 				ui.Text(c, pMsg).FontSize(11).TextColor(ui.Hex("#10B981"))
 			}
@@ -784,7 +784,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					delErr := m.docDeleteErr
 					m.mu.Unlock()
 					if delErr != "" {
-						ui.Text(c, delErr).FontSize(11).TextColor(ui.Hex("#EF4444"))
+						ui.Text(c, friendlyError(msg, delErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
 					} else if delMsg != "" {
 						ui.Text(c, delMsg).FontSize(11).TextColor(ui.Hex("#10B981"))
 					}
@@ -1035,7 +1035,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 							ui.Text(c, msg.ToolInstallRunning(dStage, dPct)).FontSize(11).TextColor(accentInk(t))
 						})
 					} else if dErr != "" {
-						ui.Text(c, msg.ToolInstallFailed(dErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
+						ui.Text(c, msg.ToolInstallFailed(friendlyError(msg, dErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
 					} else if dDone != "" {
 						ui.Text(c, dDone).FontSize(11).TextColor(ui.Hex("#10B981"))
 					}
@@ -1294,13 +1294,14 @@ func (m *Model) toolInstallStatusRow(c *ui.Context, msg locales.Messages) {
 	ui.Column(c).FillWidth().Padding(10, 18).Gap(6).Children(func() {
 		if busy {
 			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
-				ui.Progress(c, float64(pct)/100.0).Width(180).Label(stage)
-				ui.Text(c, msg.ToolInstallRunning(stage, pct)).FontSize(12).TextColor(accentInk(t)).Grow(1)
+				localizedStage := progressStageLabel(msg, stage)
+				ui.Progress(c, float64(pct)/100.0).Width(180).Label(localizedStage)
+				ui.Text(c, msg.ToolInstallRunning(localizedStage, pct)).FontSize(12).TextColor(accentInk(t)).Grow(1)
 			})
 		} else if errMsg != "" {
-			ui.Text(c, msg.ToolInstallFailed(errMsg)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+			ui.Text(c, msg.ToolInstallFailed(friendlyError(msg, errMsg))).FontSize(12).TextColor(ui.Hex("#EF4444"))
 		} else if stage != "" {
-			ui.Text(c, stage).FontSize(12).Bold().TextColor(ui.Hex("#10B981"))
+			ui.Text(c, progressStageLabel(msg, stage)).FontSize(12).Bold().TextColor(ui.Hex("#10B981"))
 			if done {
 				ui.Column(c).FillWidth().Padding(10, 12).Gap(4).Radius(8).Background(t.Selection).Children(func() {
 					ui.Text(c, msg.PostInstallChecklistTitle()).Bold().FontSize(12)
@@ -1481,7 +1482,7 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget) {
 			m.toolInstallDone = true
 			m.toolInstallMsg = curMsg.ToolInstallSucceeded(res.BundleID)
 			if res.PairingWarning != "" {
-				m.toolInstallMsg += " (" + res.PairingWarning + ")"
+				m.toolInstallMsg += " (" + friendlyError(curMsg, res.PairingWarning) + ")"
 			}
 		}
 		m.mu.Unlock()
@@ -1540,10 +1541,10 @@ func (m *Model) placePairingToAll() {
 		if len(names) > 0 {
 			m.pairingMsg = curMsg.PairingWriteDone(strings.Join(names, ", "))
 			if lastErr != nil {
-				m.pairingMsg += " (" + lastErr.Error() + ")"
+				m.pairingMsg += " (" + friendlyError(curMsg, lastErr.Error()) + ")"
 			}
 		} else if lastErr != nil {
-			m.pairingErr = lastErr.Error()
+			m.pairingErr = friendlyError(curMsg, lastErr.Error())
 		}
 		m.mu.Unlock()
 		if m.win != nil {

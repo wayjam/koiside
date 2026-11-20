@@ -16,6 +16,8 @@ const (
 	langSystem = ""
 	langZhHans = "zh-Hans"
 	langEn     = "en"
+	langRu     = "ru"
+	langJa     = "ja"
 )
 
 // effectiveLocale resolves the active BCP 47 tag for rendering.
@@ -43,8 +45,36 @@ func (m *Model) msg(c *ui.Context) locales.Messages {
 	return locales.In(m.effectiveLocale(c))
 }
 
-// SetLanguage sets the UI language ("", "zh-Hans", or "en"). Empty follows the
-// system preferred languages.
+func progressStageLabel(msg locales.Messages, stage string) string {
+	switch strings.ToLower(stage) {
+	case "preparing":
+		return msg.ProgressStagePreparing()
+	case "download":
+		return msg.ProgressStageDownload()
+	case "certificate":
+		return msg.ProgressStageCertificate()
+	case "signing":
+		return msg.ProgressStageSigning()
+	case "usb_install":
+		return msg.ProgressStageUSBInstall()
+	case "pairing":
+		return msg.ProgressStagePairing()
+	case "complete", "готово", "完了":
+		return msg.ProgressStageComplete()
+	case "connecting to afc":
+		return msg.ProgressStageConnectAFC()
+	case "uploading app bundle":
+		return msg.ProgressStageUploadApp()
+	case "uploading ipa":
+		return msg.ProgressStageUploadIPA()
+	case "connecting to installation_proxy":
+		return msg.ProgressStageConnectInstallProxy()
+	default:
+		return stage
+	}
+}
+
+// SetLanguage sets the UI language. Empty follows the system preferred languages.
 func (m *Model) SetLanguage(tag string) {
 	norm := ""
 	if strings.TrimSpace(tag) != "" {
@@ -249,6 +279,6 @@ func friendlyError(msg locales.Messages, raw string) string {
 	case strings.Contains(low, "timeout") || strings.Contains(low, "deadline") || strings.Contains(low, "eof") || strings.Contains(low, "connection refused") || strings.Contains(low, "no such host"):
 		return msg.ErrFriendlyNetwork()
 	default:
-		return raw
+		return msg.ErrFriendlyUnexpected(raw)
 	}
 }

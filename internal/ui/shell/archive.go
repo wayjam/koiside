@@ -550,7 +550,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				})
 			})
 			ui.Text(c, msg.CheckDamagedDesc()).FontSize(13)
-			ui.Text(c, msg.LibraryInspectFailed(file.err)).FontSize(12).TextColor(t.TextMuted)
+			ui.Text(c, msg.LibraryInspectFailed(friendlyError(msg, file.err))).FontSize(12).TextColor(t.TextMuted)
 			ui.Text(c, msg.LibraryInspectFailedHint()).FontSize(12).TextColor(t.TextMuted)
 			if uiPrimaryBtn(c, "damaged-choose-another", msg.LibraryChooseAnother()).Clicked() {
 				m.pickIPA()
@@ -591,7 +591,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				m.mu.Unlock()
 				if busy {
 					ui.Progress(c, float64(pct)/100.0).FillWidth().Label(stage)
-					ui.Text(c, fmt.Sprintf("%d%% · %s", pct, stage)).FontSize(12).TextColor(accentInk(t))
+					ui.Text(c, fmt.Sprintf("%d%% · %s", pct, progressStageLabel(msg, stage))).FontSize(12).TextColor(accentInk(t))
 				}
 				if dErr != "" {
 					ui.Text(c, friendlyError(msg, dErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
