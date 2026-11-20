@@ -292,7 +292,7 @@
   "settingsSupport": "支持与引导",
   "settingsSupportDesc": "重新打开首次引导不会清除已导入的文件、设备状态或偏好设置。",
   "settingsAbout": "关于 KoiSide",
-  "settingsAboutDesc": "KoiSide v0.1.0 · 简洁、可信的 macOS iPhone 应用安装助手",
+  "settingsAboutDesc": "为 iPhone 准备、签名和侧载 App，在每一步提供所需指引。",
 
   "dialogNoWindowOpen": "当前没有窗口，文件框未打开",
   "dialogNoWindowSave": "当前没有窗口，保存框未打开",
@@ -823,5 +823,8 @@
   "storeInspectBtn": "在 IPA 工作台打开",
   "storeSinfReadyTitle": "已包含 App Store 授权 (SINF)",
   "storeSinfReadyDesc": "该 IPA 主二进制受 FairPlay 保护，不可改包名或用个人免费证书重签，但可直接通过 USB 原样安装到拥有对应账号授权的 iPhone。",
-  "storeSinfDirectInstallBtn": "直接通过 USB 安装正版包"
+  "storeSinfDirectInstallBtn": "直接通过 USB 安装正版包",
+  "settingsAboutTagline": "让侧载更简单。",
+  "settingsAboutVersion": "版本 0.1.0",
+  "settingsAboutSource": "项目主页"
 }

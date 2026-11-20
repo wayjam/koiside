@@ -226,7 +226,7 @@
   "settingsSupport": "Support & Setup",
   "settingsSupportDesc": "Restarting setup does not remove imported files, device state, or preferences.",
   "settingsAbout": "About KoiSide",
-  "settingsAboutDesc": "KoiSide v0.1.0 · Clean, trustworthy macOS iPhone sideload helper",
+  "settingsAboutDesc": "Prepare, sign, and sideload iPhone apps with guidance along the way.",
 
   "dialogNoWindowOpen": "No active window; open dialog skipped",
   "dialogNoWindowSave": "No active window; save dialog skipped",
@@ -662,5 +662,8 @@
   "storeInspectBtn": "Open in IPA Workbench",
   "storeSinfReadyTitle": "Contains App Store License (SINF)",
   "storeSinfReadyDesc": "This IPA uses FairPlay protection and cannot be modified or re-signed with a free Personal Team, but it can be installed directly over USB on devices authorized for the purchasing Apple ID.",
-  "storeSinfDirectInstallBtn": "Install Store IPA over USB"
+  "storeSinfDirectInstallBtn": "Install Store IPA over USB",
+  "settingsAboutTagline": "Sideloading, made simple.",
+  "settingsAboutVersion": "Version 0.1.0",
+  "settingsAboutSource": "Project home"
 }

@@ -19,6 +19,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: actions/setup-go@v5
         with:
@@ -34,15 +36,17 @@ jobs:
 
       - name: Package KoiSide.app
         run: |
-          go tool mygo package
-          test -d build/KoiSide.app
+          go tool mygo build -platform darwin/arm64 -skip-dmg
+          test -d build/darwin-arm64/KoiSide.app
 
       - name: Create DMG, ZIP, and checksums
         shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          if [ -n "${{ inputs.tag }}" ]; then
-            TAG="${{ inputs.tag }}"
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG="${INPUT_TAG}"
           fi
           mkdir -p dist
           DMG_NAME="KoiSide-${TAG}-macos-arm64.dmg"
@@ -50,13 +54,14 @@ jobs:
 
           # Create DMG with /Applications symlink
           STAGE_DIR=$(mktemp -d)
-          cp -R build/KoiSide.app "${STAGE_DIR}/"
+          trap 'rm -rf "${STAGE_DIR}"' EXIT
+          cp -R build/darwin-arm64/KoiSide.app "${STAGE_DIR}/"
           ln -s /Applications "${STAGE_DIR}/Applications"
           hdiutil create -volname "KoiSide" -srcfolder "${STAGE_DIR}" -ov -format UDZO "dist/${DMG_NAME}"
           rm -rf "${STAGE_DIR}"
 
           # Create ZIP
-          ditto -c -k --sequesterRsrc --keepParent build/KoiSide.app "dist/${ZIP_NAME}"
+          ditto -c -k --sequesterRsrc --keepParent build/darwin-arm64/KoiSide.app "dist/${ZIP_NAME}"
 
           # Checksums
           (cd dist && shasum -a 256 "${DMG_NAME}" "${ZIP_NAME}" > checksums.txt)

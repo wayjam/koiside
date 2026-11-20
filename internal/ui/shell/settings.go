@@ -169,15 +169,24 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 				m.section = "引导"
 			}
 		})
-		ui.Divider(c)
-		ui.Row(c).FillWidth().Padding(14, 18).Gap(12).AlignItems(ui.Center).
-			Background(brandWarmSurface(t)).Children(func() {
-			ui.Image(c, brandLogo).Size(36, 36).Fit(ui.Contain)
-			ui.Column(c).Grow(1).Gap(2).Children(func() {
-				ui.Text(c, msg.SettingsAbout()).Bold().FontSize(14)
-				ui.Text(c, msg.SettingsAboutDesc()).FontSize(12).TextColor(t.TextMuted)
+	})
+
+	ui.Text(c, msg.SettingsAbout()).Bold().FontSize(13).TextColor(t.TextMuted)
+	surfaceCard(c, "settings-about-card").Padding(20, 22).Gap(14).Children(func() {
+		ui.Row(c).FillWidth().Gap(16).AlignItems(ui.Center).Children(func() {
+			ui.Box(c).Size(72, 72).Radius(16).Background(brandWarmSurface(t)).Center().Children(func() {
+				ui.Image(c, brandLogo).Size(60, 60).Fit(ui.Contain)
+			})
+			ui.Column(c).Grow(1).Gap(3).Children(func() {
+				ui.Text(c, "KoiSide").Bold().FontSize(22)
+				ui.Text(c, msg.SettingsAboutTagline()).FontSize(14)
+				ui.Text(c, msg.SettingsAboutVersion()).FontSize(11).TextColor(t.TextMuted)
 			})
 		})
+		ui.Text(c, msg.SettingsAboutDesc()).FontSize(12).TextColor(t.TextMuted)
+		if uiBtn(c, "about-project-home", msg.SettingsAboutSource()).Clicked() {
+			c.OpenURL("https://github.com/wayjam/koiside")
+		}
 	})
 }
 

@@ -2214,11 +2214,11 @@ func (msgs Messages) SettingsAbout() string {
 	return Catalog.Format(msgs.locale, "settingsAbout", nil)
 }
 
-// SettingsAboutDesc says "KoiSide v0.1.0 · 简洁、可信的 macOS iPhone 应用安装助手"
+// SettingsAboutDesc says "为 iPhone 准备、签名和侧载 App，在每一步提供所需指引。"
 // in the language the app shows.
 func SettingsAboutDesc() string { return In(i18n.Locale()).SettingsAboutDesc() }
 
-// SettingsAboutDesc says "KoiSide v0.1.0 · 简洁、可信的 macOS iPhone 应用安装助手"
+// SettingsAboutDesc says "为 iPhone 准备、签名和侧载 App，在每一步提供所需指引。"
 // in the language of msgs.
 func (msgs Messages) SettingsAboutDesc() string {
 	return Catalog.Format(msgs.locale, "settingsAboutDesc", nil)
@@ -5510,4 +5510,34 @@ func StoreSinfDirectInstallBtn() string { return In(i18n.Locale()).StoreSinfDire
 // in the language of msgs.
 func (msgs Messages) StoreSinfDirectInstallBtn() string {
 	return Catalog.Format(msgs.locale, "storeSinfDirectInstallBtn", nil)
+}
+
+// SettingsAboutTagline says "让侧载更简单。"
+// in the language the app shows.
+func SettingsAboutTagline() string { return In(i18n.Locale()).SettingsAboutTagline() }
+
+// SettingsAboutTagline says "让侧载更简单。"
+// in the language of msgs.
+func (msgs Messages) SettingsAboutTagline() string {
+	return Catalog.Format(msgs.locale, "settingsAboutTagline", nil)
+}
+
+// SettingsAboutVersion says "版本 0.1.0"
+// in the language the app shows.
+func SettingsAboutVersion() string { return In(i18n.Locale()).SettingsAboutVersion() }
+
+// SettingsAboutVersion says "版本 0.1.0"
+// in the language of msgs.
+func (msgs Messages) SettingsAboutVersion() string {
+	return Catalog.Format(msgs.locale, "settingsAboutVersion", nil)
+}
+
+// SettingsAboutSource says "项目主页"
+// in the language the app shows.
+func SettingsAboutSource() string { return In(i18n.Locale()).SettingsAboutSource() }
+
+// SettingsAboutSource says "项目主页"
+// in the language of msgs.
+func (msgs Messages) SettingsAboutSource() string {
+	return Catalog.Format(msgs.locale, "settingsAboutSource", nil)
 }
