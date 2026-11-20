@@ -5,7 +5,7 @@
 **Prepare, sign, and sideload your own iPhone apps with guidance along the way.**
 
 [![Platform](https://img.shields.io/badge/macOS_26%2B-Apple_Silicon-black?logo=apple)](https://github.com/wayjam/koiside/releases)
-[![Go](https://img.shields.io/badge/Go-1.27.3%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.27.4%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 
 [Download](https://github.com/wayjam/koiside/releases) · [Build from source](#build-from-source) · [Report an issue](https://github.com/wayjam/koiside/issues)
 
@@ -50,7 +50,7 @@ For an ad-hoc signed build that macOS blocks, review the app's source and follow
 
 ## Build from source
 
-Install **Go 1.27.3 or later**, as specified in [go.mod](go.mod).
+Install **Go 1.27.4 or later**, as specified in [go.mod](go.mod).
 
 ```sh
 git clone https://github.com/wayjam/koiside.git
@@ -83,6 +83,8 @@ go run ./cmd/koiside device status --json
 go run ./cmd/koiside mcp
 ```
 
+KoiSide stores Apple account sessions, developer keys, and pairing material in macOS Keychain; it does not fall back to plaintext files. The MCP server uses local stdio and does not open a network listener. A configured MCP client can still invoke KoiSide tools with the current user's access, including reading device/account details, installing apps, deleting files in supported app containers, and placing pairing credentials. Only connect trusted clients, review requested actions, and do not export or share pairing files.
+
 ## Development
 
 ```sh
@@ -98,3 +100,7 @@ go test -count=1 ./...
 - [SideStore](https://sidestore.io/) provides on-device sideloading and refresh workflows.
 - [LiveContainer](https://github.com/LiveContainer/LiveContainer) provides an on-device app container runtime.
 - [Phosphor Icons](https://phosphoricons.com/) provides the interface icons.
+
+## License
+
+KoiSide is licensed under the [MIT License](LICENSE). Attribution and license information for the included Phosphor icon assets is in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Go dependencies are declared in `go.mod` and are not vendored.

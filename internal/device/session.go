@@ -1,9 +1,11 @@
 package device
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -69,16 +71,26 @@ func (rec PairRecord) tlsConfig() (*tls.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("device: parse pairing certificate: %w", err)
 	}
-	cfg := &tls.Config{
-		Certificates:       []tls.Certificate{cert},
-		InsecureSkipVerify: true, // Device lockdown certificates use self-signed pairing CA without matching hostnames.
-		MinVersion:         tls.VersionTLS12,
+	deviceCertPEM := rec.DeviceCertificate
+	if block, _ := pem.Decode(deviceCertPEM); block != nil {
+		deviceCertPEM = block.Bytes
 	}
-	if len(rec.RootCertificate) > 0 {
-		pool := x509.NewCertPool()
-		if pool.AppendCertsFromPEM(rec.RootCertificate) {
-			cfg.RootCAs = pool
-		}
+	deviceCert, err := x509.ParseCertificate(deviceCertPEM)
+	if err != nil {
+		return nil, fmt.Errorf("device: parse paired device certificate: %w", err)
+	}
+	cfg := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		// Lockdown certificates are self-signed and have no DNS identity. Pin
+		// the paired device's leaf certificate below instead of skipping peer auth.
+		InsecureSkipVerify: true,
+		MinVersion:         tls.VersionTLS12,
+		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+			if len(rawCerts) == 0 || !bytes.Equal(rawCerts[0], deviceCert.Raw) {
+				return errors.New("device: TLS peer certificate does not match pairing record")
+			}
+			return nil
+		},
 	}
 	return cfg, nil
 }

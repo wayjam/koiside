@@ -417,7 +417,7 @@ func toolCatalog() []map[string]any {
 		{
 			"name":        "place_pairing_files",
 			"description": "Generate/reuse RemotePairing + Lockdown pairing files and write them to compatible installed apps (SideStore, LiveContainer, Feather, StikDebug, etc.) or export to disk.",
-			"annotations": map[string]any{"readOnlyHint": false, "destructiveHint": false},
+			"annotations": map[string]any{"readOnlyHint": false, "destructiveHint": true},
 			"inputSchema": map[string]any{
 				"type": "object",
 				"properties": map[string]any{

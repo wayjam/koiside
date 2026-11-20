@@ -5,9 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"os"
+	"fmt"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"sync"
 
@@ -19,27 +18,16 @@ const (
 	savedAccountsKey      = "saved_apple_accounts"
 )
 
-// KeychainStorage stores small secrets (Anisette state, dev RSA keys, pairing files,
-// and opt-in saved Apple passwords) in macOS Keychain via /usr/bin/security, with
-// file-backed metadata index for account discovery.
+// KeychainStorage stores secrets (Anisette state, developer keys, pairing files,
+// and opt-in saved Apple passwords) in macOS Keychain via /usr/bin/security.
+// It fails closed when Keychain is unavailable and never writes secrets to files.
 type KeychainStorage struct {
 	mu      sync.Mutex
 	service string
-	baseDir string
 }
 
-func NewKeychainStorage(baseDir string) *KeychainStorage {
-	if baseDir == "" {
-		if home, err := os.UserHomeDir(); err == nil {
-			baseDir = filepath.Join(home, "Library", "Application Support", "KoiSide")
-		} else {
-			baseDir = filepath.Join(os.TempDir(), "koiside")
-		}
-	}
-	return &KeychainStorage{
-		service: keychainServicePrefix,
-		baseDir: baseDir,
-	}
+func NewKeychainStorage() *KeychainStorage {
+	return &KeychainStorage{service: keychainServicePrefix}
 }
 
 func (k *KeychainStorage) Get(key string) ([]byte, error) {
@@ -50,23 +38,17 @@ func (k *KeychainStorage) Get(key string) ([]byte, error) {
 	}
 	out, err := exec.Command("/usr/bin/security", "find-generic-password",
 		"-s", k.service, "-a", key, "-w").Output()
-	if err == nil {
-		raw := strings.TrimSpace(string(out))
-		if strings.HasPrefix(raw, "b64:") {
-			dec, decErr := base64.StdEncoding.DecodeString(strings.TrimPrefix(raw, "b64:"))
-			if decErr == nil {
-				return dec, nil
-			}
+	if err != nil {
+		return nil, fmt.Errorf("account: read Keychain item: %w", err)
+	}
+	raw := strings.TrimSpace(string(out))
+	if strings.HasPrefix(raw, "b64:") {
+		dec, decErr := base64.StdEncoding.DecodeString(strings.TrimPrefix(raw, "b64:"))
+		if decErr == nil {
+			return dec, nil
 		}
-		return []byte(raw), nil
 	}
-	// Fallback to 0600 file inside user data dir when running headless / non-keychain CI.
-	p := k.fallbackPath(key)
-	b, readErr := os.ReadFile(p)
-	if os.IsNotExist(readErr) {
-		return nil, nil
-	}
-	return b, readErr
+	return []byte(raw), nil
 }
 
 func (k *KeychainStorage) Set(key string, value []byte) error {
@@ -77,37 +59,24 @@ func (k *KeychainStorage) Set(key string, value []byte) error {
 	}
 	encoded := "b64:" + base64.StdEncoding.EncodeToString(value)
 	cmd := exec.Command("/usr/bin/security", "add-generic-password",
-		"-U", "-s", k.service, "-a", key, "-w", encoded)
-	if err := cmd.Run(); err == nil {
-		return nil
+		"-U", "-s", k.service, "-a", key, "-w")
+	// The security CLI prompts on stdin when -w is last and has no argument.
+	// This keeps the secret out of the process argument list.
+	cmd.Stdin = strings.NewReader(encoded + "\n")
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("account: write Keychain item: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Dir(k.fallbackPath(key)), 0o700); err != nil {
-		return err
-	}
-	return os.WriteFile(k.fallbackPath(key), value, 0o600)
-}
-
-func (k *KeychainStorage) Delete(serviceOrKey, account string) error {
-	key := serviceOrKey
-	if account != "" && serviceOrKey != k.service {
-		key = serviceOrKey + ":" + account
-	} else if account != "" {
-		key = account
-	}
-	k.mu.Lock()
-	defer k.mu.Unlock()
-	_ = exec.Command("/usr/bin/security", "delete-generic-password", "-s", k.service, "-a", key).Run()
-	_ = os.Remove(k.fallbackPath(key))
 	return nil
 }
 
 func (k *KeychainStorage) DeleteKey(key string) error {
-	return k.Delete("", key)
-}
-
-func (k *KeychainStorage) fallbackPath(key string) string {
-	safe := strings.NewReplacer("/", "_", "\\", "_", ":", "_", "..", "_").Replace(key)
-	return filepath.Join(k.baseDir, "secrets", safe+".bin")
+	if key == "" {
+		return errors.New("account: empty storage key")
+	}
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	_ = exec.Command("/usr/bin/security", "delete-generic-password", "-s", k.service, "-a", key).Run()
+	return nil
 }
 
 // KeychainAppleAuthAdapter wraps KeychainStorage as appleauth.Storage.

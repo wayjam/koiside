@@ -413,8 +413,18 @@ func PlacePairing(d Deps, exportPath string) (PairingResult, error) {
 		if err != nil && len(raw) == 0 {
 			return PairingResult{}, err
 		}
-		if err := os.WriteFile(exportPath, raw, 0o600); err != nil {
-			return PairingResult{}, err
+		file, writeErr := os.OpenFile(exportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if writeErr != nil {
+			return PairingResult{}, writeErr
+		}
+		if _, writeErr = file.Write(raw); writeErr != nil {
+			_ = file.Close()
+			_ = os.Remove(exportPath)
+			return PairingResult{}, writeErr
+		}
+		if writeErr = file.Close(); writeErr != nil {
+			_ = os.Remove(exportPath)
+			return PairingResult{}, writeErr
 		}
 		var warns []string
 		if err != nil {

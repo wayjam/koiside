@@ -152,7 +152,7 @@ type LocalManager struct {
 // NewLocalManager builds the desktop account manager backed by Keychain/local secrets.
 func NewLocalManager(storage appleauth.Storage) *LocalManager {
 	if storage == nil {
-		storage = KeychainAppleAuthAdapter{Store: NewKeychainStorage("")}
+		storage = KeychainAppleAuthAdapter{Store: NewKeychainStorage()}
 	}
 	savedURL := appleauth.DefaultAnisetteV3URL
 	if raw, err := storage.Get("anisette_server_url"); err == nil && strings.TrimSpace(string(raw)) != "" {

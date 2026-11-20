@@ -10,7 +10,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +17,7 @@ import (
 	"howett.net/plist"
 
 	"koiside/internal/devportal"
+	"koiside/internal/ipa"
 )
 
 // Request is what a later signer needs. It carries no private key.
@@ -290,11 +290,11 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 
 	report(0.55, "codesign")
 	if err := SignAppBundle(appDir, BundleSignConfig{
-		TeamID:         opts.Team.TeamID,
-		Cert:           opts.Cert,
-		MainProfile:    mainProf,
-		ExtProfiles:    extProfiles,
-		Special:        special,
+		TeamID:      opts.Team.TeamID,
+		Cert:        opts.Cert,
+		MainProfile: mainProf,
+		ExtProfiles: extProfiles,
+		Special:     special,
 	}); err != nil {
 		return Result{}, err
 	}
@@ -559,9 +559,8 @@ func prepareAppDir(inputPath, workDir string) (string, string, error) {
 			return "", "", err
 		}
 	} else {
-		_ = os.RemoveAll(workDir)
 		if err := os.MkdirAll(workDir, 0o755); err != nil {
-			return "", "", err
+			return "", workDir, err
 		}
 	}
 
@@ -572,53 +571,8 @@ func prepareAppDir(inputPath, workDir string) (string, string, error) {
 	defer zr.Close()
 
 	cleanWork := filepath.Clean(workDir)
-	for _, f := range zr.File {
-		rel := filepath.Clean(f.Name)
-		if rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
-			return "", workDir, fmt.Errorf("signing: unsafe zip path %q", f.Name)
-		}
-		dest := filepath.Join(cleanWork, rel)
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(dest, 0o755); err != nil {
-				return "", workDir, err
-			}
-			continue
-		}
-		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
-			return "", workDir, err
-		}
-		if f.Mode()&os.ModeSymlink != 0 {
-			rc, err := f.Open()
-			if err != nil {
-				return "", workDir, err
-			}
-			target, _ := io.ReadAll(io.LimitReader(rc, 4096))
-			_ = rc.Close()
-			_ = os.Remove(dest)
-			if err := os.Symlink(string(target), dest); err != nil {
-				return "", workDir, err
-			}
-			continue
-		}
-		rc, err := f.Open()
-		if err != nil {
-			return "", workDir, err
-		}
-		mode := f.Mode()
-		if mode == 0 {
-			mode = 0o644
-		}
-		out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
-		if err != nil {
-			_ = rc.Close()
-			return "", workDir, err
-		}
-		_, copyErr := io.Copy(out, rc)
-		_ = out.Close()
-		_ = rc.Close()
-		if copyErr != nil {
-			return "", workDir, copyErr
-		}
+	if err := ipa.ExtractZIP(&zr.Reader, cleanWork); err != nil {
+		return "", workDir, fmt.Errorf("signing: safely extract IPA: %w", err)
 	}
 
 	payloadDir := filepath.Join(cleanWork, "Payload")
