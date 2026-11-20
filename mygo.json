@@ -10,7 +10,7 @@
   },
   "out": "build",
   "macos": {
-    "minimumSystemVersion": "26.0",
+    "minimumSystemVersion": "14.0",
     "signingIdentity": "-",
     "icon": "resources/icon.icns"
   },

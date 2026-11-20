@@ -4,7 +4,7 @@
 
 **Prepare, sign, and sideload your own iPhone apps with guidance along the way.**
 
-[![Platform](https://img.shields.io/badge/macOS_26%2B-Apple_Silicon-black?logo=apple)](https://github.com/wayjam/koiside/releases)
+[![Platform](https://img.shields.io/badge/macOS_14%2B-Apple_Silicon_%26_Intel-black?logo=apple)](https://github.com/wayjam/koiside/releases)
 [![Go](https://img.shields.io/badge/Go-1.27.4%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 
 [Download](https://github.com/wayjam/koiside/releases) · [Build from source](#build-from-source) · [Report an issue](https://github.com/wayjam/koiside/issues)
@@ -34,9 +34,9 @@ Built in Go with [mygo](https://github.com/egoist/mygo), KoiSide uses GPU-render
 
 ## Install
 
-Requires **macOS 26 or later on Apple Silicon**.
+Requires **macOS 14 or later on Apple Silicon or Intel**.
 
-1. Download the macOS arm64 build from [Releases](https://github.com/wayjam/koiside/releases).
+1. Download the macOS `arm64` (Apple Silicon) or `amd64` (Intel) build from [Releases](https://github.com/wayjam/koiside/releases).
 2. Extract the archive or open the disk image and move **KoiSide.app** to **Applications**.
 3. Open KoiSide and select an IPA. Connect and unlock your iPhone when prompted, then confirm **Trust** on the device.
 
@@ -59,8 +59,10 @@ cd koiside
 # Run the desktop app
 go run ./cmd/koiside
 
-# Build the Apple Silicon app bundle
+# Build the Apple Silicon or Intel app bundle
 go tool mygo build -platform darwin/arm64 -skip-dmg
+# or for Intel Mac:
+# go tool mygo build -platform darwin/amd64 -skip-dmg
 
 # Open the built application
 open build/darwin-arm64/KoiSide.app

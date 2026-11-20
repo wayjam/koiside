@@ -70,33 +70,37 @@ jobs:
 
       - name: Package KoiSide.app
         run: |
-          go tool mygo build -platform darwin/arm64 -skip-dmg
+          go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-dmg
           test -d build/darwin-arm64/KoiSide.app
+          test -d build/darwin-amd64/KoiSide.app
 
       - name: Create DMG, ZIP, and checksums
         shell: bash
         run: |
           TAG="${{ needs.validate_tag.outputs.tag }}"
           mkdir -p dist
-          DMG_NAME="KoiSide-${TAG}-macos-arm64.dmg"
-          ZIP_NAME="KoiSide-${TAG}-macos-arm64.zip"
 
-          # Create DMG with /Applications symlink
-          TEMP_DIR=$(mktemp -d)
-          STAGE_DIR="${TEMP_DIR}/KoiSide-${TAG}"
-          mkdir -p "${STAGE_DIR}"
-          trap 'rm -rf "${TEMP_DIR}"' EXIT
-          cp -R build/darwin-arm64/KoiSide.app "${STAGE_DIR}/"
-          cp LICENSE THIRD_PARTY_NOTICES.md "${STAGE_DIR}/"
-          ln -s /Applications "${STAGE_DIR}/Applications"
-          hdiutil create -volname "KoiSide" -srcfolder "${STAGE_DIR}" -ov -format UDZO "dist/${DMG_NAME}"
-          rm "${STAGE_DIR}/Applications"
+          for ARCH in arm64 amd64; do
+            DMG_NAME="KoiSide-${TAG}-macos-${ARCH}.dmg"
+            ZIP_NAME="KoiSide-${TAG}-macos-${ARCH}.zip"
 
-          # Create ZIP with the app and license notices
-          ditto -c -k --sequesterRsrc --keepParent "${STAGE_DIR}" "dist/${ZIP_NAME}"
+            # Create DMG with /Applications symlink
+            TEMP_DIR=$(mktemp -d)
+            STAGE_DIR="${TEMP_DIR}/KoiSide-${TAG}"
+            mkdir -p "${STAGE_DIR}"
+            cp -R "build/darwin-${ARCH}/KoiSide.app" "${STAGE_DIR}/"
+            cp LICENSE THIRD_PARTY_NOTICES.md "${STAGE_DIR}/"
+            ln -s /Applications "${STAGE_DIR}/Applications"
+            hdiutil create -volname "KoiSide" -srcfolder "${STAGE_DIR}" -ov -format UDZO "dist/${DMG_NAME}"
+            rm "${STAGE_DIR}/Applications"
+
+            # Create ZIP with the app and license notices
+            ditto -c -k --sequesterRsrc --keepParent "${STAGE_DIR}" "dist/${ZIP_NAME}"
+            rm -rf "${TEMP_DIR}"
+          done
 
           # Checksums
-          (cd dist && shasum -a 256 "${DMG_NAME}" "${ZIP_NAME}" > checksums.txt)
+          (cd dist && shasum -a 256 *.dmg *.zip > checksums.txt)
 
       - uses: actions/upload-artifact@v4
         with:
