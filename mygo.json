@@ -9,6 +9,7 @@
     "source": "zh-Hans"
   },
   "out": "build",
+  "resources": ["LICENSE", "THIRD_PARTY_NOTICES.md"],
   "macos": {
     "minimumSystemVersion": "14.0",
     "signingIdentity": "-",

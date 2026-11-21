@@ -74,6 +74,15 @@ jobs:
           test -d build/darwin-arm64/KoiSide.app
           test -d build/darwin-amd64/KoiSide.app
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare installer artwork and tools
+        run: |
+          python -m pip install -r scripts/dmg-requirements.txt
+          swift scripts/dmg-background.swift build/dmg-background.png
+
       - name: Create DMG, ZIP, and checksums
         shell: bash
         run: |
@@ -84,19 +93,15 @@ jobs:
             DMG_NAME="KoiSide-${TAG}-macos-${ARCH}.dmg"
             ZIP_NAME="KoiSide-${TAG}-macos-${ARCH}.zip"
 
-            # Create DMG with /Applications symlink
-            TEMP_DIR=$(mktemp -d)
-            STAGE_DIR="${TEMP_DIR}/KoiSide-${TAG}"
-            mkdir -p "${STAGE_DIR}"
-            cp -R "build/darwin-${ARCH}/KoiSide.app" "${STAGE_DIR}/"
-            cp LICENSE THIRD_PARTY_NOTICES.md "${STAGE_DIR}/"
-            ln -s /Applications "${STAGE_DIR}/Applications"
-            hdiutil create -volname "KoiSide" -srcfolder "${STAGE_DIR}" -ov -format UDZO "dist/${DMG_NAME}"
-            rm "${STAGE_DIR}/Applications"
+            # Artwork and icon positions use the same 640 x 400 point canvas.
+            # Notices are bundled in Contents/Resources before code signing.
+            python -m dmgbuild -s scripts/dmg-settings.py \
+              -D app="build/darwin-${ARCH}/KoiSide.app" \
+              -D background=build/dmg-background.png \
+              "KoiSide" "dist/${DMG_NAME}"
 
-            # Create ZIP with the app and license notices
-            ditto -c -k --sequesterRsrc --keepParent "${STAGE_DIR}" "dist/${ZIP_NAME}"
-            rm -rf "${TEMP_DIR}"
+            # ZIP opens directly to the app, including its bundled notices.
+            ditto -c -k --sequesterRsrc --keepParent "build/darwin-${ARCH}/KoiSide.app" "dist/${ZIP_NAME}"
           done
 
           # Checksums

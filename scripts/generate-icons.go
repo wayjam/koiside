@@ -44,6 +44,17 @@ func generate() error {
 	if bounds.Empty() {
 		return fmt.Errorf("logo has no visible pixels")
 	}
+	// The application icon has its own tile and optical padding. Keep the
+	// transparent brand mark for in-app use; do not pad the app tile twice.
+	appFile, err := os.Open("assets/brand/app-icon-master.png")
+	if err != nil {
+		return err
+	}
+	appIcon, err := png.Decode(appFile)
+	appFile.Close()
+	if err != nil {
+		return err
+	}
 	iconset := "build/KoiSide.iconset"
 	if err := os.MkdirAll(iconset, 0o755); err != nil {
 		return err
@@ -54,12 +65,12 @@ func generate() error {
 			if scale == 2 {
 				name += "@2x"
 			}
-			if err := save(source, bounds, size*scale, .80, filepath.Join(iconset, name+".png")); err != nil {
+			if err := save(appIcon, appIcon.Bounds(), size*scale, 1, filepath.Join(iconset, name+".png")); err != nil {
 				return err
 			}
 		}
 	}
-	if err := save(source, bounds, 1024, .80, "resources/icon.png"); err != nil {
+	if err := save(appIcon, appIcon.Bounds(), 1024, 1, "resources/icon.png"); err != nil {
 		return err
 	}
 	if err := save(source, bounds, 256, .94, "internal/ui/shell/assets/brand/logo.png"); err != nil {

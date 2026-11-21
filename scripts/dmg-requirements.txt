@@ -1,0 +1,2 @@
+# Build-time tooling only; not installed on end users' Macs.
+dmgbuild==1.6.7
