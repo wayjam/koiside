@@ -6,54 +6,108 @@ on:
       - "v*.*.*"
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Release tag (e.g. v0.1.0)"
+      version:
+        description: "Version to release (e.g. 0.1.0 or 0.1.1-rc.1)"
         required: true
+        type: string
+      target:
+        description: "Branch or commit to release"
+        required: false
+        type: string
+      release_notes:
+        description: "Optional custom notes; otherwise git-cliff generates categorized notes"
+        required: false
         type: string
 
 permissions:
   contents: read
 
 jobs:
-  validate_tag:
+  prepare_release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
+      commit: ${{ steps.tag.outputs.commit }}
+      create_tag: ${{ steps.tag.outputs.create_tag }}
     steps:
+      - name: Check out release target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && (inputs.target || github.event.repository.default_branch) || github.sha }}
+          fetch-depth: 0
+
       - name: Validate release tag
         id: tag
         shell: bash
         env:
-          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_TARGET: ${{ inputs.target }}
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
-            TAG="${INPUT_TAG}"
+            VERSION="${INPUT_VERSION#v}"
+            if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+              echo "Invalid version: ${INPUT_VERSION}" >&2
+              exit 1
+            fi
+            TAG="v${VERSION}"
+
+            if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+              echo "Release tag already exists; using its commit and skipping tag creation: ${TAG}"
+              git fetch --no-tags origin "refs/tags/${TAG}"
+              COMMIT="$(git rev-parse 'FETCH_HEAD^{commit}')"
+              if [[ -n "${INPUT_TARGET}" && "$(git rev-parse HEAD)" != "${COMMIT}" ]]; then
+                echo "Target does not match existing tag ${TAG}; choose the tagged commit or leave target blank." >&2
+                exit 1
+              fi
+              CREATE_TAG=false
+            else
+              COMMIT="$(git rev-parse HEAD)"
+              CREATE_TAG=true
+            fi
           else
             TAG="${REF_NAME}"
+            COMMIT="$(git rev-parse HEAD)"
+            CREATE_TAG=false
           fi
           if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "Invalid release tag: ${TAG}" >&2
             exit 1
           fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "commit=${COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "create_tag=${CREATE_TAG}" >> "$GITHUB_OUTPUT"
           if [[ "${TAG}" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Create and push release tag
+        if: steps.tag.outputs.create_tag == 'true'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          COMMIT: ${{ steps.tag.outputs.commit }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" "${COMMIT}" -m "KoiSide ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
   build:
-    needs: validate_tag
+    needs: prepare_release
     runs-on: macos-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ needs.validate_tag.outputs.tag }}
+          ref: ${{ needs.prepare_release.outputs.commit }}
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: actions/setup-go@v5
@@ -86,7 +140,7 @@ jobs:
       - name: Create DMG, ZIP, and checksums
         shell: bash
         run: |
-          TAG="${{ needs.validate_tag.outputs.tag }}"
+          TAG="${{ needs.prepare_release.outputs.tag }}"
           mkdir -p dist
 
           for ARCH in arm64 amd64; do
@@ -107,6 +161,41 @@ jobs:
           # Checksums
           (cd dist && shasum -a 256 *.dmg *.zip > checksums.txt)
 
+      - name: Generate release notes with git-cliff
+        if: inputs.release_notes == ''
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --current --strip header
+        env:
+          OUTPUT: dist/release-notes.md
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Append full changelog link
+        if: inputs.release_notes == ''
+        shell: bash
+        env:
+          RELEASE_COMMIT: ${{ needs.prepare_release.outputs.commit }}
+          RELEASE_TAG: ${{ needs.prepare_release.outputs.tag }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "${RELEASE_COMMIT}^" 2>/dev/null || true)"
+          if [[ -n "${PREVIOUS_TAG}" ]]; then
+            CHANGELOG_URL="https://github.com/${REPOSITORY}/compare/${PREVIOUS_TAG}...${RELEASE_TAG}"
+          else
+            CHANGELOG_URL="https://github.com/${REPOSITORY}/commits/${RELEASE_TAG}"
+          fi
+          printf '\n\nFull Changelog: %s\n' "${CHANGELOG_URL}" >> dist/release-notes.md
+
+      - name: Use custom release notes
+        if: inputs.release_notes != ''
+        shell: bash
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          printf '%s\n' "${RELEASE_NOTES}" > dist/release-notes.md
+
       - uses: actions/upload-artifact@v4
         with:
           name: koiside-release-files
@@ -114,7 +203,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    needs: [validate_tag, build]
+    needs: [prepare_release, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -126,10 +215,10 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.validate_tag.outputs.tag }}
-          name: KoiSide ${{ needs.validate_tag.outputs.tag }}
-          prerelease: ${{ needs.validate_tag.outputs.prerelease }}
-          generate_release_notes: true
+          tag_name: ${{ needs.prepare_release.outputs.tag }}
+          name: KoiSide ${{ needs.prepare_release.outputs.tag }}
+          prerelease: ${{ needs.prepare_release.outputs.prerelease }}
+          body_path: dist/release-notes.md
           files: |
             dist/*.dmg
             dist/*.zip
