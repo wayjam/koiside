@@ -54,6 +54,9 @@ func TestVisualCompare(t *testing.T) {
 	targetPath := "/Users/wayjamsu/.local/state/magpie-agy-bridge/agy-home/antigravity-cli/brain/416c2b79-27da-45d7-a833-79f7668a451c/.user_uploaded/uploaded_media_1_1794732983562.webp"
 	fTar, err := os.Open(targetPath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			t.Skipf("skipping visual compare; target image not found: %v", err)
+		}
 		t.Fatalf("Open target failed: %v", err)
 	}
 	defer fTar.Close()
