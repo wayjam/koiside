@@ -180,9 +180,7 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 	ui.Text(c, msg.SettingsAbout()).Bold().FontSize(13).TextColor(t.TextMuted)
 	surfaceCard(c, "settings-about-card").Padding(20, 22).Gap(14).Children(func() {
 		ui.Row(c).FillWidth().Gap(16).AlignItems(ui.Center).Children(func() {
-			ui.Box(c).Size(72, 72).Radius(16).Background(brandWarmSurface(t)).Center().Children(func() {
-				ui.Image(c, brandLogo).Size(60, 60).Fit(ui.Contain)
-			})
+			brandLogoBadge(c, 72)
 			ui.Column(c).Grow(1).Gap(3).Children(func() {
 				ui.Text(c, "KoiSide").Bold().FontSize(22)
 				ui.Text(c, msg.SettingsAboutTagline()).FontSize(14)

@@ -1219,11 +1219,8 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 	}
 
 	if m.userConfirmed {
-		ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
-			ui.Box(c).Size(42, 42).Radius(12).Background(brandWarmSurface(t)).
-				Center().Children(func() {
-				ui.Image(c, brandLogo).Size(32, 32).Fit(ui.Contain)
-			})
+		ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
+			brandLogoBadge(c, 42)
 			ui.Text(c, msg.MaintainTitle()).FontSize(26).Bold()
 		})
 	}

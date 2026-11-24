@@ -287,13 +287,6 @@ func applyShellTheme(c *ui.Context, dark bool) {
 	c.SetTheme(base)
 }
 
-// brandWarmSurface gives brand-only details a restrained warm tint.
-func brandWarmSurface(t *ui.Theme) ui.Color {
-	if t.Dark {
-		return ui.Hex("#FFD28A").Alpha(0.08)
-	}
-	return ui.Hex("#FFB85C").Alpha(0.10)
-}
 
 // accentInk returns the readable blue accent for text and icons over Background, Surface, or Selection.
 func accentInk(t *ui.Theme) ui.Color {
@@ -523,6 +516,55 @@ func ambientGlow(c *ui.Context, dark bool) {
 		RadialGradient(ui.RadialGradient{
 			Center: ui.Point{X: 0.8, Y: 0.15},
 			Radius: 240,
+			Oklab:  true,
+			Stops: []ui.GradientStop{
+				{Color: glowCol, At: 0},
+				{Color: edgeCol, At: 1},
+			},
+		})
+}
+
+// brandLogoBadge renders the KoiSide brand mark inside a crafted macOS app icon tile.
+// The pure background, crisp border, and soft elevation ensure the vibrant koi colors
+// stay sharp and harmonious across light, dark, and translucent vibrancy backgrounds.
+func brandLogoBadge(c *ui.Context, size float32) ui.Element {
+	t := c.Theme()
+	radius := size * 0.25
+	iconSize := size * 0.75
+	bg := ui.Hex("#FFFFFF")
+	border := t.Border.Alpha(0.75)
+	shadowCol := ui.RGBA(15, 23, 42, 0.08)
+	if t.Dark {
+		bg = ui.Hex("#1E2530")
+		border = ui.Hex("#2A3342")
+		shadowCol = ui.RGBA(0, 0, 0, 0.40)
+	}
+	blur := size * 0.12
+	yOffset := size * 0.05
+	badge := ui.Row(c).
+		Width(size).Height(size).
+		Radius(radius).
+		Background(bg).
+		Border(1, border).
+		Shadow(0, yOffset, blur, 0, shadowCol).
+		Center()
+	badge.Children(func() {
+		ui.Image(c, brandLogo).Size(iconSize, iconSize).Fit(ui.Contain)
+	})
+	return badge
+}
+
+func sidebarLogoGlow(c *ui.Context, dark bool) {
+	glowCol := ui.Hex("#3B82F6").Alpha(0.08)
+	edgeCol := ui.Hex("#3B82F6").Alpha(0)
+	if dark {
+		glowCol = ui.Hex("#60A5FA").Alpha(0.07)
+		edgeCol = ui.Hex("#111419").Alpha(0)
+	}
+	ui.Box(c.Key("sidebar-logo-glow")).Absolute().Top(-20).Left(-20).Width(240).Height(140).PassThrough().
+		RadialGradient(ui.RadialGradient{
+			Center: ui.Point{X: 0.25, Y: 0.3},
+			Radius: 150,
 			Oklab:  true,
 			Stops: []ui.GradientStop{
 				{Color: glowCol, At: 0},

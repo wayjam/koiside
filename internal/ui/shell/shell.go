@@ -453,7 +453,7 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 	ui.Column(c).FillWidth().Background(t.Surface).BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Padding(topPad, 14, 10, 14).Gap(8).Children(func() {
 		ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(8).DragWindow().Children(func() {
-			ui.Image(c, brandLogo).Size(28, 28).Fit(ui.Contain)
+			brandLogoBadge(c, 28)
 			ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 			if (m.isTaskSection(m.section) && m.narrowDetail) || (m.section == "商店" && m.storeNarrowDetail) {
 				if uiBtn(c, "compact-back", "‹ "+msg.NavBack()).Clicked() {
@@ -521,18 +521,29 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
 	col := ui.Column(c).Fill().BorderEndWidth(1).BorderColor(t.Border)
-	if !c.Vibrancy() {
-		col.Background(t.Surface)
+	if c.Vibrancy() {
+		if t.Dark {
+			col.Background(ui.Hex("#111419").Alpha(0.65))
+		} else {
+			col.Background(ui.RGBA(255, 255, 255, 0.70))
+		}
+	} else {
+		if t.Dark {
+			col.Background(t.Surface)
+		} else {
+			col.Background(ui.Hex("#F8FAFC"))
+		}
 	}
 	col.Children(func() {
+		sidebarLogoGlow(c, t.Dark)
 		bar := c.TitleBar()
 		topPad := float32(16)
 		if bar.Bottom > 0 {
 			topPad = bar.Bottom + 10
 		}
 		if m.sidebarCollapsed {
-			ui.Column(c).Padding(topPad, 10, 10, 10).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
-				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
+			ui.Column(c.Key("sidebar-header-col")).Padding(topPad, 10, 10, 10).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
+				brandLogoBadge(c, 32)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 8).Radius(6).
 					Label(msg.SidebarExpand()).Cursor(ui.CursorPointer).Transition(colorTransition)
 				if tog.Hovered() {
@@ -547,8 +558,8 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				}
 			})
 		} else {
-			ui.Row(c).Padding(topPad, 12, 12, 16).Gap(8).AlignItems(ui.Center).DragWindow().Children(func() {
-				ui.Image(c, brandLogo).Size(30, 30).Fit(ui.Contain)
+			ui.Row(c.Key("sidebar-header-row")).Padding(topPad, 12, 12, 14).Gap(10).AlignItems(ui.Center).DragWindow().Children(func() {
+				brandLogoBadge(c, 32)
 				ui.Text(c, msg.AppTitle()).Bold().FontSize(15).Grow(1)
 				tog := ui.ButtonBase(c.Key("sidebar-collapse-btn")).Padding(4, 6).Radius(6).
 					Label(msg.SidebarCollapse()).Cursor(ui.CursorPointer).Transition(colorTransition)
@@ -659,11 +670,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 					m.section = chosenNav
 				}
 			}
-			if c.Vibrancy() {
-				sb.Background(ui.Transparent)
-			} else {
-				sb.Background(t.Surface)
-			}
+			sb.Background(ui.Transparent)
 		}
 		ui.Column(c).FillWidth().Padding(10, 12, 12, 12).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).Children(func() {
 			pinText := msg.SidebarDeviceSingle()
