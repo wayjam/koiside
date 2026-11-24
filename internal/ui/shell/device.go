@@ -448,19 +448,20 @@ func (m *Model) docTreeView(c *ui.Context, msg locales.Messages, entries []devic
 		indent := float32(18 + depth*18)
 		if entry.IsDir {
 			open := m.docTreeOpen[entry.Path]
-			chevron := phCaretRight
-			if open {
-				chevron = phCaretDown
-			}
 			row := ui.ButtonBase(c.Key("doc-dir-"+entry.Path)).FillWidth().
 				Padding(8, 18, 8, indent).Background(t.Surface).
 				Label(entry.Name).Cursor(ui.CursorPointer).Transition(colorTransition)
 			if row.Hovered() {
 				row.Background(t.SurfaceHover)
 			}
+			applyPressPose(row, 0.992)
 			row.Children(func() {
 				ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
-					ui.Icon(c, chevron).Width(13).Height(13).TextColor(t.TextMuted)
+					chevPose := ui.Pose{}
+					if open {
+						chevPose = ui.Pose{Rotate: 90}
+					}
+					ui.Icon(c.Key("doc-chev-"+entry.Path), phCaretRight).Width(13).Height(13).TextColor(t.TextMuted).AnimatePose(chevPose, ui.Snappy)
 					ui.Icon(c, phFolderFill).Width(15).Height(15).TextColor(accentInk(t))
 					ui.Text(c, entry.Name).Bold().FontSize(12).Grow(1)
 					ui.Text(c, msg.DeviceDocsItemsCount(len(entry.Children))).FontSize(11).TextColor(t.TextMuted)
@@ -469,15 +470,17 @@ func (m *Model) docTreeView(c *ui.Context, msg locales.Messages, entries []devic
 			if row.Clicked() {
 				m.docTreeOpen[entry.Path] = !open
 			}
-			if open {
-				if len(entry.Children) == 0 {
-					ui.Row(c).FillWidth().Padding(6, 18, 6, indent+22).Children(func() {
-						ui.Text(c, msg.DeviceDocsEmpty()).FontSize(11).TextColor(t.TextMuted)
-					})
-				} else {
-					m.docTreeView(c, msg, entry.Children, depth+1)
+			ui.Column(c.Key("doc-branch-"+entry.Path)).FillWidth().Clip().Transition(heightTransition).Children(func() {
+				if open {
+					if len(entry.Children) == 0 {
+						ui.Row(c).FillWidth().Padding(6, 18, 6, indent+22).Children(func() {
+							ui.Text(c, msg.DeviceDocsEmpty()).FontSize(11).TextColor(t.TextMuted)
+						})
+					} else {
+						m.docTreeView(c, msg, entry.Children, depth+1)
+					}
 				}
-			}
+			})
 			continue
 		}
 
@@ -958,7 +961,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 		if hasFile {
 			surfaceCard(c, "transfer-ipa-card").Padding(14, 18).Children(func() {
 				ui.Row(c).FillWidth().Gap(14).AlignItems(ui.Center).Children(func() {
-					appIconBadge(c, file, 40)
+					appIconBadgeHero(c, file, 40)
 					ui.Column(c).Grow(1).Gap(2).Children(func() {
 						name := file.report.DisplayName
 						if m.editName != "" && m.prepareMode == "edit" {
@@ -1031,13 +1034,15 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 					m.mu.Unlock()
 					if dOn {
 						ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-							ui.Progress(c, float64(dPct)/100.0).Width(160).Label(dStage)
+							smoothProgress(c, "direct-install-progress", float64(dPct)/100.0, dStage).Width(160)
 							ui.Text(c, msg.ToolInstallRunning(dStage, dPct)).FontSize(11).TextColor(accentInk(t))
 						})
 					} else if dErr != "" {
-						ui.Text(c, msg.ToolInstallFailed(friendlyError(msg, dErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
+						ui.Text(c.Key("direct-install-err"), msg.ToolInstallFailed(friendlyError(msg, dErr))).FontSize(11).TextColor(ui.Hex("#EF4444")).
+							Transition(feedbackBannerTransition)
 					} else if dDone != "" {
-						ui.Text(c, dDone).FontSize(11).TextColor(ui.Hex("#10B981"))
+						ui.Text(c.Key("direct-install-done"), dDone).FontSize(11).TextColor(ui.Hex("#10B981")).
+							Transition(feedbackBannerTransition)
 					}
 				})
 				var directBtn ui.Element
@@ -1295,13 +1300,15 @@ func (m *Model) toolInstallStatusRow(c *ui.Context, msg locales.Messages) {
 		if busy {
 			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 				localizedStage := progressStageLabel(msg, stage)
-				ui.Progress(c, float64(pct)/100.0).Width(180).Label(localizedStage)
+				smoothProgress(c, "tool-install-progress", float64(pct)/100.0, localizedStage).Width(180)
 				ui.Text(c, msg.ToolInstallRunning(localizedStage, pct)).FontSize(12).TextColor(accentInk(t)).Grow(1)
 			})
 		} else if errMsg != "" {
-			ui.Text(c, msg.ToolInstallFailed(friendlyError(msg, errMsg))).FontSize(12).TextColor(ui.Hex("#EF4444"))
+			ui.Text(c.Key("tool-install-err"), msg.ToolInstallFailed(friendlyError(msg, errMsg))).FontSize(12).TextColor(ui.Hex("#EF4444")).
+				Transition(feedbackBannerTransition)
 		} else if stage != "" {
-			ui.Text(c, progressStageLabel(msg, stage)).FontSize(12).Bold().TextColor(ui.Hex("#10B981"))
+			ui.Text(c.Key("tool-install-done"), progressStageLabel(msg, stage)).FontSize(12).Bold().TextColor(ui.Hex("#10B981")).
+				Transition(feedbackBannerTransition)
 			if done {
 				ui.Column(c).FillWidth().Padding(10, 12).Gap(4).Radius(8).Background(t.Selection).Children(func() {
 					ui.Text(c, msg.PostInstallChecklistTitle()).Bold().FontSize(12)

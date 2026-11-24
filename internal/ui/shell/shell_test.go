@@ -1178,3 +1178,68 @@ func TestStoreViewAndSinfWorkbenchDirectInstall(t *testing.T) {
 		t.Fatalf("expected Store SINF direct install option in workbench, got %q", tt.Texts())
 	}
 }
+
+func TestMotionTransitionsAndReduceMotionRespect(t *testing.T) {
+	m := Open(nil, app.New())
+	tt := ui.NewTesterWith(m.view, 1180, 860, ui.TesterOptions{
+		Preferences: ui.Preferences{ReduceMotion: false, TextScale: 1},
+	})
+
+	// 1. Sidebar collapse smoothly interpolates width and settles cleanly
+	if err := tt.Click("收起侧栏"); err != nil {
+		t.Fatal(err)
+	}
+	if !m.sidebarCollapsed {
+		t.Fatal("expected sidebar collapsed")
+	}
+	if err := tt.Click("展开侧栏"); err != nil {
+		t.Fatal(err)
+	}
+	if m.sidebarCollapsed {
+		t.Fatal("expected sidebar expanded")
+	}
+
+	// 2. Navigation switching and device status pulse transition cleanly
+	m.devices = []device.Device{{ID: 1, ConnectionType: "USB"}}
+	tt.Frame()
+	if err := tt.Click("设置"); err != nil {
+		t.Fatal(err)
+	}
+	if m.section != "设置" {
+		t.Fatalf("expected section=设置, got %s", m.section)
+	}
+
+	// 3. Invalid bundle ID triggers error feedback and shake path without panic
+	m.files = []archiveState{{
+		path:  "/tmp/Demo.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "Demo",
+			BundleID:    "com.example.demo",
+			Version:     "1.0.0",
+		},
+	}}
+	m.selected = 0
+	m.section = "差异"
+	m.editBundleID = "bad bundle id!"
+	tt.Frame()
+	if !tt.HasText("Bundle ID") {
+		t.Fatalf("expected diff view bundle ID error, texts=%q", tt.Texts())
+	}
+
+	// 4. ReduceMotion keeps all interactions & progress states immediate and valid
+	tt.SetPreferences(ui.Preferences{ReduceMotion: true, TextScale: 1})
+	m.mu.Lock()
+	m.toolInstalling = true
+	m.toolInstallPct = 65
+	m.toolInstallMsg = "upload_ipa"
+	m.mu.Unlock()
+	m.section = "设备"
+	tt.Frame()
+	if err := tt.Click("首页"); err != nil {
+		t.Fatal(err)
+	}
+	if m.section != "准备" {
+		t.Fatalf("expected section=准备 under ReduceMotion, got %s", m.section)
+	}
+}

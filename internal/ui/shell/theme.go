@@ -4,29 +4,208 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/egoist/mygo/ui"
 )
 
+type (
+	navIndicatorMatch struct{ scope string }
+	heroAppIconMatch  struct{ path string }
+	radioDotMatch     struct{ group string }
+)
+
 var (
+	motionFeedbackAnim = ui.Animation{
+		Duration: 140 * time.Millisecond,
+		Ease:     ui.EaseOut,
+		Oklab:    true,
+	}
+	motionStatusColorAnim = ui.Animation{
+		Duration: 240 * time.Millisecond,
+		Oklab:    true,
+	}
+	motionProgressAnim = ui.Animation{
+		Duration:  180 * time.Millisecond,
+		Ease:      ui.EaseOut,
+		NonMotion: true,
+	}
+
 	colorTransition = ui.ElementTransition{
-		Colors:   true,
-		Duration: 120 * time.Millisecond,
+		Colors:    true,
+		Animation: &motionFeedbackAnim,
+	}
+	dropZoneTransition = ui.ElementTransition{
+		Colors:    true,
+		Shadows:   true,
+		Animation: &motionFeedbackAnim,
 	}
 	heightTransition = ui.ElementTransition{
 		Height:    true,
 		Animation: &ui.Snappy,
 	}
+	workspaceEnterTransition = ui.ElementTransition{
+		Duration:     180 * time.Millisecond,
+		Ease:         ui.EaseOut,
+		ExitDuration: 110 * time.Millisecond,
+		Enter:        &ui.Motion{Opacity: 0, Y: 4},
+	}
+	feedbackBannerTransition = ui.ElementTransition{
+		Duration:     180 * time.Millisecond,
+		Ease:         ui.EaseOut,
+		ExitDuration: 110 * time.Millisecond,
+		Enter:        &ui.Motion{Opacity: 0, Y: 4, Scale: 0.985},
+		Exit:         &ui.Motion{Opacity: 0},
+	}
 	rowInsertTransition = ui.ElementTransition{
-		Position:  true,
-		Colors:    true,
-		Animation: &ui.Snappy,
-		Enter:     &ui.Motion{Collapse: true, Y: 6},
-		Exit:      &ui.Motion{Collapse: true},
+		Position:     true,
+		Colors:       true,
+		Animation:    &ui.Snappy,
+		ExitDuration: 140 * time.Millisecond,
+		Enter:        &ui.Motion{Collapse: true, Y: 6},
+		Exit:         &ui.Motion{Collapse: true},
+	}
+	stepCheckEnterTransition = ui.ElementTransition{
+		Duration: 140 * time.Millisecond,
+		Ease:     ui.EaseOut,
+		Enter:    &ui.Motion{Scale: 0.65, Opacity: 0},
+	}
+
+	errorShakeFrames = []ui.Keyframe{
+		{At: 0, Value: 0},
+		{At: 45 * time.Millisecond, Value: 4, Ease: ui.EaseOut},
+		{At: 90 * time.Millisecond, Value: -4, Ease: ui.EaseInOut},
+		{At: 135 * time.Millisecond, Value: 2, Ease: ui.EaseInOut},
+		{At: 180 * time.Millisecond, Value: 0, Ease: ui.EaseOut},
+	}
+	connectPulseFrames = []ui.Keyframe{
+		{At: 0, Value: 1},
+		{At: 100 * time.Millisecond, Value: 1.36, Ease: ui.EaseOut},
+		{At: 260 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
+	}
+	waitBreathFrames = []ui.Keyframe{
+		{At: 0, Value: 0.52},
+		{At: 1100 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
 	}
 )
+
+func navIndicatorTransition(scope string) ui.ElementTransition {
+	return ui.ElementTransition{
+		Position:  true,
+		Size:      true,
+		Colors:    true,
+		Animation: &ui.Snappy,
+		Match:     navIndicatorMatch{scope: scope},
+	}
+}
+
+func heroIconTransition(path string) ui.ElementTransition {
+	return ui.ElementTransition{
+		Position:  true,
+		Size:      true,
+		Animation: &ui.Snappy,
+		Match:     heroAppIconMatch{path: path},
+		Fly:       true,
+	}
+}
+
+func radioDotTransition(group string) ui.ElementTransition {
+	return ui.ElementTransition{
+		Position:  true,
+		Size:      true,
+		Colors:    true,
+		Animation: &ui.Snappy,
+		Match:     radioDotMatch{group: group},
+	}
+}
+
+// applyPressPose applies a tactile GPU press spring without causing layout shifts.
+func applyPressPose(el ui.Element, pressedScale float32) ui.Element {
+	pose := ui.Pose{}
+	if el.Pressed() {
+		pose = ui.Pose{Scale: pressedScale}
+	}
+	return el.AnimatePose(pose, ui.Snappy)
+}
+
+// applyErrorShakeTrigger plays a horizontal micro-shake each time trigger increments.
+func applyErrorShakeTrigger(el ui.Element, key string, trigger uint64) ui.Element {
+	if trigger == 0 {
+		return el
+	}
+	dx := el.Keyframes(key, errorShakeFrames, ui.KeyframeOptions{Run: trigger})
+	if dx != 0 {
+		el.Translate(dx, 0)
+	}
+	return el
+}
+
+// applyErrorShake plays a one-shot micro-shake whenever invalid transitions from false to true.
+func applyErrorShake(el ui.Element, key string, invalid bool) ui.Element {
+	type shakeState struct {
+		prevInvalid bool
+		run         uint64
+	}
+	st := ui.Local(el, key+"-state", func() shakeState { return shakeState{} })
+	if invalid && !st.prevInvalid {
+		st.run++
+	}
+	st.prevInvalid = invalid
+	return applyErrorShakeTrigger(el, key, st.run)
+}
+
+// smoothProgress wraps ui.Progress with 180ms eased interpolation for determinate values.
+func smoothProgress(c *ui.Context, key string, value float64, label string) ui.Element {
+	if value < 0 {
+		return ui.Progress(c.Key(key), value).Label(label)
+	}
+	if value > 1 {
+		value = 1
+	}
+	wrap := ui.Box(c.Key(key))
+	smoothed := wrap.AnimateTo("progress-val", float32(value), motionProgressAnim)
+	wrap.Children(func() {
+		ui.Progress(c, float64(smoothed)).FillWidth().Label(label)
+	})
+	return wrap
+}
+
+// statusDot renders a connection indicator with Oklab color morphing, a connect confirmation pulse,
+// and a restrained waiting breath when idle/disconnected.
+func statusDot(c *ui.Context, key string, size float32, target ui.Color, connected, hasErr bool) ui.Element {
+	dot := ui.Row(c.Key(key)).Width(size).Height(size).Radius(size / 2)
+	dot.Background(dot.AnimateColor("dot-color", target, motionStatusColorAnim))
+
+	type dotState struct {
+		wasConnected bool
+		pulseRun     uint64
+	}
+	st := ui.Local(dot, "dot-pulse-state", func() dotState {
+		return dotState{wasConnected: connected}
+	})
+	if connected && !st.wasConnected {
+		st.pulseRun++
+	}
+	st.wasConnected = connected
+
+	if st.pulseRun > 0 {
+		scale := dot.Keyframes("dot-pulse", connectPulseFrames, ui.KeyframeOptions{Run: st.pulseRun})
+		if scale != 1 {
+			dot.Scale(scale, scale)
+		}
+	}
+	if !connected && !hasErr {
+		op := dot.Keyframes("dot-breath", waitBreathFrames, ui.KeyframeOptions{
+			Repeat:    ui.RepeatForever,
+			Alternate: true,
+			NonMotion: true,
+		})
+		dot.Opacity(op)
+	}
+	return dot
+}
 
 var bitmapCache = struct {
 	mu    sync.Mutex
@@ -127,11 +306,13 @@ func monoText(c *ui.Context, s string) ui.Element {
 }
 
 func uiBtn(c *ui.Context, key, label string) ui.Element {
-	return ui.Button(c.Key(key), label).Cursor(ui.CursorPointer)
+	btn := ui.Button(c.Key(key), label).Cursor(ui.CursorPointer).Transition(colorTransition)
+	return applyPressPose(btn, 0.985)
 }
 
 func uiPrimaryBtn(c *ui.Context, key, label string) ui.Element {
-	return ui.PrimaryButton(c.Key(key), label).Cursor(ui.CursorPointer)
+	btn := ui.PrimaryButton(c.Key(key), label).Cursor(ui.CursorPointer).Transition(colorTransition)
+	return applyPressPose(btn, 0.985)
 }
 
 // surfaceCard styles a primary focus card using calibrated elevation (single border or subtle top bevel, no heavy ghost shadow).
@@ -168,6 +349,7 @@ func groupRow(c *ui.Context, key, label string, onContent func(), trailing func(
 	} else if row.Hovered() {
 		row.Background(t.SurfaceHover)
 	}
+	applyPressPose(row, 0.992)
 	row.Children(func() {
 		ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 			if onContent != nil {
@@ -224,32 +406,53 @@ func primaryActionButton(c *ui.Context, key, label string, icon *ui.SVG) ui.Elem
 
 // appIconBadge renders the extracted AppIcon PNG if available, otherwise falls back to a crisp Phosphor badge.
 func appIconBadge(c *ui.Context, file archiveState, size float32) {
+	appIconBadgeWithMatch(c, file, size, "")
+}
+
+// appIconBadgeHero renders the app icon as a shared-element Fly hero across screens.
+func appIconBadgeHero(c *ui.Context, file archiveState, size float32) {
+	appIconBadgeWithMatch(c, file, size, file.path)
+}
+
+func appIconBadgeWithMatch(c *ui.Context, file archiveState, size float32, matchPath string) {
+	var el ui.Element
 	if bm := cachedBitmap(file.report.IconPNG); bm != nil {
-		ui.Image(c, bm).Size(size, size).Radius(size*0.22).Fit(ui.Cover).
-			Border(1, ui.RGBA(0, 0, 0, 0.08))
-		return
-	}
-	glyph := phCubeFill
-	bg := ui.Hex("#1769D2")
-	if file.err != "" {
-		glyph = phWarningFill
-		bg = ui.Hex("#DC2626")
-	} else if hasBlockedFairPlay(file.report) {
-		glyph = phLockKeyDuotone
-		bg = ui.Hex("#D97706")
-	} else if bytes.Contains(bytes.ToLower([]byte(file.path)), []byte("stream")) {
-		glyph = phPaperPlaneTiltDuotone
-		bg = ui.Hex("#0284C7")
-	}
-	ui.Row(c).Width(size).Height(size).Radius(size*0.24).Background(bg).
-		InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.2)).
-		Center().Children(func() {
-		if glyph == phLockKeyDuotone || glyph == phPaperPlaneTiltDuotone {
-			ui.Image(c, glyph).Width(size * 0.56).Height(size * 0.56).TextColor(ui.Hex("#FFFFFF"))
-		} else {
-			ui.Icon(c, glyph).Width(size * 0.54).Height(size * 0.54).TextColor(ui.Hex("#FFFFFF"))
+		ctx := c
+		if matchPath != "" {
+			ctx = c.Key("hero-icon-" + matchPath)
 		}
-	})
+		el = ui.Image(ctx, bm).Size(size, size).Radius(size*0.22).Fit(ui.Cover).
+			Border(1, ui.RGBA(0, 0, 0, 0.08))
+	} else {
+		glyph := phCubeFill
+		bg := ui.Hex("#1769D2")
+		if file.err != "" {
+			glyph = phWarningFill
+			bg = ui.Hex("#DC2626")
+		} else if hasBlockedFairPlay(file.report) {
+			glyph = phLockKeyDuotone
+			bg = ui.Hex("#D97706")
+		} else if bytes.Contains(bytes.ToLower([]byte(file.path)), []byte("stream")) {
+			glyph = phPaperPlaneTiltDuotone
+			bg = ui.Hex("#0284C7")
+		}
+		ctx := c
+		if matchPath != "" {
+			ctx = c.Key("hero-icon-" + matchPath)
+		}
+		el = ui.Row(ctx).Width(size).Height(size).Radius(size*0.24).Background(bg).
+			InsetShadow(0, 1, 0, 0, ui.RGBA(255, 255, 255, 0.2)).
+			Center().Children(func() {
+			if glyph == phLockKeyDuotone || glyph == phPaperPlaneTiltDuotone {
+				ui.Image(c, glyph).Width(size * 0.56).Height(size * 0.56).TextColor(ui.Hex("#FFFFFF"))
+			} else {
+				ui.Icon(c, glyph).Width(size * 0.54).Height(size * 0.54).TextColor(ui.Hex("#FFFFFF"))
+			}
+		})
+	}
+	if matchPath != "" {
+		el.Transition(heroIconTransition(matchPath))
+	}
 }
 
 func ambientGlow(c *ui.Context, dark bool) {
@@ -294,15 +497,27 @@ func stepIndicatorBar(c *ui.Context, active int, steps []string, onSelect func(i
 				Background(bg).Border(1, border).Label(label).Transition(colorTransition)
 			if onSelect != nil {
 				pill.Cursor(ui.CursorPointer)
+				applyPressPose(pill, 0.975)
 			}
 			pill.Children(func() {
-				ui.Text(c, label).FontSize(12).Bold().TextColor(fg).SingleLine()
+				ui.Row(c).Gap(5).AlignItems(ui.Center).Children(func() {
+					if isDone {
+						ui.Icon(c.Key("step-done-"+label), phCheckCircleFill).Width(13).Height(13).
+							TextColor(fg).Transition(stepCheckEnterTransition)
+					}
+					ui.Text(c, label).FontSize(12).Bold().TextColor(fg).SingleLine()
+				})
 			})
 			if onSelect != nil && pill.Clicked() {
 				onSelect(stepNum)
 			}
 			if i < len(steps)-1 {
-				ui.Box(c).Width(16).Height(1).Background(t.Border)
+				lineCol := t.Border
+				if isDone {
+					lineCol = accentInk(t).Alpha(0.45)
+				}
+				line := ui.Box(c.Key(fmt.Sprintf("step-line-%d", i))).Width(16).Height(1)
+				line.Background(line.AnimateColor("line-col", lineCol, motionStatusColorAnim))
 			}
 		}
 	})

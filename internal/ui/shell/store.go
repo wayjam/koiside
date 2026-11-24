@@ -96,12 +96,17 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 				for _, cc := range storeRegionPresets {
 					cc := cc
 					selected := strings.EqualFold(m.storeCountry, cc)
-					btn := ui.ButtonBase(c.Key("store-cc-"+cc)).Padding(3, 9).Radius(6).Label(cc).Cursor(ui.CursorPointer)
+					btn := ui.ButtonBase(c.Key("store-cc-"+cc)).Padding(3, 9).Radius(6).Label(cc).
+						Cursor(ui.CursorPointer).Transition(colorTransition)
 					if selected {
 						btn.Background(t.Selection).Border(1, accentInk(t).Alpha(0.55))
 					} else {
 						btn.Background(t.Background).Border(1, t.Border)
+						if btn.Hovered() {
+							btn.Background(t.SurfaceHover)
+						}
 					}
+					applyPressPose(btn, 0.96)
 					btn.Children(func() {
 						txt := ui.Text(c, cc).FontSize(11)
 						if selected {
@@ -195,6 +200,7 @@ func (m *Model) storeResultsList(c *ui.Context, results []appstore.Software, sel
 				if !selected && row.Hovered() {
 					row.Background(t.SurfaceHover)
 				}
+				applyPressPose(row, 0.992)
 				row.Children(func() {
 					ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
 						ui.Column(c).Grow(1).MinWidth(0).Gap(2).Children(func() {
@@ -340,12 +346,17 @@ func (m *Model) storeDetailCard(c *ui.Context, msg locales.Messages, sw appstore
 			ui.Text(c, friendlyError(msg, verErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
 		} else if len(versions) > 0 {
 			ui.Row(c).FillWidth().Wrap().Gap(6).AlignItems(ui.Center).Children(func() {
-				latestBtn := ui.ButtonBase(c.Key("store-ver-latest")).Padding(3, 8).Radius(6).Label(msg.StoreVersionLatest()).Cursor(ui.CursorPointer)
+				latestBtn := ui.ButtonBase(c.Key("store-ver-latest")).Padding(3, 8).Radius(6).
+					Label(msg.StoreVersionLatest()).Cursor(ui.CursorPointer).Transition(colorTransition)
 				if selVer == "" {
 					latestBtn.Background(t.Selection).Border(1, accentInk(t).Alpha(0.55))
 				} else {
 					latestBtn.Background(t.Background).Border(1, t.Border)
+					if latestBtn.Hovered() {
+						latestBtn.Background(t.SurfaceHover)
+					}
 				}
+				applyPressPose(latestBtn, 0.96)
 				latestBtn.Children(func() { ui.Text(c, msg.StoreVersionLatest()).FontSize(11) })
 				if latestBtn.Clicked() {
 					m.mu.Lock()
@@ -359,12 +370,17 @@ func (m *Model) storeDetailCard(c *ui.Context, msg locales.Messages, sw appstore
 				}
 				for _, vid := range versions[:limit] {
 					vid := vid
-					btn := ui.ButtonBase(c.Key("store-ver-"+vid)).Padding(3, 8).Radius(6).Label(vid).Cursor(ui.CursorPointer)
+					btn := ui.ButtonBase(c.Key("store-ver-"+vid)).Padding(3, 8).Radius(6).
+						Label(vid).Cursor(ui.CursorPointer).Transition(colorTransition)
 					if selVer == vid {
 						btn.Background(t.Selection).Border(1, accentInk(t).Alpha(0.55))
 					} else {
 						btn.Background(t.Background).Border(1, t.Border)
+						if btn.Hovered() {
+							btn.Background(t.SurfaceHover)
+						}
 					}
+					applyPressPose(btn, 0.96)
 					btn.Children(func() { monoText(c, vid).FontSize(11) })
 					if btn.Clicked() {
 						m.mu.Lock()
@@ -376,14 +392,15 @@ func (m *Model) storeDetailCard(c *ui.Context, msg locales.Messages, sw appstore
 		}
 
 		if dlBusy {
-			ui.Progress(c, float64(dlPct)/100.0).FillWidth().Label(msg.StoreDownloading(dlPct))
+			smoothProgress(c, "store-download-progress", float64(dlPct)/100.0, msg.StoreDownloading(dlPct)).FillWidth()
 			ui.Text(c, msg.StoreDownloading(dlPct)).FontSize(12).TextColor(accentInk(t))
 		}
 		if dlErr != "" {
-			ui.Text(c, friendlyError(msg, dlErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+			ui.Text(c.Key("store-dl-err"), friendlyError(msg, dlErr)).FontSize(12).TextColor(ui.Hex("#EF4444")).
+				Transition(feedbackBannerTransition)
 		}
 		if dlMsg != "" {
-			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Row(c.Key("store-dl-done")).FillWidth().Gap(10).AlignItems(ui.Center).Transition(feedbackBannerTransition).Children(func() {
 				ui.Text(c, dlMsg).FontSize(12).TextColor(ui.Hex("#10B981")).Grow(1)
 				if dlPath != "" {
 					if uiBtn(c, "store-open-workbench", msg.StoreInspectBtn()).Clicked() {

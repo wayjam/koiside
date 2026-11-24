@@ -86,6 +86,7 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 			if m.helpTopic != id && row.Hovered() {
 				row.Background(t.SurfaceHover)
 			}
+			applyPressPose(row, 0.992)
 			row.Children(func() {
 				ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 					ui.Icon(c, icon).Width(20).Height(20).TextColor(accentInk(t))
@@ -93,7 +94,11 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 						ui.Text(c, title).Bold().FontSize(14)
 						ui.Text(c, desc).FontSize(12).TextColor(t.TextMuted)
 					})
-					ui.Icon(c, phCaretRight).Width(15).Height(15).TextColor(t.TextMuted)
+					pose := ui.Pose{}
+					if row.Hovered() {
+						pose = ui.Pose{X: 2}
+					}
+					ui.Icon(c, phCaretRight).Width(15).Height(15).TextColor(t.TextMuted).AnimatePose(pose, ui.Snappy)
 				})
 			})
 			if row.Clicked() {

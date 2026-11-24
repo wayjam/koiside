@@ -80,7 +80,7 @@ type Model struct {
 	openPathModal bool
 	openPathInput string
 	openPathErr   string
-
+	openPathShake uint64
 	inspecting    bool
 	inspectName   string
 	inspectCancel context.CancelFunc
@@ -285,8 +285,10 @@ func (m *Model) view(c *ui.Context) {
 	compact := winW > 0 && winW < narrowWidth
 
 	attachWorkspaceDrop := func(el ui.Element) {
+		el.Transition(dropZoneTransition)
 		if el.FileDragOver() {
-			el.Border(2, accentInk(c.Theme())).Background(c.Theme().Selection)
+			el.Border(2, accentInk(c.Theme())).Background(c.Theme().Selection).
+				InsetShadow(0, 0, 0, 2, accentInk(c.Theme()).Alpha(0.25))
 		}
 		if files := el.DroppedFiles(); len(files) > 0 {
 			m.dropped = append([]string(nil), files...)
@@ -303,7 +305,7 @@ func (m *Model) view(c *ui.Context) {
 		attachWorkspaceDrop(body)
 		body.Children(func() {
 			m.compactTopBar(c, msg)
-			ui.Scroll(c.Key("workspace-scroll")).Grow(1).FillWidth().Padding(16, 18).Gap(14).Children(func() {
+			ui.Scroll(c.Key("workspace-scroll")).Grow(1).FillWidth().Padding(16, 18).Children(func() {
 				m.workspace(c, msg, true)
 			})
 		})
@@ -315,12 +317,14 @@ func (m *Model) view(c *ui.Context) {
 		return
 	}
 
-	sideW := float32(sidebarFullW)
+	sideTarget := float32(sidebarFullW)
 	if m.sidebarCollapsed {
-		sideW = sidebarIconW
+		sideTarget = sidebarIconW
 	}
 	ui.Row(c).Fill().Children(func() {
-		ui.Column(c).Width(sideW).Shrink(0).FillHeight().Children(func() {
+		sbCol := ui.Column(c.Key("sidebar-col")).Shrink(0).FillHeight().Clip()
+		sideW := sbCol.AnimateTo("sidebar-w", sideTarget, ui.Snappy)
+		sbCol.Width(sideW).Children(func() {
 			m.sidebarView(c, msg)
 		})
 		right := ui.Column(c).Grow(1).MinWidth(0).FillHeight().Background(c.Theme().Background)
@@ -333,7 +337,7 @@ func (m *Model) view(c *ui.Context) {
 			if winW > 0 && winW < mediumWidth {
 				padY, padX = 20, 22
 			}
-			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(padY, padX).Gap(16).Children(func() {
+			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(padY, padX).Children(func() {
 				m.workspace(c, msg, false)
 			})
 		})
@@ -400,10 +404,12 @@ func (m *Model) openPathDialog(c *ui.Context, msg locales.Messages) {
 			ui.Text(c, msg.OpenPathTitle()).Bold().FontSize(16)
 			ui.Text(c, msg.OpenPathDesc()).FontSize(12).TextColor(t.TextMuted)
 			if m.openPathErr != "" {
-				ui.Text(c.Key("open-path-err"), m.openPathErr).Role(ui.RoleStatus).FontSize(11).TextColor(ui.Hex("#EF4444"))
+				ui.Text(c.Key("open-path-err"), m.openPathErr).Role(ui.RoleStatus).FontSize(11).
+					TextColor(ui.Hex("#EF4444")).Transition(feedbackBannerTransition)
 			}
 			input := ui.TextInput(c.Key("open-path-input"), &m.openPathInput).
 				Placeholder(msg.OpenPathPlaceholder()).FillWidth().AutoFocus().Label(msg.OpenPathTitle())
+			applyErrorShakeTrigger(input, "open-path-shake", m.openPathShake)
 			trySubmit := input.Submitted()
 			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
 				if uiBtn(c, "open-path-cancel", msg.LibraryCancel()).Clicked() {
@@ -424,6 +430,7 @@ func (m *Model) openPathDialog(c *ui.Context, msg locales.Messages) {
 					info, err := os.Stat(p)
 					if err != nil || info.IsDir() {
 						m.openPathErr = msg.OpenPathNotFound()
+						m.openPathShake++
 					} else {
 						m.openPathModal = false
 						m.openPathErr = ""
@@ -476,16 +483,25 @@ func (m *Model) compactTopBar(c *ui.Context, msg locales.Messages) {
 					btn := ui.ButtonBase(c.Key("compact-nav-"+item.id)).Padding(6, 12).Radius(8).
 						Label(item.label).Cursor(ui.CursorPointer).Transition(colorTransition)
 					if active {
-						btn.Background(t.Selection).Border(1, accentInk(t))
+						btn.Background(ui.Transparent).Border(1, ui.Transparent)
 					} else {
 						btn.Background(t.Background).Border(1, t.Border)
+						if btn.Hovered() {
+							btn.Background(t.SurfaceHover)
+						}
 					}
+					applyPressPose(btn, 0.975)
 					btn.Children(func() {
+						if active {
+							ui.Box(c.Key("compact-nav-pill")).Absolute().Fill().Radius(8).
+								Background(t.Selection).Border(1, accentInk(t)).PassThrough().ZIndex(-1).
+								Transition(navIndicatorTransition("compact-nav"))
+						}
 						fg := t.Text
 						if active {
 							fg = accentInk(t)
 						}
-						ui.Text(c, item.label).FontSize(12).Bold().TextColor(fg).SingleLine()
+						ui.Text(c, item.label).FontSize(12).Bold().TextColor(fg).SingleLine().ZIndex(1)
 					})
 					if btn.Clicked() {
 						if item.id == "文件" && m.lastTaskSection != "" {
@@ -522,6 +538,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				if tog.Hovered() {
 					tog.Background(t.SurfaceHover)
 				}
+				applyPressPose(tog, 0.95)
 				tog.Children(func() {
 					ui.Icon(c, phCaretRight).Width(14).Height(14).TextColor(t.TextMuted)
 				})
@@ -538,6 +555,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				if tog.Hovered() {
 					tog.Background(t.SurfaceHover)
 				}
+				applyPressPose(tog, 0.95)
 				tog.Children(func() {
 					ui.Icon(c, phCaretLeft).Width(14).Height(14).TextColor(t.TextMuted)
 				})
@@ -578,17 +596,21 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 					active := navSection == it.id || (it.id == "准备" && navSection == "")
 					btn := ui.ButtonBase(c.Key("sb-icon-" + it.id)).Width(42).Height(36).Radius(8).
 						Center().Label(it.label).Cursor(ui.CursorPointer).Transition(colorTransition)
-					if active {
-						btn.Background(t.Selection)
-					} else if btn.Hovered() {
+					if !active && btn.Hovered() {
 						btn.Background(t.SurfaceHover)
 					}
+					applyPressPose(btn, 0.96)
 					btn.Children(func() {
+						if active {
+							ui.Box(c.Key("sb-collapsed-pill")).Absolute().Fill().Radius(8).
+								Background(t.Selection).PassThrough().ZIndex(-1).
+								Transition(navIndicatorTransition("sidebar-collapsed"))
+						}
 						icColor := t.TextMuted
 						if active {
 							icColor = accentInk(t)
 						}
-						ui.Icon(c, navIcon(it.id, it.regular, it.filled)).Width(18).Height(18).TextColor(icColor)
+						ui.Icon(c, navIcon(it.id, it.regular, it.filled)).Width(18).Height(18).TextColor(icColor).ZIndex(1)
 					})
 					if btn.Clicked() {
 						if it.id == "文件" && m.isTaskSection(m.lastTaskSection) {
@@ -602,13 +624,33 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 		} else {
 			chosenNav := navSection
 			sb := ui.Sidebar(c, &chosenNav, func() {
-				ui.SidebarItem(c, "准备", navIcon("准备", phHouse, phHouseFill), msg.NavHome()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "文件", navIcon("文件", phStack, phStackFill), msg.NavTask()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "商店", navIcon("商店", phImport, phImport), msg.NavStore()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "设备", navIcon("设备", phDevice, phDeviceFill), msg.NavDevice()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "账号", navIcon("账号", phAccount, phAccountFill), msg.NavAccount()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "工具", navIcon("工具", phCompass, phCompassFill), msg.NavHelpTools()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
-				ui.SidebarItem(c, "设置", navIcon("设置", phGear, phGearFill), msg.NavSettings()).Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer)
+				sbItems := []struct {
+					id      string
+					regular *ui.SVG
+					filled  *ui.SVG
+					label   string
+				}{
+					{"准备", phHouse, phHouseFill, msg.NavHome()},
+					{"文件", phStack, phStackFill, msg.NavTask()},
+					{"商店", phImport, phImport, msg.NavStore()},
+					{"设备", phDevice, phDeviceFill, msg.NavDevice()},
+					{"账号", phAccount, phAccountFill, msg.NavAccount()},
+					{"工具", phCompass, phCompassFill, msg.NavHelpTools()},
+					{"设置", phGear, phGearFill, msg.NavSettings()},
+				}
+				for _, it := range sbItems {
+					active := navSection == it.id || (it.id == "准备" && navSection == "")
+					row := ui.SidebarItem(c, it.id, navIcon(it.id, it.regular, it.filled), it.label).
+						Padding(8, 12).Gap(10).FontSize(14).Cursor(ui.CursorPointer).Transition(colorTransition)
+					applyPressPose(row, 0.988)
+					if active {
+						row.Children(func() {
+							ui.Box(c.Key("sb-active-bar")).Absolute().Left(2).Top(7).Bottom(7).Width(3).Radius(1.5).
+								Background(accentInk(t)).PassThrough().
+								Transition(navIndicatorTransition("sidebar"))
+						})
+					}
+				}
 			}).Padding(6, 12).Gap(4).Grow(1).FillWidth()
 			if sb.Changed() {
 				if chosenNav == "文件" && m.isTaskSection(m.lastTaskSection) {
@@ -625,8 +667,10 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 		}
 		ui.Column(c).FillWidth().Padding(10, 12, 12, 12).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).Children(func() {
 			pinText := msg.SidebarDeviceSingle()
+			connected := m.hasConnectedDevice()
+			hasErr := m.deviceErr != ""
 			dotColor := t.TextMuted
-			if m.hasConnectedDevice() {
+			if connected {
 				devName := msg.DeviceCardTitle()
 				if m.deviceInfo.Name != "" {
 					devName = m.deviceInfo.Name
@@ -637,12 +681,15 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				}
 				pinText = msg.SidebarDeviceConnected(devName, conn)
 				dotColor = ui.Hex("#10B981")
+			} else if hasErr {
+				dotColor = ui.Hex("#EF4444")
 			}
 			if m.sidebarCollapsed {
 				pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).Width(42).Height(34).Radius(8).
 					Center().Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
+				applyPressPose(pinBtn, 0.96)
 				pinBtn.Children(func() {
-					ui.Row(c).Width(8).Height(8).Radius(4).Background(dotColor)
+					statusDot(c, "sidebar-dev-dot-collapsed", 8, dotColor, connected, hasErr)
 				})
 				if pinBtn.Clicked() {
 					m.section = "设备"
@@ -650,9 +697,10 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			} else {
 				pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).FillWidth().Padding(9, 12).Radius(9).
 					Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
+				applyPressPose(pinBtn, 0.985)
 				pinBtn.Children(func() {
 					ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
-						ui.Row(c).Width(7).Height(7).Radius(4).Background(dotColor)
+						statusDot(c, "sidebar-dev-dot", 7, dotColor, connected, hasErr)
 						ui.Text(c, pinText).FontSize(12).Bold().TextColor(t.Text).SingleLine().Grow(1)
 					})
 				})
@@ -665,30 +713,40 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 }
 
 func (m *Model) workspace(c *ui.Context, msg locales.Messages, compact bool) {
-	switch m.section {
-	case "工具":
-		m.tools(c, msg)
-	case "引导":
-		m.guide(c, msg)
-	case "差异":
-		m.diffView(c, msg, compact)
-	case "交接":
-		m.transferView(c, msg, compact)
-	case "维护":
-		m.maintainView(c, msg, compact)
-	case "文件":
-		m.filesView(c, msg, compact)
-	case "商店":
-		m.storeView(c, msg, compact)
-	case "设备":
-		m.deviceView(c, msg)
-	case "账号":
-		m.accountView(c, msg)
-	case "设置":
-		m.settingsView(c, msg)
-	default:
-		m.home(c, msg)
+	gap := float32(16)
+	if compact {
+		gap = 14
 	}
+	secKey := m.section
+	if secKey == "" {
+		secKey = "准备"
+	}
+	ui.Column(c.Key("workspace-"+secKey)).FillWidth().Gap(gap).Transition(workspaceEnterTransition).Children(func() {
+		switch m.section {
+		case "工具":
+			m.tools(c, msg)
+		case "引导":
+			m.guide(c, msg)
+		case "差异":
+			m.diffView(c, msg, compact)
+		case "交接":
+			m.transferView(c, msg, compact)
+		case "维护":
+			m.maintainView(c, msg, compact)
+		case "文件":
+			m.filesView(c, msg, compact)
+		case "商店":
+			m.storeView(c, msg, compact)
+		case "设备":
+			m.deviceView(c, msg)
+		case "账号":
+			m.accountView(c, msg)
+		case "设置":
+			m.settingsView(c, msg)
+		default:
+			m.home(c, msg)
+		}
+	})
 }
 
 func (m *Model) home(c *ui.Context, msg locales.Messages) {
@@ -725,7 +783,7 @@ func (m *Model) home(c *ui.Context, msg locales.Messages) {
 		})
 		insetGroup(c, "home-continue-group", func() {
 			row := groupRow(c, "home-continue-row", name+" · "+stageLabel, func() {
-				appIconBadge(c, file, 36)
+				appIconBadgeHero(c, file, 36)
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
 					ui.Text(c, name).Bold().FontSize(14)
 					ui.Text(c, stageLabel).FontSize(12).TextColor(accentInk(t))
@@ -845,6 +903,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 	if card.Hovered() {
 		card.Background(t.SurfaceHover)
 	}
+	applyPressPose(card, 0.992)
 	card.Children(func() {
 		ui.Row(c).FillWidth().Gap(16).AlignItems(ui.Center).Children(func() {
 			ui.Image(c, phoneBadgeSVG).Width(32).Height(54)
@@ -855,8 +914,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 						title = m.deviceInfo.Name
 					}
 					ui.Text(c, title).Bold().FontSize(16)
-					dot := ui.Row(c).Width(8).Height(8).Radius(4)
-					dot.Background(dot.AnimateColor("dev-dot", targetDot, ui.Animation{Duration: 240 * time.Millisecond, Oklab: true}))
+					statusDot(c, "home-dev-dot", 8, targetDot, connected, m.deviceErr != "")
 				})
 				ui.Row(c).FillWidth().Wrap().Gap(6).AlignItems(ui.Center).Children(func() {
 					ui.Text(c.Key("device"), m.deviceStatusText(msg)).FontSize(13).TextColor(t.TextMuted)

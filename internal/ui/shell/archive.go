@@ -364,9 +364,10 @@ func (m *Model) filesView(c *ui.Context, msg locales.Messages, compact bool) {
 			ui.Text(c, msg.LibraryTitle()).FontSize(26).Bold()
 			ui.Text(c.Key("device"), m.deviceStatusText(msg)).FontSize(13).TextColor(t.TextMuted)
 		})
-		emptyCard := surfaceCard(c, "empty-ipa-card").Padding(32, 24).Gap(12).AlignItems(ui.Center)
+		emptyCard := surfaceCard(c, "empty-ipa-card").Padding(32, 24).Gap(12).AlignItems(ui.Center).Transition(dropZoneTransition)
 		if emptyCard.FileDragOver() {
-			emptyCard.Border(2, accentInk(t)).Background(t.Selection)
+			emptyCard.Border(2, accentInk(t)).Background(t.Selection).
+				InsetShadow(0, 0, 0, 2, accentInk(t).Alpha(0.25))
 		}
 		if dropped := emptyCard.DroppedFiles(); len(dropped) > 0 {
 			m.dropped = append([]string(nil), dropped...)
@@ -486,6 +487,7 @@ func (m *Model) archiveList(c *ui.Context, msg locales.Messages, compact bool) {
 			if !selected && item.Hovered() {
 				item.Background(t.SurfaceHover)
 			}
+			applyPressPose(item, 0.992)
 			item.Children(func() {
 				ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 					appIconBadge(c, file, 34)
@@ -568,7 +570,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 			ui.Column(c.Key("store-sinf-ipa-card")).FillWidth().Padding(20, 22).Gap(12).
 				Radius(14).Background(t.Surface).Border(1, accentInk(t).Alpha(0.55)).Children(func() {
 				ui.Row(c).Gap(12).AlignItems(ui.Center).Children(func() {
-					appIconBadge(c, file, 44)
+					appIconBadgeHero(c, file, 44)
 					ui.Column(c).Grow(1).Gap(2).Children(func() {
 						ui.Text(c, valueOrUnknown(msg, file.report.DisplayName)).FontSize(17).Bold()
 						monoText(c, fmt.Sprintf("%s · v%s", valueOrUnknown(msg, file.report.BundleID), valueOrUnknown(msg, file.report.Version))).FontSize(12).TextColor(t.TextMuted)
@@ -590,14 +592,16 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				dMsg := m.directDoneMsg
 				m.mu.Unlock()
 				if busy {
-					ui.Progress(c, float64(pct)/100.0).FillWidth().Label(stage)
+					smoothProgress(c, "store-sinf-install-progress", float64(pct)/100.0, stage).FillWidth()
 					ui.Text(c, fmt.Sprintf("%d%% · %s", pct, progressStageLabel(msg, stage))).FontSize(12).TextColor(accentInk(t))
 				}
 				if dErr != "" {
-					ui.Text(c, friendlyError(msg, dErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+					ui.Text(c.Key("store-sinf-err"), friendlyError(msg, dErr)).FontSize(12).TextColor(ui.Hex("#EF4444")).
+						Transition(feedbackBannerTransition)
 				}
 				if dMsg != "" {
-					ui.Text(c, dMsg).FontSize(12).TextColor(ui.Hex("#10B981"))
+					ui.Text(c.Key("store-sinf-done"), dMsg).FontSize(12).TextColor(ui.Hex("#10B981")).
+						Transition(feedbackBannerTransition)
 				}
 				ui.Row(c).Gap(10).Children(func() {
 					instBtn := uiPrimaryBtn(c, "store-sinf-usb-install", msg.StoreSinfDirectInstallBtn())
@@ -648,7 +652,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 	card := surfaceCard(c, "summary-card").Padding(18, 20).Gap(14)
 	card.Children(func() {
 		ui.Row(c).Gap(14).AlignItems(ui.Center).Children(func() {
-			appIconBadge(c, file, 48)
+			appIconBadgeHero(c, file, 48)
 			ui.Column(c).Grow(1).Gap(3).Children(func() {
 				ui.Text(c, name).FontSize(18).Bold()
 				monoText(c, msg.LibraryFileInfo(baseName, valueOrUnknown(msg, file.report.Version))).FontSize(12).TextColor(t.TextMuted)
@@ -703,6 +707,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 							s.Background(t.SurfaceHover)
 						}
 					}
+					applyPressPose(s, 0.975)
 					s.Children(func() {
 						txt := ui.Text(c, lbl).FontSize(12)
 						if selected {
@@ -827,15 +832,20 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 		badgeText, badgeBg, badgeFg := routeStatusBadge(id)
 		btn := ui.ButtonBase(c.Key("route-"+id)).FillWidth().Padding(14, 16).Background(bg).
 			Label(title).Description(badgeText + " · " + desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
+		if !selected && btn.Hovered() {
+			btn.Background(t.SurfaceHover)
+		}
+		applyPressPose(btn, 0.992)
 		btn.Children(func() {
 			ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 				dotBorder := t.Border
 				if selected {
 					dotBorder = accentInk(t)
 				}
-				ui.Row(c).Width(18).Height(18).Radius(9).Border(2, dotBorder).Center().Children(func() {
+				ui.Row(c).Width(18).Height(18).Radius(9).Border(2, dotBorder).Center().Transition(colorTransition).Children(func() {
 					if selected {
-						ui.Row(c).Width(9).Height(9).Radius(5).Background(accentInk(t))
+						ui.Row(c.Key("route-radio-dot")).Width(9).Height(9).Radius(5).Background(accentInk(t)).
+							Transition(radioDotTransition("route"))
 					}
 				})
 				ui.Column(c).Grow(1).Gap(4).Children(func() {
@@ -877,15 +887,20 @@ func (m *Model) routeView(c *ui.Context, msg locales.Messages, compact bool) {
 				}
 				btn := ui.ButtonBase(c.Key("lc-place-"+id)).FillWidth().Padding(12, 16).Background(bg).
 					Label(title).Description(desc).Checked(selected).Cursor(ui.CursorPointer).Transition(colorTransition)
+				if !selected && btn.Hovered() {
+					btn.Background(t.SurfaceHover)
+				}
+				applyPressPose(btn, 0.992)
 				btn.Children(func() {
 					ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 						dotBorder := t.Border
 						if selected {
 							dotBorder = accentInk(t)
 						}
-						ui.Row(c).Width(16).Height(16).Radius(8).Border(2, dotBorder).Center().Children(func() {
+						ui.Row(c).Width(16).Height(16).Radius(8).Border(2, dotBorder).Center().Transition(colorTransition).Children(func() {
 							if selected {
-								ui.Row(c).Width(8).Height(8).Radius(4).Background(accentInk(t))
+								ui.Row(c.Key("lc-place-radio-dot")).Width(8).Height(8).Radius(4).Background(accentInk(t)).
+									Transition(radioDotTransition("lc-place"))
 							}
 						})
 						ui.Column(c).Grow(1).Gap(2).Children(func() {
@@ -1314,11 +1329,12 @@ func (m *Model) diffView(c *ui.Context, msg locales.Messages, compact bool) {
 			ui.TextInput(c.Key("edit-display-name"), &m.editName).Placeholder(msg.DiffDisplayNamePlaceholder()).FillWidth().Label(msg.DiffDisplayName())
 
 			ui.Text(c, msg.DiffBundleID()).FontSize(12).TextColor(t.TextMuted)
-			ui.TextInput(c.Key("edit-bundle-id"), &m.editBundleID).Placeholder(msg.DiffBundleIDPlaceholder()).FillWidth().Label(msg.DiffBundleID())
+			bundleInput := ui.TextInput(c.Key("edit-bundle-id"), &m.editBundleID).Placeholder(msg.DiffBundleIDPlaceholder()).FillWidth().Label(msg.DiffBundleID())
+			applyErrorShake(bundleInput, "bundle-id-shake", !bundleValid)
 			if !bundleValid {
-				ui.Text(c, msg.PrepareBundleIDInvalid()).FontSize(11).TextColor(ui.Hex("#EF4444"))
+				ui.Text(c.Key("bundle-id-err"), msg.PrepareBundleIDInvalid()).FontSize(11).TextColor(ui.Hex("#EF4444")).
+					Transition(feedbackBannerTransition)
 			}
-
 			ui.Text(c, msg.DiffLocalizedName()).FontSize(12).TextColor(t.TextMuted)
 			ui.TextInput(c.Key("edit-localized-name"), &m.editLocalizedName).Placeholder(msg.DiffLocalizedNamePlaceholder()).FillWidth().Label(msg.DiffLocalizedName())
 
@@ -1364,7 +1380,7 @@ func (m *Model) diffView(c *ui.Context, msg locales.Messages, compact bool) {
 	rightPane := func() {
 		surfaceCard(c, "visual-diff-card").Padding(16, 18).Gap(14).Children(func() {
 			ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
-				appIconBadge(c, file, 32)
+				appIconBadgeHero(c, file, 32)
 				ui.Text(c, msg.DiffPreviewTitle()).Bold().FontSize(15)
 			})
 			ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Stretch).Children(func() {
