@@ -155,6 +155,7 @@ func TestRenderScreenshots(t *testing.T) {
 		}, nil)
 		m.docTreeOpen["/Documents/Apps"] = true
 		m.section = "设备"
+		m.deviceTab = 2
 	})
 	renderAndSave("08_account_light_zh.png", 960, 640, false, "zh-Hans", func(m *Model) {
 		m.section = "账号"

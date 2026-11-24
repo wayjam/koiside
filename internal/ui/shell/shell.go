@@ -70,6 +70,7 @@ type Model struct {
 
 	appQuery    string
 	appFilter   int // 0: all, 1: sideloaded
+	deviceTab   int // 0: environment, 1: apps, 2: documents
 	docTreeOpen map[string]bool
 
 	dropped       []string
@@ -127,12 +128,14 @@ type Model struct {
 	loginPassword      string
 	loginRemember      bool
 	loginBusy          bool
+	developerRestoring bool
 	loginErr           string
 	anisetteInput      string
 	anisetteNotice     string
 	twoFactorPrompt    *appleauth.TwoFactorPrompt
 	twoFactorRespCh    chan appleauth.TwoFactorResponse
 	twoFactorCode      string
+	loginVerification  loginVerification
 	maxCertsList       []devportal.DevelopmentCertificate
 	maxCertsRespCh     chan []string
 	maxCertsSelected   map[string]bool
@@ -165,6 +168,7 @@ type Model struct {
 	storeLoginEmail    string
 	storeLoginPass     string
 	storeLoginBusy     bool
+	storeRestoring     bool
 	storeLoginErr      string
 	store2FAEmail      string
 	store2FACode       string
@@ -308,6 +312,7 @@ func (m *Model) view(c *ui.Context) {
 			ui.Scroll(c.Key("workspace-scroll")).Grow(1).FillWidth().Padding(16, 18).Children(func() {
 				m.workspace(c, msg, true)
 			})
+			m.backgroundLoginStatus(c, msg)
 		})
 		m.accountReturnOverlay(c, msg, true)
 		m.openPathDialog(c, msg)
@@ -337,9 +342,10 @@ func (m *Model) view(c *ui.Context) {
 			if winW > 0 && winW < mediumWidth {
 				padY, padX = 20, 22
 			}
-			ui.Scroll(c.Key("workspace-scroll")).Fill().Padding(padY, padX).Children(func() {
+			ui.Scroll(c.Key("workspace-scroll")).Grow(1).FillWidth().Padding(padY, padX).Children(func() {
 				m.workspace(c, msg, false)
 			})
+			m.backgroundLoginStatus(c, msg)
 		})
 	})
 	m.accountReturnOverlay(c, msg, false)

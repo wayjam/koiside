@@ -100,6 +100,8 @@ Extract the main app's icon from the IPA, including Apple `CgBI` PNG decoding, f
 
 - **Restrained depth:** Dark surfaces may use a fine top inset highlight, such as white at 6% opacity, to distinguish layers. A low-opacity radial light in the home screen's upper corner is acceptable. Keep decorative illustrations out of the primary task area.
 - **Purposeful motion:** Use 140ms color transitions on hover, `Snappy` expansion for collapsible details, insertion and removal transitions for rows, a subtle pressed scale of `0.988`, a 2pt arrow nudge on hover, and Oklab transitions for status indicators. Respect the system's Reduce Motion preference.
+- **Background sign-in:** Replace the submitted form with an indeterminate spinner and a status label. Keep navigation available. Show the verification action in the account card or in the workspace footer on other pages, and open the dialog when the user chooses to enter their code. Restore the form with an error after a failed attempt. In Reduce Motion, keep the status label visible without the spinner.
+- **Session recovery:** At startup, label saved-session recovery separately from sign-in. Keep navigation and App Store search available while account sections show the recovery status.
 
 ## Workflow and State Requirements
 

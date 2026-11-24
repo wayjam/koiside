@@ -524,8 +524,14 @@ func TestSetSnapshotDisplaysDetectedToolsAndApps(t *testing.T) {
 	if !tt.HasText("型号：iPhone13,3 · 系统：27.0.1 (24A446)") || !tt.HasText("已检测到 (0.7.0) · 运行状态未知") {
 		t.Fatalf("device snapshot missing: %q", tt.Texts())
 	}
-	if !tt.HasText("USB 文件共享就绪 · 文稿容器可访问") || !tt.HasText("SideStore 文稿目录 (/Documents)") || !tt.HasText("Aidoku-v0.9.ipa") {
-		t.Fatalf("sidestore status or docs tree missing: %q", tt.Texts())
+	if !tt.HasText("USB 文件共享就绪 · 文稿容器可访问") {
+		t.Fatalf("sidestore status missing: %q", tt.Texts())
+	}
+	if err := tt.Click("文稿与传输"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("SideStore 文稿目录 (/Documents)") || !tt.HasText("Aidoku-v0.9.ipa") {
+		t.Fatalf("docs tree missing: %q", tt.Texts())
 	}
 	if tt.HasText("文稿容器可读") {
 		t.Fatalf("sidestore status should not dump filenames inline: %q", tt.Texts())
@@ -590,6 +596,9 @@ func TestDeviceDocTreeAndAppSearchFilter(t *testing.T) {
 	}, nil)
 	m.section = "设备"
 	tt.Frame()
+	if err := tt.Click("文稿与传输"); err != nil {
+		t.Fatal(err)
+	}
 
 	if !tt.HasText("Apps") || tt.HasText("NestedApp.ipa") {
 		t.Fatalf("expected collapsed nested dir initially, texts: %q", tt.Texts())
@@ -602,6 +611,9 @@ func TestDeviceDocTreeAndAppSearchFilter(t *testing.T) {
 	}
 
 	// All apps visible initially, filter by search query
+	if err := tt.Click("已安装应用"); err != nil {
+		t.Fatal(err)
+	}
 	if !tt.HasText("微信") || !tt.HasText("LocalDevVPN") {
 		t.Fatalf("expected all apps shown in default All filter, texts: %q", tt.Texts())
 	}
@@ -741,30 +753,84 @@ func TestAccountViewAnisette2FAAndToolsActions(t *testing.T) {
 		t.Fatalf("expected anisette reset notice: %q", tt.Texts())
 	}
 
-	// Trigger 2FA modal and submit 6-digit code
-	done := make(chan appleauth.TwoFactorResponse, 1)
-	go func() {
-		resp, err := m.prompt2FA(context.Background(), appleauth.TwoFactorPrompt{
-			Numbers: []appleauth.TrustedNumber{{ID: 1, NumberWithDialCode: "+86 ••••1234", LastTwoDigits: "1234"}},
-		})
-		if err == nil {
-			done <- resp
-		}
-	}()
-	time.Sleep(30 * time.Millisecond)
-	m.mu.Lock()
-	m.twoFactorCode = "654321"
-	m.mu.Unlock()
+	msg := m.msg(nil)
+	m.loginEmail, m.loginPassword = "ada@example.com", "test-password"
+	m.storeLoginEmail, m.storeLoginPass = "shop@example.com", "test-password"
+	m.storeLoginBusy = true
+	m.loginBusy = true
 	tt.Frame()
-	if !tt.HasText("双重认证验证码") {
-		t.Fatalf("2FA modal not visible: %q", tt.Texts())
+	if !tt.HasText(m.msg(nil).AccountSigningIn()) {
+		t.Fatal("developer sign-in has no loading status on the account page")
 	}
+	if !tt.HasText(msg.StoreAccountSigningIn()) {
+		t.Fatal("App Store sign-in has no loading status on the account page")
+	}
+	for _, label := range []string{msg.AccountEmailLabel(), msg.AccountPasswordLabel()} {
+		if _, ok := tt.AccessByRole(ui.RoleTextField, label); ok {
+			t.Fatalf("editable credentials exposed during sign-in: %q", label)
+		}
+	}
+	if tt.HasText(msg.AccountSignInBtn()) || tt.HasText(msg.StoreAccountSignInBtn()) || tt.HasText(msg.AccountRememberPassword()) {
+		t.Fatal("credential actions should be replaced by sign-in status")
+	}
+	m.storeLoginBusy = false
+	m.storeLoginErr = "store sign-in failed"
+	tt.Frame()
+	if !tt.HasText(msg.StoreAccountSignInBtn()) || !tt.HasText(m.storeLoginErr) || tt.HasText(msg.StoreAccountSigningIn()) {
+		t.Fatal("App Store form should be available for retry after sign-in fails")
+	}
+	if err := tt.Click("首页"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(m.msg(nil).AccountSigningIn()) {
+		t.Fatal("sign-in status disappeared after switching pages")
+	}
+
+	done := make(chan appleauth.TwoFactorResponse, 1)
+	m.twoFactorPrompt = &appleauth.TwoFactorPrompt{}
+	m.twoFactorRespCh = done
+	tt.Frame()
+	if tt.HasText("验证并继续") || tt.HasText(m.msg(nil).AccountSigningIn()) {
+		t.Fatal("verification should wait for user input without blocking navigation")
+	}
+	if err := tt.Click("Apple 账号"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(msg.Account2FAOpen()) || tt.HasText(msg.AccountSignInBtn()) {
+		t.Fatal("the pending sign-in card should offer verification without restoring the credentials form")
+	}
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("输入验证码"); err != nil {
+		t.Fatal(err)
+	}
+	m.twoFactorCode = "654321"
+	tt.Frame()
 	if err := tt.Click("验证并继续"); err != nil {
 		t.Fatal(err)
 	}
-	resp := <-done
-	if resp.Action != appleauth.ActionSubmitCode || resp.Code != "654321" {
-		t.Fatalf("unexpected 2FA response: %+v", resp)
+	select {
+	case resp := <-done:
+		if resp.Action != appleauth.ActionSubmitCode || resp.Code != "654321" {
+			t.Fatalf("unexpected 2FA response: %+v", resp)
+		}
+	default:
+		t.Fatal("verification did not submit a response")
+	}
+	if m.section != "设备" || !tt.HasText(m.msg(nil).AccountSigningIn()) {
+		t.Fatal("submitting the code should resume background sign-in on the current page")
+	}
+	m.loginBusy = false
+	m.loginErr = "developer sign-in failed"
+	if err := tt.Click("Apple 账号"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(msg.AccountSignInBtn()) || !tt.HasText(m.loginErr) || tt.HasText(msg.AccountSigningIn()) {
+		t.Fatal("developer form should be available for retry after sign-in fails")
+	}
+	if m.loginEmail != "ada@example.com" || m.storeLoginEmail != "shop@example.com" {
+		t.Fatal("retry should preserve the entered account address")
 	}
 
 	// Signed-in state shows team & certs section
@@ -796,6 +862,155 @@ func TestAccountViewAnisette2FAAndToolsActions(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("安装后在 iPhone 上的必做步骤") || !tt.HasText("VPN 与设备管理") {
 		t.Fatalf("expected post-install Developer Mode & Trust checklist: %q", tt.Texts())
+	}
+}
+
+type startupAccountManager struct {
+	account.Unavailable
+	developerReady, storeReady <-chan struct{}
+	storeSession               account.StoreSession
+}
+
+func (m *startupAccountManager) RestoreDeveloperSession(ctx context.Context) error {
+	select {
+	case <-m.developerReady:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (m *startupAccountManager) RestoreStoreSession(ctx context.Context) error {
+	select {
+	case <-m.storeReady:
+		m.storeSession = recoveredStoreSession{m.Unavailable.Store()}
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (m *startupAccountManager) Store() account.StoreSession { return m.storeSession }
+
+type recoveredStoreSession struct{ account.StoreSession }
+
+func (recoveredStoreSession) SignedIn() bool      { return true }
+func (recoveredStoreSession) Email() string       { return "shop@example.com" }
+func (recoveredStoreSession) CountryCode() string { return "JP" }
+
+func TestStartupSessionRecoveryKeepsStoreUsable(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	developerReady, storeReady := make(chan struct{}), make(chan struct{})
+	mgr := &startupAccountManager{
+		developerReady: developerReady,
+		storeReady:     storeReady,
+		storeSession:   account.Unavailable{}.Store(),
+	}
+	m := New(app.Services{Accounts: mgr})
+	m.language = "zh-Hans"
+	m.storeQuery = "example"
+	m.RestoreAccountSessions(ctx)
+	tt := ui.NewTester(m.view, 960, 640)
+	waitForRecovery := func(pending *bool) {
+		t.Helper()
+		timer := time.NewTimer(2 * time.Second)
+		defer timer.Stop()
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+		for {
+			m.mu.Lock()
+			restoring := *pending
+			m.mu.Unlock()
+			if !restoring {
+				return
+			}
+			select {
+			case <-ticker.C:
+			case <-timer.C:
+				t.Fatal("session recovery did not finish")
+			}
+		}
+	}
+	msg := m.msg(nil)
+	storeStatus, devStatus := msg.StoreAccountRestoringSession(), msg.AccountRestoringSession()
+	if !tt.HasText(storeStatus) || !tt.HasText(devStatus) {
+		t.Fatal("startup recovery status is missing on the home page")
+	}
+	if err := tt.Click(msg.NavStore()); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(storeStatus) || tt.HasText(msg.StoreAccountNeedTitle()) {
+		t.Fatal("store should show recovery while its account is loading")
+	}
+	if search, ok := tt.AccessByRole(ui.RoleButton, msg.StoreSearchBtn()); !ok || search.Disabled {
+		t.Fatal("store search should remain available during recovery")
+	}
+	if err := tt.Click(msg.NavAccount()); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(storeStatus) || tt.HasText(msg.StoreAccountSignInBtn()) {
+		t.Fatal("store recovery should replace the store sign-in form")
+	}
+	close(storeReady)
+	waitForRecovery(&m.storeRestoring)
+	tt.Frame()
+	if tt.HasText(storeStatus) || !tt.HasText(msg.StoreAccountSignedIn("shop@example.com")) || !tt.HasText(devStatus) {
+		t.Fatal("restored store account should appear while developer recovery is still pending")
+	}
+	if err := tt.Click(msg.NavStore()); err != nil {
+		t.Fatal(err)
+	}
+	if m.storeCountry != "JP" {
+		t.Fatalf("default storefront after recovery = %q, want JP", m.storeCountry)
+	}
+	close(developerReady)
+	waitForRecovery(&m.developerRestoring)
+	tt.Frame()
+	if tt.HasText(devStatus) {
+		t.Fatal("developer recovery status remained after recovery finished")
+	}
+}
+
+func TestStoreVerificationKeepsCompactWorkspaceUsable(t *testing.T) {
+	m, tt := newTest(t, false)
+	tt.SetSize(540, 460)
+	tt.SetPreferences(ui.Preferences{ReduceMotion: true, TextScale: 1})
+	m.storeLoginBusy = true
+	tt.Frame()
+	status := m.msg(nil).StoreAccountSigningIn()
+	if _, ok := tt.AccessByRole(ui.RoleStatus, status); !ok {
+		t.Fatal("background store sign-in status missing under Reduce Motion")
+	}
+
+	code := make(chan string, 1)
+	m.store2FAEmail = "shop@example.com"
+	m.store2FARespCh = code
+	tt.Frame()
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("输入验证码"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(m.msg(nil).Store2FADesc("shop@example.com")) {
+		t.Fatal("store verification dialog did not open")
+	}
+	if err := tt.Click("取消"); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case got := <-code:
+		if got != "" {
+			t.Fatalf("expected empty code on cancel, got %q", got)
+		}
+	default:
+		t.Fatal("cancel did not release the pending verification")
+	}
+	m.storeLoginBusy = false
+	tt.Frame()
+	if m.section != "设备" || tt.HasText(status) || tt.HasText("输入验证码") {
+		t.Fatal("completed store sign-in should clear the footer without changing pages")
 	}
 }
 
@@ -993,6 +1208,9 @@ func TestEmbeddedSideStoreInLiveContainerDetection(t *testing.T) {
 	}
 	if st, ok := tt.AccessByRole(ui.RoleStatus, "已内置于 LiveContainer"); !ok || st.Name != "已内置于 LiveContainer" {
 		t.Fatalf("expected embedded SideStore status, got %+v texts=%q", st, tt.Texts())
+	}
+	if err := tt.Click("文稿与传输"); err != nil {
+		t.Fatal(err)
 	}
 	if !tt.HasText("LiveContainer 文稿目录 (/Documents)") {
 		t.Fatalf("expected LC docs title: %q", tt.Texts())

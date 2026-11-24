@@ -13,6 +13,36 @@ import (
 	"koiside/locales"
 )
 
+type loginVerification uint8
+
+const (
+	verifyDeveloper loginVerification = iota + 1
+	verifyStore
+)
+
+// RestoreAccountSessions loads saved accounts without blocking the workspace.
+func (m *Model) RestoreAccountSessions(ctx context.Context) {
+	mgr, win := m.services.Accounts, m.win
+	m.mu.Lock()
+	m.developerRestoring, m.storeRestoring = true, true
+	m.mu.Unlock()
+	if win != nil {
+		win.Invalidate()
+	}
+
+	restore := func(pending *bool, load func(context.Context) error) {
+		_ = load(ctx)
+		m.mu.Lock()
+		*pending = false
+		m.mu.Unlock()
+		if win != nil {
+			mygo.RunOnMain(func() { win.Invalidate() })
+		}
+	}
+	go restore(&m.storeRestoring, mgr.RestoreStoreSession)
+	go restore(&m.developerRestoring, mgr.RestoreDeveloperSession)
+}
+
 func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
 	ui.Column(c).FillWidth().Gap(4).Children(func() {
@@ -22,8 +52,24 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 
 	mgr := m.services.Accounts
 	devSess := mgr.Developer()
+	m.mu.Lock()
+	busy, awaitingCode := m.loginBusy, m.twoFactorRespCh != nil
+	restoring := m.developerRestoring
+	loginErr := m.loginErr
+	m.mu.Unlock()
 
-	if devSess.SignedIn() {
+	if busy || awaitingCode || restoring {
+		surfaceCard(c, "account-signin-card").Padding(18, 20).Gap(12).Children(func() {
+			ui.Text(c, msg.AccountSignInTitle()).Bold().FontSize(16)
+			if awaitingCode {
+				m.loginVerificationRow(c, msg, "developer-verification", msg.Account2FATitle(), verifyDeveloper)
+			} else if restoring {
+				loginLoading(c, "developer-signin-status", msg.AccountRestoringSession())
+			} else {
+				loginLoading(c, "developer-signin-status", msg.AccountSigningIn())
+			}
+		})
+	} else if devSess.SignedIn() {
 		insetGroup(c, "account-signedin-group", func() {
 			ui.Row(c).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
 				ui.Row(c).Width(40).Height(40).Radius(20).Background(t.Selection).Center().Children(func() {
@@ -191,25 +237,17 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 				})
 			})
 
-			m.mu.Lock()
-			busy := m.loginBusy
-			loginErr := m.loginErr
-			m.mu.Unlock()
 			if loginErr != "" {
-				ui.Text(c.Key("acc-login-err"), friendlyError(msg, loginErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+				ui.Text(c.Key("acc-login-err"), friendlyError(msg, loginErr)).Role(ui.RoleStatus).FontSize(12).TextColor(ui.Hex("#EF4444"))
 			}
 
 			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 				btn := uiPrimaryBtn(c, "acc-sign-in-btn", msg.AccountSignInBtn())
-				if busy || strings.TrimSpace(m.loginEmail) == "" || m.loginPassword == "" {
+				if strings.TrimSpace(m.loginEmail) == "" || m.loginPassword == "" {
 					btn.Disabled(true)
 				}
 				if btn.Clicked() {
 					m.startLogin(m.loginEmail, m.loginPassword, m.loginRemember, false)
-				}
-				if busy {
-					ui.Spinner(c).Label(msg.AccountSigningIn())
-					ui.Text(c, msg.AccountSigningIn()).FontSize(12).TextColor(accentInk(t))
 				}
 			})
 		})
@@ -270,12 +308,68 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 	m.storeAccountSection(c, msg)
 }
 
+func loginLoading(c *ui.Context, key, label string) {
+	ink := accentInk(c.Theme())
+	ui.Row(c.Key(key)).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+		if !c.Preferences().ReduceMotion {
+			ui.Spinner(c).Size(16, 16).TextColor(ink).AccessHidden(true)
+		}
+		ui.Text(c, label).Role(ui.RoleStatus).FontSize(12).TextColor(ink).Grow(1).MinWidth(0)
+	})
+}
+
+func (m *Model) loginVerificationRow(c *ui.Context, msg locales.Messages, key, label string, kind loginVerification) {
+	ui.Row(c.Key(key)).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
+		ui.Icon(c, phKey).Size(16, 16).Shrink(0).TextColor(accentInk(c.Theme()))
+		ui.Text(c, label).Role(ui.RoleStatus).FontSize(12).Grow(1).MinWidth(0)
+		if uiBtn(c, key+"-enter-code", msg.Account2FAOpen()).Description(label).Shrink(0).Clicked() {
+			m.mu.Lock()
+			m.loginVerification = kind
+			m.mu.Unlock()
+		}
+	})
+}
+
+func (m *Model) backgroundLoginStatus(c *ui.Context, msg locales.Messages) {
+	if m.section == "账号" {
+		return
+	}
+	m.mu.Lock()
+	developerBusy, storeBusy := m.loginBusy, m.storeLoginBusy
+	developerCode, storeCode := m.twoFactorRespCh != nil, m.store2FARespCh != nil
+	developerRestoring := m.developerRestoring
+	storeRestoring := m.storeRestoring && m.section != "商店"
+	m.mu.Unlock()
+	if !developerCode && !storeCode && !developerBusy && !storeBusy && !developerRestoring && !storeRestoring {
+		return
+	}
+
+	t := c.Theme()
+	ui.Column(c.Key("background-login-status")).FillWidth().Shrink(0).Padding(8, 16).Gap(6).
+		Background(t.Surface).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).Children(func() {
+			if developerCode {
+				m.loginVerificationRow(c, msg, "developer-verification", msg.Account2FATitle(), verifyDeveloper)
+			} else if developerRestoring {
+				loginLoading(c, "developer-background-login", msg.AccountRestoringSession())
+			} else if developerBusy {
+				loginLoading(c, "developer-background-login", msg.AccountSigningIn())
+			}
+			if storeCode {
+				m.loginVerificationRow(c, msg, "store-verification", msg.Store2FATitle(), verifyStore)
+			} else if storeRestoring {
+				loginLoading(c, "store-background-login", msg.StoreAccountRestoringSession())
+			} else if storeBusy {
+				loginLoading(c, "store-background-login", msg.StoreAccountSigningIn())
+			}
+		})
+}
+
 func (m *Model) accountReturnOverlay(c *ui.Context, msg locales.Messages, compact bool) {
 	m.mu.Lock()
 	ret := m.returnTarget
-	tfaOpen := m.twoFactorPrompt != nil
+	awaitingCode := m.twoFactorRespCh != nil || m.store2FARespCh != nil
 	m.mu.Unlock()
-	if m.section != "账号" || ret == nil || tfaOpen {
+	if m.section != "账号" || ret == nil || awaitingCode {
 		return
 	}
 
@@ -391,11 +485,12 @@ func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 	m.mu.Lock()
 	tfa := m.twoFactorPrompt
 	tfaCh := m.twoFactorRespCh
+	verification := m.loginVerification
 	maxCerts := m.maxCertsList
 	maxCertsCh := m.maxCertsRespCh
 	m.mu.Unlock()
 
-	if tfa != nil && tfaCh != nil {
+	if verification == verifyDeveloper && tfa != nil && tfaCh != nil {
 		open := true
 		ui.Modal(c.Key("two-factor-modal"), &open, func() {
 			ui.Column(c).Width(360).Gap(12).Children(func() {
@@ -415,7 +510,7 @@ func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, friendlyError(msg, tfa.LastError)).FontSize(11).TextColor(ui.Hex("#EF4444"))
 				}
 				ui.TextInput(c.Key("tfa-code-input"), &m.twoFactorCode).
-					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().Label(msg.Account2FATitle())
+					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().AutoFocus().Label(msg.Account2FATitle())
 				ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
 					if uiBtn(c, "tfa-cancel", msg.LibraryCancel()).Clicked() {
 						m.submit2FAResponse(appleauth.TwoFactorResponse{Action: appleauth.ActionAbort})
@@ -494,14 +589,14 @@ func (m *Model) accountModals(c *ui.Context, msg locales.Messages) {
 	store2FAEmail := m.store2FAEmail
 	store2FACh := m.store2FARespCh
 	m.mu.Unlock()
-	if store2FAEmail != "" && store2FACh != nil {
+	if verification == verifyStore && store2FAEmail != "" && store2FACh != nil {
 		open := true
 		ui.Modal(c.Key("store-two-factor-modal"), &open, func() {
 			ui.Column(c).Width(360).Gap(12).Children(func() {
 				ui.Text(c, msg.Store2FATitle()).Bold().FontSize(16)
 				ui.Text(c, msg.Store2FADesc(store2FAEmail)).FontSize(12).TextColor(t.TextMuted)
 				ui.TextInput(c.Key("store-tfa-code-input"), &m.store2FACode).
-					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().Label(msg.Store2FATitle())
+					Placeholder(msg.Account2FACodePlaceholder()).FillWidth().AutoFocus().Label(msg.Store2FATitle())
 				ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
 					if uiBtn(c, "store-tfa-cancel", msg.LibraryCancel()).Clicked() {
 						m.submitStore2FACode("")
@@ -528,6 +623,9 @@ func (m *Model) submit2FAResponse(resp appleauth.TwoFactorResponse) {
 	m.twoFactorPrompt = nil
 	m.twoFactorRespCh = nil
 	m.twoFactorCode = ""
+	if m.loginVerification == verifyDeveloper {
+		m.loginVerification = 0
+	}
 	m.mu.Unlock()
 	if ch != nil {
 		select {
@@ -588,7 +686,7 @@ func (m *Model) promptMaxCerts(certs []devportal.DevelopmentCertificate) ([]stri
 
 func (m *Model) startLogin(email, password string, remember, useSaved bool) {
 	m.mu.Lock()
-	if m.loginBusy {
+	if m.loginBusy || m.developerRestoring {
 		m.mu.Unlock()
 		return
 	}
@@ -725,13 +823,33 @@ func (m *Model) revokePortalCert(serial string) {
 func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
 	mgr := m.services.Accounts
-	storeSess := mgr.Store()
-	savedStore := mgr.SavedStoreAccounts()
+	m.mu.Lock()
+	busy, awaitingCode := m.storeLoginBusy, m.store2FARespCh != nil
+	restoring := m.storeRestoring
+	sErr := m.storeLoginErr
+	m.mu.Unlock()
 
 	ui.Column(c).FillWidth().Gap(4).Margin(8, 0, 0, 0).Children(func() {
 		ui.Text(c, msg.StoreAccountSectionTitle()).Bold().FontSize(16)
 		ui.Text(c, msg.StoreAccountSectionDesc()).FontSize(12).TextColor(t.TextMuted)
 	})
+
+	if busy || awaitingCode || restoring {
+		surfaceCard(c, "store-signin-card").Padding(16, 18).Gap(10).Children(func() {
+			ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(14)
+			if awaitingCode {
+				m.loginVerificationRow(c, msg, "store-verification", msg.Store2FATitle(), verifyStore)
+			} else if restoring {
+				loginLoading(c, "store-signin-status", msg.StoreAccountRestoringSession())
+			} else {
+				loginLoading(c, "store-signin-status", msg.StoreAccountSigningIn())
+			}
+		})
+		return
+	}
+
+	storeSess := mgr.Store()
+	savedStore := mgr.SavedStoreAccounts()
 
 	if storeSess.SignedIn() {
 		insetGroup(c, "store-account-signedin", func() {
@@ -793,25 +911,17 @@ func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 		ui.TextInput(c.Key("store-password-input"), &m.storeLoginPass).
 			Password().Placeholder(msg.AccountPasswordPlaceholder()).FillWidth().Label(msg.AccountPasswordLabel())
 
-		m.mu.Lock()
-		busy := m.storeLoginBusy
-		sErr := m.storeLoginErr
-		m.mu.Unlock()
 		if sErr != "" {
-			ui.Text(c.Key("store-login-err"), friendlyError(msg, sErr)).FontSize(12).TextColor(ui.Hex("#EF4444"))
+			ui.Text(c.Key("store-login-err"), friendlyError(msg, sErr)).Role(ui.RoleStatus).FontSize(12).TextColor(ui.Hex("#EF4444"))
 		}
 
 		ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 			btn := uiPrimaryBtn(c, "store-signin-btn", msg.StoreAccountSignInBtn())
-			if busy || strings.TrimSpace(m.storeLoginEmail) == "" || m.storeLoginPass == "" {
+			if strings.TrimSpace(m.storeLoginEmail) == "" || m.storeLoginPass == "" {
 				btn.Disabled(true)
 			}
 			if btn.Clicked() {
 				m.startStoreLogin(m.storeLoginEmail, m.storeLoginPass)
-			}
-			if busy {
-				ui.Spinner(c).Label(msg.StoreAccountSigningIn())
-				ui.Text(c, msg.StoreAccountSigningIn()).FontSize(12).TextColor(accentInk(t))
 			}
 		})
 	})
@@ -823,6 +933,9 @@ func (m *Model) submitStore2FACode(code string) {
 	m.store2FAEmail = ""
 	m.store2FARespCh = nil
 	m.store2FACode = ""
+	if m.loginVerification == verifyStore {
+		m.loginVerification = 0
+	}
 	m.mu.Unlock()
 	if ch != nil {
 		select {
@@ -856,7 +969,7 @@ func (m *Model) promptStore2FA(ctx context.Context, email string) (string, error
 
 func (m *Model) startStoreLogin(email, password string) {
 	m.mu.Lock()
-	if m.storeLoginBusy {
+	if m.storeLoginBusy || m.storeRestoring {
 		m.mu.Unlock()
 		return
 	}

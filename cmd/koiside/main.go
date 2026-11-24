@@ -50,17 +50,13 @@ func main() {
 			Content:       model.Content(),
 		})
 		model.Attach(win)
+		model.RestoreAccountSessions(watchCtx)
 		mygo.App.OnLocaleChanged(func(string) {
 			win.SetTitle(locales.AppTitle())
 			win.Invalidate()
 		})
 		model.RefreshDevices()
 		model.StartDeviceWatch(watchCtx)
-		go func() {
-			_ = services.Accounts.RestoreDeveloperSession(context.Background())
-			_ = services.Accounts.RestoreStoreSession(context.Background())
-			mygo.RunOnMain(func() { win.Invalidate() })
-		}()
 		var openPaths []string
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-") {

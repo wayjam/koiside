@@ -398,6 +398,56 @@ func (msgs Messages) DeviceViewToolGuide() string {
 	return Catalog.Format(msgs.locale, "deviceViewToolGuide", nil)
 }
 
+// DeviceTabEnvironment says "侧载环境"
+// in the language the app shows.
+func DeviceTabEnvironment() string { return In(i18n.Locale()).DeviceTabEnvironment() }
+
+// DeviceTabEnvironment says "侧载环境"
+// in the language of msgs.
+func (msgs Messages) DeviceTabEnvironment() string {
+	return Catalog.Format(msgs.locale, "deviceTabEnvironment", nil)
+}
+
+// DeviceTabApps says "已安装应用"
+// in the language the app shows.
+func DeviceTabApps() string { return In(i18n.Locale()).DeviceTabApps() }
+
+// DeviceTabApps says "已安装应用"
+// in the language of msgs.
+func (msgs Messages) DeviceTabApps() string {
+	return Catalog.Format(msgs.locale, "deviceTabApps", nil)
+}
+
+// DeviceTabDocs says "文稿与传输"
+// in the language the app shows.
+func DeviceTabDocs() string { return In(i18n.Locale()).DeviceTabDocs() }
+
+// DeviceTabDocs says "文稿与传输"
+// in the language of msgs.
+func (msgs Messages) DeviceTabDocs() string {
+	return Catalog.Format(msgs.locale, "deviceTabDocs", nil)
+}
+
+// DeviceDocsImportIPABtn says "传输 IPA 到设备"
+// in the language the app shows.
+func DeviceDocsImportIPABtn() string { return In(i18n.Locale()).DeviceDocsImportIPABtn() }
+
+// DeviceDocsImportIPABtn says "传输 IPA 到设备"
+// in the language of msgs.
+func (msgs Messages) DeviceDocsImportIPABtn() string {
+	return Catalog.Format(msgs.locale, "deviceDocsImportIPABtn", nil)
+}
+
+// DeviceDocsDropHint says "拖拽 IPA 到此处直接传输至设备"
+// in the language the app shows.
+func DeviceDocsDropHint() string { return In(i18n.Locale()).DeviceDocsDropHint() }
+
+// DeviceDocsDropHint says "拖拽 IPA 到此处直接传输至设备"
+// in the language of msgs.
+func (msgs Messages) DeviceDocsDropHint() string {
+	return Catalog.Format(msgs.locale, "deviceDocsDropHint", nil)
+}
+
 // DeviceInstalledAppsTitle says "已安装应用"
 // in the language the app shows.
 func DeviceInstalledAppsTitle() string { return In(i18n.Locale()).DeviceInstalledAppsTitle() }
@@ -3910,6 +3960,26 @@ func (msgs Messages) AccountSigningIn() string {
 	return Catalog.Format(msgs.locale, "accountSigningIn", nil)
 }
 
+// AccountRestoringSession says "正在恢复 Apple 开发者会话…"
+// in the language the app shows.
+func AccountRestoringSession() string { return In(i18n.Locale()).AccountRestoringSession() }
+
+// AccountRestoringSession says "正在恢复 Apple 开发者会话…"
+// in the language of msgs.
+func (msgs Messages) AccountRestoringSession() string {
+	return Catalog.Format(msgs.locale, "accountRestoringSession", nil)
+}
+
+// StoreAccountRestoringSession says "正在从钥匙串恢复 App Store 会话…"
+// in the language the app shows.
+func StoreAccountRestoringSession() string { return In(i18n.Locale()).StoreAccountRestoringSession() }
+
+// StoreAccountRestoringSession says "正在从钥匙串恢复 App Store 会话…"
+// in the language of msgs.
+func (msgs Messages) StoreAccountRestoringSession() string {
+	return Catalog.Format(msgs.locale, "storeAccountRestoringSession", nil)
+}
+
 // AccountSignOutBtn says "退出登录"
 // in the language the app shows.
 func AccountSignOutBtn() string { return In(i18n.Locale()).AccountSignOutBtn() }
@@ -3998,6 +4068,16 @@ func Account2FASubmit() string { return In(i18n.Locale()).Account2FASubmit() }
 // in the language of msgs.
 func (msgs Messages) Account2FASubmit() string {
 	return Catalog.Format(msgs.locale, "account2FASubmit", nil)
+}
+
+// Account2FAOpen says "输入验证码"
+// in the language the app shows.
+func Account2FAOpen() string { return In(i18n.Locale()).Account2FAOpen() }
+
+// Account2FAOpen says "输入验证码"
+// in the language of msgs.
+func (msgs Messages) Account2FAOpen() string {
+	return Catalog.Format(msgs.locale, "account2FAOpen", nil)
 }
 
 // Account2FAResend says "重新发送"
@@ -5436,11 +5516,11 @@ func (msgs Messages) StoreAccountSignInBtn() string {
 	return Catalog.Format(msgs.locale, "storeAccountSignInBtn", nil)
 }
 
-// StoreAccountSigningIn says "正在通过 SAP 握手登录…"
+// StoreAccountSigningIn says "正在登录 App Store…"
 // in the language the app shows.
 func StoreAccountSigningIn() string { return In(i18n.Locale()).StoreAccountSigningIn() }
 
-// StoreAccountSigningIn says "正在通过 SAP 握手登录…"
+// StoreAccountSigningIn says "正在登录 App Store…"
 // in the language of msgs.
 func (msgs Messages) StoreAccountSigningIn() string {
 	return Catalog.Format(msgs.locale, "storeAccountSigningIn", nil)

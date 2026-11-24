@@ -549,6 +549,55 @@ func (m *Model) deleteDeviceDoc(remotePath, name string) {
 		}
 	}()
 }
+func (m *Model) transferIPAPathToDevice(targetPath string) {
+	m.mu.Lock()
+	busy := m.transferring
+	tr := m.transferrer
+	m.mu.Unlock()
+	if busy || tr == nil || targetPath == "" {
+		return
+	}
+	if m.win == nil {
+		result, err := tr.PutIPA(targetPath)
+		m.SetTransfer(targetPath, result, err)
+		m.detectDevices()
+		return
+	}
+	m.mu.Lock()
+	m.transferring = true
+	m.transferErr = ""
+	m.mu.Unlock()
+	m.win.Invalidate()
+	go func() {
+		result, err := tr.PutIPA(targetPath)
+		mygo.RunOnMain(func() {
+			m.SetTransfer(targetPath, result, err)
+			m.detectDevices()
+		})
+	}()
+}
+
+func (m *Model) pickIPAToDevice() {
+	if m.win == nil {
+		return
+	}
+	win := m.win
+	title := m.msg(nil).DeviceDocsImportIPABtn()
+	go func() {
+		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
+			Parent:   win,
+			Title:    title,
+			Filters:  []mygo.FileFilter{{Name: "iOS App", Extensions: []string{"ipa"}}},
+			Multiple: false,
+		})
+		if err == nil && len(paths) > 0 {
+			win.Update(func() {
+				m.transferIPAPathToDevice(paths[0])
+			})
+		}
+	}()
+}
+
 
 func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
@@ -639,6 +688,26 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 		})
 	}
 
+	ui.Row(c.Key("device-tabs-row")).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+		ui.Segmented(c.Key("device-sub-tab"), &m.deviceTab,
+			msg.DeviceTabEnvironment(),
+			msg.DeviceTabApps(),
+			msg.DeviceTabDocs(),
+		).Cursor(ui.CursorPointer).Label(msg.DeviceTitle())
+	})
+
+	switch m.deviceTab {
+	case 1:
+		m.renderDeviceApps(c, msg)
+	case 2:
+		m.renderDeviceDocs(c, msg)
+	default:
+		m.renderDeviceEnvironment(c, msg)
+	}
+}
+
+func (m *Model) renderDeviceEnvironment(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
 	toolStatusText := func(app *device.InstalledApp) string {
 		if !m.appsQueried {
 			return msg.DeviceSideStoreStatusUnknown()
@@ -771,67 +840,10 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			}
 		})
 	})
-	if m.usbVerified {
-		insetGroup(c, "device-docs-group", func() {
-			ui.Row(c).FillWidth().Padding(14, 18).Gap(10).AlignItems(ui.Center).Children(func() {
-				ui.Icon(c, phFolderOpen).Width(18).Height(18).TextColor(accentInk(t))
-				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					docsTitle := msg.DeviceDocsTitle()
-					if m.sideStoreApp == nil && m.lcApp != nil && m.docsBundleID == m.lcApp.BundleID {
-						docsTitle = msg.DeviceLCDocsTitle()
-					}
-					ui.Text(c, docsTitle).Bold().FontSize(14)
-					m.mu.Lock()
-					delMsg := m.docDeleteMsg
-					delErr := m.docDeleteErr
-					m.mu.Unlock()
-					if delErr != "" {
-						ui.Text(c, friendlyError(msg, delErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
-					} else if delMsg != "" {
-						ui.Text(c, delMsg).FontSize(11).TextColor(ui.Hex("#10B981"))
-					}
-				})
-				count := len(m.sideStoreTree)
-				if count == 0 {
-					count = len(m.sideStoreDocs)
-				}
-				ui.Text(c, msg.DeviceDocsItemsCount(count)).FontSize(12).TextColor(t.TextMuted)
-			})
-			ui.Divider(c)
-			ui.Scroll(c.Key("device-docs-scroll")).FillWidth().MaxHeight(240).Children(func() {
-				if len(m.sideStoreTree) > 0 {
-					m.docTreeView(c, msg, m.sideStoreTree, 0)
-				} else if len(m.sideStoreDocs) > 0 {
-					for _, name := range m.sideStoreDocs {
-						icon := phFileText
-						if strings.HasSuffix(strings.ToLower(name), ".ipa") {
-							icon = phFileArchive
-						}
-						remote := "/Documents/" + name
-						ui.Row(c.Key("doc-flat-"+name)).FillWidth().Padding(7, 18).Gap(8).AlignItems(ui.Center).Children(func() {
-							ui.Icon(c, icon).Width(15).Height(15).TextColor(t.TextMuted)
-							monoText(c, name).FontSize(12).Grow(1)
-							if isDeletableDocFile(remote, name) && m.docsBundleID != "" {
-								noDev := !m.hasConnectedDevice()
-								delTip := ""
-								if noDev {
-									delTip = msg.ToolInstallNeedDevice()
-								}
-								if uiBtnWithTip(c, "doc-flat-del-"+name, msg.DeviceDocDeleteBtn(), noDev, delTip).Clicked() {
-									m.deleteDeviceDoc(remote, name)
-								}
-							}
-						})
-					}
-				} else {
-					ui.Row(c).FillWidth().Padding(12, 18).Children(func() {
-						ui.Text(c, msg.DeviceDocsEmpty()).FontSize(12).TextColor(t.TextMuted)
-					})
-				}
-			})
-		})
-	}
+}
 
+func (m *Model) renderDeviceApps(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
 	insetGroup(c, "device-installed-apps-group", func() {
 		sideloaded := m.sideloadedApps()
 		ui.Column(c).FillWidth().Padding(16, 18).Gap(8).Children(func() {
@@ -863,7 +875,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, msg.DeviceAppsNoMatch()).FontSize(12).TextColor(t.TextMuted)
 				})
 			} else {
-				ui.Scroll(c.Key("device-apps-scroll")).FillWidth().MaxHeight(320).Children(func() {
+				ui.Scroll(c.Key("device-apps-scroll")).FillWidth().MaxHeight(360).Children(func() {
 					for idx, a := range shown {
 						if idx > 0 {
 							ui.Divider(c)
@@ -883,10 +895,115 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 			}
 		}
 	})
+}
 
-	ui.Row(c).FillWidth().Justify(ui.End).Children(func() {
-		if uiBtn(c, "device-open-transfer", msg.TransferGuideTitle()).Clicked() {
-			m.goTaskSection("交接", 4)
+func (m *Model) renderDeviceDocs(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	insetGroup(c, "device-docs-group", func() {
+		count := len(m.sideStoreTree)
+		if count == 0 {
+			count = len(m.sideStoreDocs)
+		}
+		docsTitle := msg.DeviceDocsTitle()
+		if m.sideStoreApp == nil && m.lcApp != nil && m.docsBundleID == m.lcApp.BundleID {
+			docsTitle = msg.DeviceLCDocsTitle()
+		}
+		ui.Row(c).FillWidth().Padding(14, 18).Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Icon(c, phFolderOpen).Width(18).Height(18).TextColor(accentInk(t))
+			ui.Column(c).Grow(1).Gap(2).Children(func() {
+				ui.Text(c, docsTitle).Bold().FontSize(14)
+				m.mu.Lock()
+				delMsg := m.docDeleteMsg
+				delErr := m.docDeleteErr
+				m.mu.Unlock()
+				if delErr != "" {
+					ui.Text(c, friendlyError(msg, delErr)).FontSize(11).TextColor(ui.Hex("#EF4444"))
+				} else if delMsg != "" {
+					ui.Text(c, delMsg).FontSize(11).TextColor(ui.Hex("#10B981"))
+				}
+			})
+			ui.Row(c).Gap(10).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, msg.DeviceDocsItemsCount(count)).FontSize(12).TextColor(t.TextMuted)
+				noDev := !m.hasConnectedDevice()
+				devTip := ""
+				if noDev {
+					devTip = msg.ToolInstallNeedDevice()
+				}
+				if uiBtnWithTip(c, "device-docs-import-ipa", msg.DeviceDocsImportIPABtn(), noDev, devTip).Clicked() {
+					m.pickIPAToDevice()
+				}
+			})
+		})
+		ui.Divider(c)
+		dropBox := ui.Column(c.Key("device-docs-dropzone")).FillWidth().Padding(12, 18).Gap(6).
+			Background(t.Selection).Border(1, accentInk(t).Alpha(0.3)).Radius(8).
+			Transition(dropZoneTransition)
+		if dropBox.FileDragOver() {
+			dropBox.Border(2, accentInk(t)).InsetShadow(0, 0, 0, 2, accentInk(t).Alpha(0.25))
+		}
+		if files := dropBox.DroppedFiles(); len(files) > 0 {
+			for _, f := range files {
+				if strings.HasSuffix(strings.ToLower(f), ".ipa") {
+					m.transferIPAPathToDevice(f)
+					break
+				}
+			}
+		}
+		dropBox.Children(func() {
+			ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+				ui.Icon(c, phExport).Width(16).Height(16).TextColor(accentInk(t))
+				ui.Text(c, msg.DeviceDocsDropHint()).FontSize(12).TextColor(accentInk(t)).Grow(1)
+				m.mu.Lock()
+				transferring := m.transferring
+				transferErr := m.transferErr
+				transferState := m.transferState
+				m.mu.Unlock()
+				if transferring {
+					ui.Spinner(c).Label(msg.TransferInProgress())
+				} else if transferErr != "" {
+					ui.Text(c, msg.TransferErrorDetail(friendlyError(msg, transferErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
+				} else if transferState == "done" {
+					ui.Text(c, msg.HandoffStageBadgeTransferred()).FontSize(11).Bold().TextColor(ui.Hex("#10B981"))
+				}
+			})
+		})
+		ui.Divider(c)
+		if !m.usbVerified {
+			ui.Row(c).FillWidth().Padding(14, 18).Children(func() {
+				ui.Text(c, msg.TransferUSBUnverified()).FontSize(12).TextColor(t.TextMuted)
+			})
+		} else {
+			ui.Scroll(c.Key("device-docs-scroll")).FillWidth().MaxHeight(260).Children(func() {
+				if len(m.sideStoreTree) > 0 {
+					m.docTreeView(c, msg, m.sideStoreTree, 0)
+				} else if len(m.sideStoreDocs) > 0 {
+					for _, name := range m.sideStoreDocs {
+						icon := phFileText
+						if strings.HasSuffix(strings.ToLower(name), ".ipa") {
+							icon = phFileArchive
+						}
+						remote := "/Documents/" + name
+						ui.Row(c.Key("doc-flat-"+name)).FillWidth().Padding(7, 18).Gap(8).AlignItems(ui.Center).Children(func() {
+							ui.Icon(c, icon).Width(15).Height(15).TextColor(t.TextMuted)
+							monoText(c, name).FontSize(12).Grow(1)
+							if isDeletableDocFile(remote, name) && m.docsBundleID != "" {
+								noDev := !m.hasConnectedDevice()
+								delTip := ""
+								if noDev {
+									delTip = msg.ToolInstallNeedDevice()
+								}
+								if uiBtnWithTip(c, "doc-flat-del-"+name, msg.DeviceDocDeleteBtn(), noDev, delTip).Clicked() {
+									m.deleteDeviceDoc(remote, name)
+								}
+							}
+						})
+					}
+				} else {
+					ui.Row(c).FillWidth().Padding(12, 18).Children(func() {
+						ui.Text(c, msg.DeviceDocsEmpty()).FontSize(12).TextColor(t.TextMuted)
+					})
+				}
+			})
 		}
 	})
 }

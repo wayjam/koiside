@@ -28,6 +28,7 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 	storeSess := mgr.Store()
 
 	m.mu.Lock()
+	restoring := m.storeRestoring
 	searching := m.storeSearching
 	searchErr := m.storeSearchErr
 	results := append([]appstore.Software(nil), m.storeResults...)
@@ -37,6 +38,12 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 
 	// Compact Store account status bar
 	insetGroup(c, "store-account-banner", func() {
+		if restoring {
+			ui.Column(c).FillWidth().Padding(10, 14).Children(func() {
+				loginLoading(c, "store-restoring-session", msg.StoreAccountRestoringSession())
+			})
+			return
+		}
 		ui.Row(c).FillWidth().Padding(10, 14).Gap(10).AlignItems(ui.Center).Children(func() {
 			ui.Icon(c, phAccount).Width(18).Height(18).TextColor(accentInk(t))
 			if storeSess.SignedIn() {
@@ -65,12 +72,16 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 
 	// Region selector + search bar (hidden when drilled into compact detail view)
 	if !(compact && narrowDetail) {
-		if m.storeCountry == "" {
+		if m.storeCountry == "" && !restoring {
 			if cc := storeSess.CountryCode(); cc != "" {
 				m.storeCountry = cc
 			} else {
 				m.storeCountry = "US"
 			}
+		}
+		country := m.storeCountry
+		if country == "" {
+			country = "US"
 		}
 
 		surfaceCard(c, "store-search-card").Padding(12, 14).Gap(8).Children(func() {
@@ -87,7 +98,7 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 					trySearch = true
 				}
 				if trySearch && !searching && strings.TrimSpace(m.storeQuery) != "" {
-					m.searchAppStore()
+					m.searchAppStore(country)
 				}
 			})
 
@@ -95,7 +106,7 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 				ui.Text(c, msg.StoreCountryLabel()).FontSize(12).TextColor(t.TextMuted)
 				for _, cc := range storeRegionPresets {
 					cc := cc
-					selected := strings.EqualFold(m.storeCountry, cc)
+					selected := strings.EqualFold(country, cc)
 					btn := ui.ButtonBase(c.Key("store-cc-"+cc)).Padding(3, 9).Radius(6).Label(cc).
 						Cursor(ui.CursorPointer).Transition(colorTransition)
 					if selected {
@@ -429,14 +440,13 @@ func (m *Model) storeDetailCard(c *ui.Context, msg locales.Messages, sw appstore
 	})
 }
 
-func (m *Model) searchAppStore() {
+func (m *Model) searchAppStore(country string) {
 	m.mu.Lock()
 	if m.storeSearching {
 		m.mu.Unlock()
 		return
 	}
 	term := strings.TrimSpace(m.storeQuery)
-	country := m.storeCountry
 	m.storeSearching = true
 	m.storeSearchErr = ""
 	m.storeResults = nil
