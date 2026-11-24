@@ -535,7 +535,18 @@
 
   "navAccount": "Apple 账号",
   "accountTitle": "Apple 账号与签名凭证",
-  "accountSubtitle": "管理桌面直接签名、证书与 Anisette v3 服务连接；密码仅在你明确勾选时保存到 macOS Keychain。",
+  "accountSubtitle": "分别管理桌面签名与 App Store 下载两套独立会话；密码仅在你明确勾选时保存到 macOS Keychain。",
+  "accountTabDeveloper": "Apple 账号（签名）",
+  "accountTabStore": "App Store 账号",
+  "accountTabStatusSignedIn": "已登录",
+  "accountTabStatusSignedOut": "未登录",
+  "accountTabStatusSigningIn": "登录中",
+  "accountTabStatusRestoring": "恢复中",
+  "accountTabStatusVerify": "待验证",
+  "accountRoleDevTitle": "Apple 账号（桌面签名）",
+  "accountRoleDevDesc": "用于桌面直接签名安装 SideStore、LiveContainer 与本地 IPA，并管理开发证书与 App ID 名额（免费或付费 Apple ID 均可）。",
+  "accountRoleStoreTitle": "App Store 账号（下包与跨区）",
+  "accountRoleStoreDesc": "用于在「商店」页获取免费授权、查询历史版本并下载 SINF 授权 IPA；可按地区保存多个账号，与桌面签名会话完全独立。",
   "accountStatusSignedIn": "已登录：{email}",
   "@accountStatusSignedIn": {
     "placeholders": { "email": { "type": "String" } }
@@ -813,6 +824,7 @@
   "storeAccountActiveBadge": "当前使用",
   "storeAccountSignOutBtn": "退出商店账号",
   "storeAccountForgetBtn": "移除",
+  "storeAccountSavedTitle": "已保存的商店账号",
   "storeAccountSignInTitle": "登录 App Store 账号",
   "storeAccountSignInBtn": "登录商店账号",
   "storeAccountSigningIn": "正在登录 App Store…",

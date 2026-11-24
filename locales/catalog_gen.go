@@ -3838,14 +3838,124 @@ func (msgs Messages) AccountTitle() string {
 	return Catalog.Format(msgs.locale, "accountTitle", nil)
 }
 
-// AccountSubtitle says "管理桌面直接签名、证书与 Anisette v3 服务连接；密码仅在你明确勾选时保存到 macOS Keychai…"
+// AccountSubtitle says "分别管理桌面签名与 App Store 下载两套独立会话；密码仅在你明确勾选时保存到 macOS Keycha…"
 // in the language the app shows.
 func AccountSubtitle() string { return In(i18n.Locale()).AccountSubtitle() }
 
-// AccountSubtitle says "管理桌面直接签名、证书与 Anisette v3 服务连接；密码仅在你明确勾选时保存到 macOS Keychai…"
+// AccountSubtitle says "分别管理桌面签名与 App Store 下载两套独立会话；密码仅在你明确勾选时保存到 macOS Keycha…"
 // in the language of msgs.
 func (msgs Messages) AccountSubtitle() string {
 	return Catalog.Format(msgs.locale, "accountSubtitle", nil)
+}
+
+// AccountTabDeveloper says "Apple 账号（签名）"
+// in the language the app shows.
+func AccountTabDeveloper() string { return In(i18n.Locale()).AccountTabDeveloper() }
+
+// AccountTabDeveloper says "Apple 账号（签名）"
+// in the language of msgs.
+func (msgs Messages) AccountTabDeveloper() string {
+	return Catalog.Format(msgs.locale, "accountTabDeveloper", nil)
+}
+
+// AccountTabStore says "App Store 账号"
+// in the language the app shows.
+func AccountTabStore() string { return In(i18n.Locale()).AccountTabStore() }
+
+// AccountTabStore says "App Store 账号"
+// in the language of msgs.
+func (msgs Messages) AccountTabStore() string {
+	return Catalog.Format(msgs.locale, "accountTabStore", nil)
+}
+
+// AccountTabStatusSignedIn says "已登录"
+// in the language the app shows.
+func AccountTabStatusSignedIn() string { return In(i18n.Locale()).AccountTabStatusSignedIn() }
+
+// AccountTabStatusSignedIn says "已登录"
+// in the language of msgs.
+func (msgs Messages) AccountTabStatusSignedIn() string {
+	return Catalog.Format(msgs.locale, "accountTabStatusSignedIn", nil)
+}
+
+// AccountTabStatusSignedOut says "未登录"
+// in the language the app shows.
+func AccountTabStatusSignedOut() string { return In(i18n.Locale()).AccountTabStatusSignedOut() }
+
+// AccountTabStatusSignedOut says "未登录"
+// in the language of msgs.
+func (msgs Messages) AccountTabStatusSignedOut() string {
+	return Catalog.Format(msgs.locale, "accountTabStatusSignedOut", nil)
+}
+
+// AccountTabStatusSigningIn says "登录中"
+// in the language the app shows.
+func AccountTabStatusSigningIn() string { return In(i18n.Locale()).AccountTabStatusSigningIn() }
+
+// AccountTabStatusSigningIn says "登录中"
+// in the language of msgs.
+func (msgs Messages) AccountTabStatusSigningIn() string {
+	return Catalog.Format(msgs.locale, "accountTabStatusSigningIn", nil)
+}
+
+// AccountTabStatusRestoring says "恢复中"
+// in the language the app shows.
+func AccountTabStatusRestoring() string { return In(i18n.Locale()).AccountTabStatusRestoring() }
+
+// AccountTabStatusRestoring says "恢复中"
+// in the language of msgs.
+func (msgs Messages) AccountTabStatusRestoring() string {
+	return Catalog.Format(msgs.locale, "accountTabStatusRestoring", nil)
+}
+
+// AccountTabStatusVerify says "待验证"
+// in the language the app shows.
+func AccountTabStatusVerify() string { return In(i18n.Locale()).AccountTabStatusVerify() }
+
+// AccountTabStatusVerify says "待验证"
+// in the language of msgs.
+func (msgs Messages) AccountTabStatusVerify() string {
+	return Catalog.Format(msgs.locale, "accountTabStatusVerify", nil)
+}
+
+// AccountRoleDevTitle says "Apple 账号（桌面签名）"
+// in the language the app shows.
+func AccountRoleDevTitle() string { return In(i18n.Locale()).AccountRoleDevTitle() }
+
+// AccountRoleDevTitle says "Apple 账号（桌面签名）"
+// in the language of msgs.
+func (msgs Messages) AccountRoleDevTitle() string {
+	return Catalog.Format(msgs.locale, "accountRoleDevTitle", nil)
+}
+
+// AccountRoleDevDesc says "用于桌面直接签名安装 SideStore、LiveContainer 与本地 IPA，并管理开发证书与 App ID …"
+// in the language the app shows.
+func AccountRoleDevDesc() string { return In(i18n.Locale()).AccountRoleDevDesc() }
+
+// AccountRoleDevDesc says "用于桌面直接签名安装 SideStore、LiveContainer 与本地 IPA，并管理开发证书与 App ID …"
+// in the language of msgs.
+func (msgs Messages) AccountRoleDevDesc() string {
+	return Catalog.Format(msgs.locale, "accountRoleDevDesc", nil)
+}
+
+// AccountRoleStoreTitle says "App Store 账号（下包与跨区）"
+// in the language the app shows.
+func AccountRoleStoreTitle() string { return In(i18n.Locale()).AccountRoleStoreTitle() }
+
+// AccountRoleStoreTitle says "App Store 账号（下包与跨区）"
+// in the language of msgs.
+func (msgs Messages) AccountRoleStoreTitle() string {
+	return Catalog.Format(msgs.locale, "accountRoleStoreTitle", nil)
+}
+
+// AccountRoleStoreDesc says "用于在「商店」页获取免费授权、查询历史版本并下载 SINF 授权 IPA…"
+// in the language the app shows.
+func AccountRoleStoreDesc() string { return In(i18n.Locale()).AccountRoleStoreDesc() }
+
+// AccountRoleStoreDesc says "用于在「商店」页获取免费授权、查询历史版本并下载 SINF 授权 IPA…"
+// in the language of msgs.
+func (msgs Messages) AccountRoleStoreDesc() string {
+	return Catalog.Format(msgs.locale, "accountRoleStoreDesc", nil)
 }
 
 // AccountStatusSignedIn says "已登录：{email}"
@@ -5494,6 +5604,16 @@ func StoreAccountForgetBtn() string { return In(i18n.Locale()).StoreAccountForge
 // in the language of msgs.
 func (msgs Messages) StoreAccountForgetBtn() string {
 	return Catalog.Format(msgs.locale, "storeAccountForgetBtn", nil)
+}
+
+// StoreAccountSavedTitle says "已保存的商店账号"
+// in the language the app shows.
+func StoreAccountSavedTitle() string { return In(i18n.Locale()).StoreAccountSavedTitle() }
+
+// StoreAccountSavedTitle says "已保存的商店账号"
+// in the language of msgs.
+func (msgs Messages) StoreAccountSavedTitle() string {
+	return Catalog.Format(msgs.locale, "storeAccountSavedTitle", nil)
 }
 
 // StoreAccountSignInTitle says "登录 App Store 账号"

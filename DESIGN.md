@@ -102,6 +102,7 @@ Extract the main app's icon from the IPA, including Apple `CgBI` PNG decoding, f
 - **Purposeful motion:** Use 140ms color transitions on hover, `Snappy` expansion for collapsible details, insertion and removal transitions for rows, a subtle pressed scale of `0.988`, a 2pt arrow nudge on hover, and Oklab transitions for status indicators. Respect the system's Reduce Motion preference.
 - **Background sign-in:** Replace the submitted form with an indeterminate spinner and a status label. Keep navigation available. Show the verification action in the account card or in the workspace footer on other pages, and open the dialog when the user chooses to enter their code. Restore the form with an error after a failed attempt. In Reduce Motion, keep the status label visible without the spinner.
 - **Session recovery:** At startup, label saved-session recovery separately from sign-in. Keep navigation and App Store search available while account sections show the recovery status.
+- **Account tabs:** Present Apple Account (desktop signing) and App Store Account (downloads & regions) as two segmented sub-tabs matching the Device view pattern. Explain both roles in a concise top overview card, and display each account's live status (signed in, signed out, restoring, signing in, or awaiting verification) directly on its tab.
 
 ## Workflow and State Requirements
 

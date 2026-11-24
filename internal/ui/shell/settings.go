@@ -103,6 +103,7 @@ func (m *Model) settingsView(c *ui.Context, msg locales.Messages) {
 				}
 			})
 			if uiBtn(c, "settings-open-account", msg.NavAccount()).Clicked() {
+				m.accountTab = accountTabDeveloper
 				m.section = "账号"
 			}
 		})

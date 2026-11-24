@@ -56,6 +56,7 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 					monoText(c, msg.StoreAccountRegion(country, storeSess.StoreFront())).FontSize(11).TextColor(t.TextMuted).SingleLine()
 				})
 				if uiBtn(c, "store-switch-account-link", msg.StoreAccountSwitchBtn()).Clicked() {
+					m.accountTab = accountTabStore
 					m.section = "账号"
 				}
 			} else {
@@ -64,6 +65,7 @@ func (m *Model) storeView(c *ui.Context, msg locales.Messages, compact bool) {
 					ui.Text(c, msg.StoreAccountNeedDesc()).FontSize(11).TextColor(t.TextMuted).SingleLine()
 				})
 				if uiBtn(c, "store-goto-account", msg.StoreAccountOpenBtn()).Clicked() {
+					m.accountTab = accountTabStore
 					m.section = "账号"
 				}
 			}

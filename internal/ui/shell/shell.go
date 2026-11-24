@@ -71,6 +71,7 @@ type Model struct {
 	appQuery    string
 	appFilter   int // 0: all, 1: sideloaded
 	deviceTab   int // 0: environment, 1: apps, 2: documents
+	accountTab  int // 0: Apple Developer (signing), 1: App Store (downloads & regions)
 	docTreeOpen map[string]bool
 
 	dropped       []string
@@ -363,6 +364,7 @@ func (m *Model) navigateToAccountForLogin(sourceKey, backSection string, backSta
 		sourceKey: sourceKey,
 	}
 	m.mu.Unlock()
+	m.accountTab = accountTabDeveloper
 	m.section = "账号"
 	if m.win != nil {
 		m.win.Invalidate()

@@ -20,6 +20,21 @@ const (
 	verifyStore
 )
 
+const (
+	accountTabDeveloper = 0
+	accountTabStore     = 1
+)
+
+type accountTabStatus uint8
+
+const (
+	accountTabSignedOut accountTabStatus = iota
+	accountTabSignedIn
+	accountTabSigningIn
+	accountTabRestoring
+	accountTabVerify
+)
+
 // RestoreAccountSessions loads saved accounts without blocking the workspace.
 func (m *Model) RestoreAccountSessions(ctx context.Context) {
 	mgr, win := m.services.Accounts, m.win
@@ -50,6 +65,180 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 		ui.Text(c, msg.AccountSubtitle()).TextColor(t.TextMuted)
 	})
 
+	mgr := m.services.Accounts
+	devSess := mgr.Developer()
+	storeSess := mgr.Store()
+	m.mu.Lock()
+	devBusy, devCode, devRestoring := m.loginBusy, m.twoFactorRespCh != nil, m.developerRestoring
+	storeBusy, storeCode, storeRestoring := m.storeLoginBusy, m.store2FARespCh != nil, m.storeRestoring
+	m.mu.Unlock()
+
+	m.renderAccountRolesCard(c, msg)
+	m.renderAccountTabs(c, msg,
+		resolveAccountTabStatus(devSess.SignedIn(), devBusy, devRestoring, devCode),
+		resolveAccountTabStatus(storeSess.SignedIn(), storeBusy, storeRestoring, storeCode),
+	)
+
+	switch m.accountTab {
+	case accountTabStore:
+		m.renderStoreAccountTab(c, msg)
+	default:
+		m.renderDeveloperAccountTab(c, msg)
+	}
+}
+
+func resolveAccountTabStatus(signedIn, busy, restoring, awaitingCode bool) accountTabStatus {
+	switch {
+	case awaitingCode:
+		return accountTabVerify
+	case restoring:
+		return accountTabRestoring
+	case busy:
+		return accountTabSigningIn
+	case signedIn:
+		return accountTabSignedIn
+	default:
+		return accountTabSignedOut
+	}
+}
+
+func accountTabStatusVisual(t *ui.Theme, msg locales.Messages, st accountTabStatus, active bool) (label string, dotColor, textColor, badgeBg ui.Color) {
+	switch st {
+	case accountTabSignedIn:
+		dotColor = ui.Hex("#10B981")
+		if t.Dark {
+			textColor = ui.Hex("#34D399")
+			badgeBg = ui.Hex("#10B981").Alpha(0.16)
+		} else {
+			textColor = ui.Hex("#065F46")
+			badgeBg = ui.Hex("#10B981").Alpha(0.14)
+		}
+		return msg.AccountTabStatusSignedIn(), dotColor, textColor, badgeBg
+	case accountTabVerify:
+		dotColor = ui.Hex("#F59E0B")
+		if t.Dark {
+			textColor = ui.Hex("#FBBF24")
+			badgeBg = ui.Hex("#F59E0B").Alpha(0.16)
+		} else {
+			textColor = ui.Hex("#92400E")
+			badgeBg = ui.Hex("#F59E0B").Alpha(0.16)
+		}
+		return msg.AccountTabStatusVerify(), dotColor, textColor, badgeBg
+	case accountTabRestoring:
+		ink := accentInk(t)
+		return msg.AccountTabStatusRestoring(), ink, ink, t.Selection
+	case accountTabSigningIn:
+		ink := accentInk(t)
+		return msg.AccountTabStatusSigningIn(), ink, ink, t.Selection
+	default:
+		dotColor = t.TextMuted.Alpha(0.45)
+		textColor = t.TextMuted
+		if active && !t.Dark {
+			textColor = ui.Hex("#475569")
+		}
+		return msg.AccountTabStatusSignedOut(), dotColor, textColor, ui.Transparent
+	}
+}
+
+func (m *Model) renderAccountRolesCard(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	winW, _ := c.Size()
+	stackRoles := winW > 0 && winW < mediumWidth
+
+	roleItem := func(key string, icon *ui.SVG, title, desc string) {
+		ui.Row(c.Key(key)).Grow(1).MinWidth(0).Gap(12).AlignItems(ui.Start).Children(func() {
+			ui.Row(c).Width(32).Height(32).Radius(8).Background(t.Selection).Shrink(0).Center().Children(func() {
+				ui.Icon(c, icon).Width(16).Height(16).TextColor(accentInk(t))
+			})
+			ui.Column(c).Grow(1).MinWidth(0).Gap(3).Children(func() {
+				ui.Text(c, title).Bold().FontSize(13)
+				ui.Text(c, desc).FontSize(12).TextColor(t.TextMuted)
+			})
+		})
+	}
+
+	surfaceCard(c, "account-roles-card").Padding(14, 18).Children(func() {
+		if stackRoles {
+			ui.Column(c).FillWidth().Gap(12).Children(func() {
+				roleItem("account-role-dev", phKey, msg.AccountRoleDevTitle(), msg.AccountRoleDevDesc())
+				ui.Divider(c)
+				roleItem("account-role-store", phImport, msg.AccountRoleStoreTitle(), msg.AccountRoleStoreDesc())
+			})
+		} else {
+			ui.Row(c).FillWidth().Gap(16).AlignItems(ui.Stretch).Children(func() {
+				roleItem("account-role-dev", phKey, msg.AccountRoleDevTitle(), msg.AccountRoleDevDesc())
+				ui.Divider(c)
+				roleItem("account-role-store", phImport, msg.AccountRoleStoreTitle(), msg.AccountRoleStoreDesc())
+			})
+		}
+	})
+}
+
+func (m *Model) renderAccountTabs(c *ui.Context, msg locales.Messages, devStatus, storeStatus accountTabStatus) {
+	t := c.Theme()
+	winW, _ := c.Size()
+	fillEqually := winW > 0 && winW < mediumWidth
+
+	items := []struct {
+		key    string
+		title  string
+		status accountTabStatus
+	}{
+		{key: "account-tab-dev", title: msg.AccountTabDeveloper(), status: devStatus},
+		{key: "account-tab-store", title: msg.AccountTabStore(), status: storeStatus},
+	}
+
+	ui.Row(c.Key("account-tabs-row")).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
+		parts := ui.SegmentedBase(c.Key("account-sub-tab"), &m.accountTab, len(items))
+		parts.Track.AlignItems(ui.Stretch).Padding(t.Space(0.5)).Gap(t.Space(0.5)).
+			Radius(t.Radius).Background(t.Surface).Border(1, t.Border).
+			Label(msg.AccountTitle()).Children(func() {
+			for i, item := range items {
+				active := i == m.accountTab
+				statusLabel, dotColor, textColor, badgeBg := accountTabStatusVisual(t, msg, item.status, active)
+				seg := parts.Segment(i).Padding(6, 12).Radius(max(4, t.Radius-2)).Gap(8).
+					Label(item.title).Description(statusLabel).
+					Cursor(ui.CursorPointer).Transition(colorTransition)
+				if active {
+					shadowAlpha := float32(0.12)
+					if t.Dark {
+						shadowAlpha = 0.28
+					}
+					seg.Background(t.SurfacePressed).Shadow(0, 1, 2, 0, ui.RGBA(0, 0, 0, shadowAlpha))
+				} else if seg.Hovered() {
+					seg.Background(t.SurfaceHover)
+				}
+				applyPressPose(seg, 0.988)
+				seg.Children(func() {
+					dot := ui.Row(c.Key(item.key + "-dot")).Width(7).Height(7).Radius(3.5).Shrink(0)
+					dot.Background(dot.AnimateColor("tab-dot", dotColor, motionStatusColorAnim))
+					title := ui.Text(c, item.title).FontSize(13).SingleLine()
+					if active {
+						title.Bold().TextColor(t.Text)
+					} else {
+						title.TextColor(t.TextMuted)
+					}
+					badge := ui.Row(c.Key(item.key + "-status")).Padding(1, 7).Radius(999).Shrink(0)
+					if badgeBg != ui.Transparent {
+						badge.Background(badgeBg)
+					}
+					badge.Children(func() {
+						stTxt := ui.Text(c, statusLabel).FontSize(11).TextColor(textColor).SingleLine()
+						if item.status != accountTabSignedOut {
+							stTxt.Bold()
+						}
+					})
+				})
+			}
+		})
+		if fillEqually {
+			parts.Track.FillEqually()
+		}
+	})
+}
+
+func (m *Model) renderDeveloperAccountTab(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
 	mgr := m.services.Accounts
 	devSess := mgr.Developer()
 	m.mu.Lock()
@@ -304,8 +493,6 @@ func (m *Model) accountView(c *ui.Context, msg locales.Messages) {
 			ui.Text(c, msg.AccountStoreBoundaryNote()).FontSize(11).TextColor(t.TextMuted)
 		})
 	})
-
-	m.storeAccountSection(c, msg)
 }
 
 func loginLoading(c *ui.Context, key, label string) {
@@ -331,14 +518,15 @@ func (m *Model) loginVerificationRow(c *ui.Context, msg locales.Messages, key, l
 }
 
 func (m *Model) backgroundLoginStatus(c *ui.Context, msg locales.Messages) {
-	if m.section == "账号" {
-		return
-	}
+	onDevTab := m.section == "账号" && m.accountTab == accountTabDeveloper
+	onStoreTab := m.section == "账号" && m.accountTab == accountTabStore
 	m.mu.Lock()
-	developerBusy, storeBusy := m.loginBusy, m.storeLoginBusy
-	developerCode, storeCode := m.twoFactorRespCh != nil, m.store2FARespCh != nil
-	developerRestoring := m.developerRestoring
-	storeRestoring := m.storeRestoring && m.section != "商店"
+	developerBusy := m.loginBusy && !onDevTab
+	developerCode := m.twoFactorRespCh != nil && !onDevTab
+	developerRestoring := m.developerRestoring && !onDevTab
+	storeBusy := m.storeLoginBusy && !onStoreTab
+	storeCode := m.store2FARespCh != nil && !onStoreTab
+	storeRestoring := m.storeRestoring && !onStoreTab && m.section != "商店"
 	m.mu.Unlock()
 	if !developerCode && !storeCode && !developerBusy && !storeBusy && !developerRestoring && !storeRestoring {
 		return
@@ -820,7 +1008,7 @@ func (m *Model) revokePortalCert(serial string) {
 	}()
 }
 
-func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
+func (m *Model) renderStoreAccountTab(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
 	mgr := m.services.Accounts
 	m.mu.Lock()
@@ -828,15 +1016,9 @@ func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 	restoring := m.storeRestoring
 	sErr := m.storeLoginErr
 	m.mu.Unlock()
-
-	ui.Column(c).FillWidth().Gap(4).Margin(8, 0, 0, 0).Children(func() {
-		ui.Text(c, msg.StoreAccountSectionTitle()).Bold().FontSize(16)
-		ui.Text(c, msg.StoreAccountSectionDesc()).FontSize(12).TextColor(t.TextMuted)
-	})
-
 	if busy || awaitingCode || restoring {
-		surfaceCard(c, "store-signin-card").Padding(16, 18).Gap(10).Children(func() {
-			ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(14)
+		surfaceCard(c, "store-signin-card").Padding(18, 20).Gap(12).Children(func() {
+			ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(16)
 			if awaitingCode {
 				m.loginVerificationRow(c, msg, "store-verification", msg.Store2FATitle(), verifyStore)
 			} else if restoring {
@@ -853,10 +1035,12 @@ func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 
 	if storeSess.SignedIn() {
 		insetGroup(c, "store-account-signedin", func() {
-			ui.Row(c).FillWidth().Padding(14, 18).Gap(12).AlignItems(ui.Center).Children(func() {
-				ui.Icon(c, phAccountFill).Width(24).Height(24).TextColor(accentInk(t))
+			ui.Row(c).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
+				ui.Row(c).Width(40).Height(40).Radius(20).Background(t.Selection).Center().Children(func() {
+					ui.Icon(c, phAccountFill).Width(24).Height(24).TextColor(accentInk(t))
+				})
 				ui.Column(c).Grow(1).Gap(2).Children(func() {
-					ui.Text(c, msg.StoreAccountSignedIn(storeSess.Email())).Bold().FontSize(14)
+					ui.Text(c.Key("store-status-title"), msg.StoreAccountSignedIn(storeSess.Email())).Role(ui.RoleStatus).Bold().FontSize(15)
 					country := storeSess.CountryCode()
 					if country == "" {
 						country = "—"
@@ -872,6 +1056,7 @@ func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 	}
 
 	if len(savedStore) > 0 {
+		ui.Text(c, msg.StoreAccountSavedTitle()).Bold().FontSize(13).TextColor(t.TextMuted)
 		insetGroup(c, "store-saved-accounts", func() {
 			for idx, item := range savedStore {
 				item := item
@@ -904,13 +1089,14 @@ func (m *Model) storeAccountSection(c *ui.Context, msg locales.Messages) {
 		})
 	}
 
-	surfaceCard(c, "store-signin-card").Padding(16, 18).Gap(10).Children(func() {
-		ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(14)
+	surfaceCard(c, "store-signin-card").Padding(18, 20).Gap(12).Children(func() {
+		ui.Text(c, msg.StoreAccountSignInTitle()).Bold().FontSize(16)
+		ui.Text(c, msg.AccountEmailLabel()).FontSize(12).TextColor(t.TextMuted)
 		ui.TextInput(c.Key("store-email-input"), &m.storeLoginEmail).
 			Placeholder(msg.AccountEmailPlaceholder()).FillWidth().Label(msg.AccountEmailLabel())
+		ui.Text(c, msg.AccountPasswordLabel()).FontSize(12).TextColor(t.TextMuted)
 		ui.TextInput(c.Key("store-password-input"), &m.storeLoginPass).
 			Password().Placeholder(msg.AccountPasswordPlaceholder()).FillWidth().Label(msg.AccountPasswordLabel())
-
 		if sErr != "" {
 			ui.Text(c.Key("store-login-err"), friendlyError(msg, sErr)).Role(ui.RoleStatus).FontSize(12).TextColor(ui.Hex("#EF4444"))
 		}

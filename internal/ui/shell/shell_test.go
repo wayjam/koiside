@@ -746,6 +746,17 @@ func TestAccountViewAnisette2FAAndToolsActions(t *testing.T) {
 	if !tt.HasText("Anisette v3 服务") || !tt.HasText("App Store 下载与开发者签名保持独立会话") {
 		t.Fatalf("anisette/store boundary missing: %q", tt.Texts())
 	}
+	if !tt.HasText(m.msg(nil).AccountRoleDevDesc()) || !tt.HasText(m.msg(nil).AccountRoleStoreDesc()) {
+		t.Fatal("account role guidance copy missing")
+	}
+	devTab, ok := tt.AccessByRole(ui.RoleRadio, m.msg(nil).AccountTabDeveloper())
+	if !ok || !devTab.Checked || devTab.Description != m.msg(nil).AccountTabStatusSignedOut() {
+		t.Fatalf("unexpected developer tab state: %+v ok=%v", devTab, ok)
+	}
+	storeTab, ok := tt.AccessByRole(ui.RoleRadio, m.msg(nil).AccountTabStore())
+	if !ok || storeTab.Checked || storeTab.Description != m.msg(nil).AccountTabStatusSignedOut() {
+		t.Fatalf("unexpected store tab state: %+v ok=%v", storeTab, ok)
+	}
 	if err := tt.Click("重置设备证明状态"); err != nil {
 		t.Fatal(err)
 	}
@@ -773,11 +784,20 @@ func TestAccountViewAnisette2FAAndToolsActions(t *testing.T) {
 	if tt.HasText(msg.AccountSignInBtn()) || tt.HasText(msg.StoreAccountSignInBtn()) || tt.HasText(msg.AccountRememberPassword()) {
 		t.Fatal("credential actions should be replaced by sign-in status")
 	}
+	if err := tt.Click(msg.AccountTabStore()); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText(msg.StoreAccountSigningIn()) || tt.HasText(msg.StoreAccountSignInBtn()) {
+		t.Fatal("store tab should show loading status while store sign-in is running")
+	}
 	m.storeLoginBusy = false
 	m.storeLoginErr = "store sign-in failed"
 	tt.Frame()
 	if !tt.HasText(msg.StoreAccountSignInBtn()) || !tt.HasText(m.storeLoginErr) || tt.HasText(msg.StoreAccountSigningIn()) {
 		t.Fatal("App Store form should be available for retry after sign-in fails")
+	}
+	if err := tt.Click(msg.AccountTabDeveloper()); err != nil {
+		t.Fatal(err)
 	}
 	if err := tt.Click("首页"); err != nil {
 		t.Fatal(err)
@@ -839,6 +859,9 @@ func TestAccountViewAnisette2FAAndToolsActions(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("已登录：ada@example.com") || !tt.HasText("开发证书与 App ID 名额") {
 		t.Fatalf("signed-in account view missing details: %q", tt.Texts())
+	}
+	if devTab, ok := tt.AccessByRole(ui.RoleRadio, msg.AccountTabDeveloper()); !ok || devTab.Description != msg.AccountTabStatusSignedIn() {
+		t.Fatalf("developer tab should indicate signed-in state: %+v ok=%v", devTab, ok)
 	}
 
 	// Device view exposes SideStore/LiveContainer install, LocalDevVPN App Store, Pairing, and Developer Mode controls
@@ -949,14 +972,23 @@ func TestStartupSessionRecoveryKeepsStoreUsable(t *testing.T) {
 	if err := tt.Click(msg.NavAccount()); err != nil {
 		t.Fatal(err)
 	}
+	if err := tt.Click(msg.AccountTabStore()); err != nil {
+		t.Fatal(err)
+	}
 	if !tt.HasText(storeStatus) || tt.HasText(msg.StoreAccountSignInBtn()) {
 		t.Fatal("store recovery should replace the store sign-in form")
+	}
+	if storeTab, ok := tt.AccessByRole(ui.RoleRadio, msg.AccountTabStore()); !ok || !storeTab.Checked || storeTab.Description != msg.AccountTabStatusRestoring() {
+		t.Fatalf("store tab should indicate restoring state: %+v ok=%v", storeTab, ok)
 	}
 	close(storeReady)
 	waitForRecovery(&m.storeRestoring)
 	tt.Frame()
 	if tt.HasText(storeStatus) || !tt.HasText(msg.StoreAccountSignedIn("shop@example.com")) || !tt.HasText(devStatus) {
 		t.Fatal("restored store account should appear while developer recovery is still pending")
+	}
+	if storeTab, ok := tt.AccessByRole(ui.RoleRadio, msg.AccountTabStore()); !ok || storeTab.Description != msg.AccountTabStatusSignedIn() {
+		t.Fatalf("store tab should indicate signed-in state after recovery: %+v ok=%v", storeTab, ok)
 	}
 	if err := tt.Click(msg.NavStore()); err != nil {
 		t.Fatal(err)
