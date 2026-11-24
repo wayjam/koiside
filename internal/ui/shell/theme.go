@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+
+	"koiside/locales"
 )
 
 type (
@@ -313,6 +315,61 @@ func uiBtn(c *ui.Context, key, label string) ui.Element {
 func uiPrimaryBtn(c *ui.Context, key, label string) ui.Element {
 	btn := ui.PrimaryButton(c.Key(key), label).Cursor(ui.CursorPointer).Transition(colorTransition)
 	return applyPressPose(btn, 0.985)
+}
+
+// uiBtnWithTip creates a button with an optional hover tooltip when disabled or active.
+func uiBtnWithTip(c *ui.Context, key, label string, disabled bool, tip string) ui.Element {
+	if disabled {
+		if tip != "" {
+			wrap := ui.Row(c.Key(key + "-tip-wrap")).Tooltip(tip)
+			var btn ui.Element
+			wrap.Children(func() {
+				btn = uiBtn(c, key, label).Disabled(true)
+			})
+			return btn
+		}
+		return uiBtn(c, key, label).Disabled(true)
+	}
+	btn := uiBtn(c, key, label)
+	if tip != "" {
+		btn.Tooltip(tip)
+	}
+	return btn
+}
+
+// uiPrimaryBtnWithTip creates a primary button with an optional hover tooltip when disabled or active.
+func uiPrimaryBtnWithTip(c *ui.Context, key, label string, disabled bool, tip string) ui.Element {
+	if disabled {
+		if tip != "" {
+			wrap := ui.Row(c.Key(key + "-tip-wrap")).Tooltip(tip)
+			var btn ui.Element
+			wrap.Children(func() {
+				btn = uiPrimaryBtn(c, key, label).Disabled(true)
+			})
+			return btn
+		}
+		return uiPrimaryBtn(c, key, label).Disabled(true)
+	}
+	btn := uiPrimaryBtn(c, key, label)
+	if tip != "" {
+		btn.Tooltip(tip)
+	}
+	return btn
+}
+
+// deviceBtn creates a button that requires a connected device. When disconnected,
+// it is disabled and displays a hover tooltip instructing the user to connect and trust iPhone via USB.
+func (m *Model) deviceBtn(c *ui.Context, msg locales.Messages, key, label string, primary bool, extraDisabled bool) ui.Element {
+	noDev := !m.hasConnectedDevice()
+	disabled := noDev || extraDisabled
+	tip := ""
+	if noDev {
+		tip = msg.ToolInstallNeedDevice()
+	}
+	if primary {
+		return uiPrimaryBtnWithTip(c, key, label, disabled, tip)
+	}
+	return uiBtnWithTip(c, key, label, disabled, tip)
 }
 
 // surfaceCard styles a primary focus card using calibrated elevation (single border or subtle top bevel, no heavy ghost shadow).

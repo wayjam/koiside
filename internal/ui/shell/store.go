@@ -312,26 +312,35 @@ func (m *Model) storeDetailCard(c *ui.Context, msg locales.Messages, sw appstore
 
 		// Actions row
 		ui.Row(c).FillWidth().Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
-			instBtn := uiPrimaryBtn(c, "store-download-install", msg.StoreDownloadInstallBtn())
-			if dlBusy || !signedIn || !m.hasConnectedDevice() {
-				instBtn.Disabled(true)
+			noDev := !m.hasConnectedDevice()
+			instDis := dlBusy || !signedIn || noDev
+			instTip := ""
+			if noDev {
+				instTip = msg.ToolInstallNeedDevice()
+			} else if !signedIn {
+				instTip = msg.ToolInstallNeedLogin()
 			}
+			instBtn := uiPrimaryBtnWithTip(c, "store-download-install", msg.StoreDownloadInstallBtn(), instDis, instTip)
 			if instBtn.Clicked() {
 				m.downloadStoreIPA(sw, selVer, true)
 			}
 
-			dlBtn := uiBtn(c, "store-download-only", msg.StoreDownloadBtn())
-			if dlBusy || !signedIn {
-				dlBtn.Disabled(true)
+			dlDis := dlBusy || !signedIn
+			dlTip := ""
+			if !signedIn {
+				dlTip = msg.ToolInstallNeedLogin()
 			}
+			dlBtn := uiBtnWithTip(c, "store-download-only", msg.StoreDownloadBtn(), dlDis, dlTip)
 			if dlBtn.Clicked() {
 				m.downloadStoreIPA(sw, selVer, false)
 			}
 
-			verBtn := uiBtn(c, "store-fetch-versions", msg.StoreVersionsBtn())
-			if verLoading || !signedIn {
-				verBtn.Disabled(true)
+			verDis := verLoading || !signedIn
+			verTip := ""
+			if !signedIn {
+				verTip = msg.ToolInstallNeedLogin()
 			}
+			verBtn := uiBtnWithTip(c, "store-fetch-versions", msg.StoreVersionsBtn(), verDis, verTip)
 			if verBtn.Clicked() {
 				m.fetchStoreVersions(sw)
 			}

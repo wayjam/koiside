@@ -496,10 +496,12 @@ func (m *Model) docTreeView(c *ui.Context, msg locales.Messages, entries []devic
 				m.mu.Lock()
 				deleting := m.docDeleting == entry.Path
 				m.mu.Unlock()
-				delBtn := uiBtn(c, "doc-del-"+entry.Path, msg.DeviceDocDeleteBtn())
-				if deleting {
-					delBtn.Disabled(true)
+				noDev := !m.hasConnectedDevice()
+				delTip := ""
+				if noDev {
+					delTip = msg.ToolInstallNeedDevice()
 				}
+				delBtn := uiBtnWithTip(c, "doc-del-"+entry.Path, msg.DeviceDocDeleteBtn(), deleting || noDev, delTip)
 				if delBtn.Clicked() {
 					m.deleteDeviceDoc(entry.Path, entry.Name)
 				}
@@ -690,7 +692,7 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 		}
 		renderSSActions := func() {
 			ui.Row(c).Wrap().Gap(8).Children(func() {
-				if uiBtn(c, "install-sidestore-btn", msg.ToolInstallSideStoreBtn()).Clicked() {
+				if m.deviceBtn(c, msg, "install-sidestore-btn", msg.ToolInstallSideStoreBtn(), false, false).Clicked() {
 					m.confirmToolInstall(installer.TargetSideStore)
 				}
 				if uiBtn(c, "sidestore-guide", msg.DeviceViewToolGuide()).Clicked() {
@@ -728,10 +730,10 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 				ui.Text(c, toolStatusText(m.lcApp)).FontSize(12).TextColor(t.TextMuted)
 			})
 			ui.Row(c).Wrap().Gap(8).Children(func() {
-				if uiBtn(c, "install-lcss-btn", msg.ToolInstallLCSSBtn()).Clicked() {
+				if m.deviceBtn(c, msg, "install-lcss-btn", msg.ToolInstallLCSSBtn(), false, false).Clicked() {
 					m.confirmToolInstall(installer.TargetLiveContainerLCSS)
 				}
-				if uiBtn(c, "install-lc-btn", msg.ToolInstallLCBtn()).Clicked() {
+				if m.deviceBtn(c, msg, "install-lc-btn", msg.ToolInstallLCBtn(), false, false).Clicked() {
 					m.confirmToolInstall(installer.TargetLiveContainerOnly)
 				}
 			})
@@ -747,13 +749,10 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, msg.PairingSectionTitle()).Bold().FontSize(14)
 					ui.Text(c, msg.PairingSectionDesc()).FontSize(12).TextColor(t.TextMuted)
 				})
-				if uiBtn(c, "device-pairing-export", msg.PairingExportBtn()).Clicked() {
+				if m.deviceBtn(c, msg, "device-pairing-export", msg.PairingExportBtn(), false, false).Clicked() {
 					m.exportPairingToFile()
 				}
-				placeBtn := uiBtn(c, "device-pairing-place", msg.PairingOneClickBtn())
-				if m.pairingBusy {
-					placeBtn.Disabled(true)
-				}
+				placeBtn := m.deviceBtn(c, msg, "device-pairing-place", msg.PairingOneClickBtn(), false, m.pairingBusy)
 				if placeBtn.Clicked() {
 					m.placePairingToAll()
 				}
@@ -813,7 +812,12 @@ func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 							ui.Icon(c, icon).Width(15).Height(15).TextColor(t.TextMuted)
 							monoText(c, name).FontSize(12).Grow(1)
 							if isDeletableDocFile(remote, name) && m.docsBundleID != "" {
-								if uiBtn(c, "doc-flat-del-"+name, msg.DeviceDocDeleteBtn()).Clicked() {
+								noDev := !m.hasConnectedDevice()
+								delTip := ""
+								if noDev {
+									delTip = msg.ToolInstallNeedDevice()
+								}
+								if uiBtnWithTip(c, "doc-flat-del-"+name, msg.DeviceDocDeleteBtn(), noDev, delTip).Clicked() {
 									m.deleteDeviceDoc(remote, name)
 								}
 							}
@@ -1004,15 +1008,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 						ui.Text(c.Key("transfer-status-line"), m.transferStatusText(msg)).FontSize(12).TextColor(statusColor)
 					})
 				})
-				var handoffBtn ui.Element
-				if primary && !readyToConfirm {
-					handoffBtn = uiPrimaryBtn(c, "transfer-handoff-btn", usbBtnLabel)
-				} else {
-					handoffBtn = uiBtn(c, "transfer-handoff-btn", usbBtnLabel)
-				}
-				if m.transferring {
-					handoffBtn.Disabled(true)
-				}
+				handoffBtn := m.deviceBtn(c, msg, "transfer-handoff-btn", usbBtnLabel, primary && !readyToConfirm, m.transferring)
 				if handoffBtn.Clicked() {
 					m.handoffSelected()
 				}
@@ -1045,15 +1041,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 							Transition(feedbackBannerTransition)
 					}
 				})
-				var directBtn ui.Element
-				if primary && !installedOnDevice {
-					directBtn = uiPrimaryBtn(c, "transfer-direct-install-btn", msg.TransferDirectInstallBtn())
-				} else {
-					directBtn = uiBtn(c, "transfer-direct-install-btn", msg.TransferDirectInstallBtn())
-				}
-				if m.directInstallOn {
-					directBtn.Disabled(true)
-				}
+				directBtn := m.deviceBtn(c, msg, "transfer-direct-install-btn", msg.TransferDirectInstallBtn(), primary && !installedOnDevice, m.directInstallOn)
 				if directBtn.Clicked() {
 					m.directInstallSelected()
 				}
@@ -1411,7 +1399,8 @@ func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
 					m.pendingToolInstall = ""
 					m.mu.Unlock()
 				}
-				if uiPrimaryBtn(c, "tool-confirm-ok", msg.ToolConfirmInstallBtn()).Clicked() {
+				confirmBtn := m.deviceBtn(c, msg, "tool-confirm-ok", msg.ToolConfirmInstallBtn(), true, false)
+				if confirmBtn.Clicked() {
 					m.mu.Lock()
 					m.pendingToolInstall = ""
 					m.mu.Unlock()

@@ -172,6 +172,7 @@ func TestHandoffUsesExportedPathWhenPresent(t *testing.T) {
 	m, tt := newTest(t, false)
 	tr := &recordingTransfer{}
 	m.mu.Lock()
+	m.devices = []device.Device{{ID: 1, ConnectionType: "USB"}}
 	m.files = []archiveState{{path: "/tmp/orig.ipa", ready: true}}
 	m.exportedPath = "/tmp/edited-koiside.ipa"
 	m.transferrer = tr
@@ -1241,5 +1242,154 @@ func TestMotionTransitionsAndReduceMotionRespect(t *testing.T) {
 	}
 	if m.section != "准备" {
 		t.Fatalf("expected section=准备 under ReduceMotion, got %s", m.section)
+	}
+}
+
+func TestButtonsDisabledWhenDeviceDisconnectedWithTooltip(t *testing.T) {
+	m, tt := newTest(t, false)
+	needDevTip := m.msg(nil).ToolInstallNeedDevice()
+
+	// 1. Stage 1: Store SINF direct install requires connected device
+	m.mu.Lock()
+	m.files = []archiveState{{
+		path:  "/tmp/StoreApp.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "StoreApp",
+			BundleID:    "com.example.storeapp",
+			Version:     "1.0.0",
+			HasSinf:     true,
+			Findings:    []ipa.Finding{{Code: "fairplay", Severity: ipa.Block}},
+		},
+	}}
+	m.selected = 0
+	m.section = "文件"
+	m.taskStage = 1
+	m.devices = nil
+	m.directInstallOn = false
+	m.mu.Unlock()
+	tt.Frame()
+
+	sinfBtnLabel := m.msg(nil).StoreSinfDirectInstallBtn()
+	_ = tt.Click(sinfBtnLabel)
+	if m.directInstallOn {
+		t.Fatalf("expected %q not to trigger directInstallOn when disconnected", sinfBtnLabel)
+	}
+	sinfBox, ok := tt.Find(sinfBtnLabel)
+	if !ok {
+		t.Fatalf("could not find %q", sinfBtnLabel)
+	}
+	tt.Move(0, 0)
+	tt.Frame()
+	tt.Move(sinfBox.X+sinfBox.W/2, sinfBox.Y+sinfBox.H/2)
+	tt.Frame()
+	tt.Advance(700 * time.Millisecond)
+	tt.Frame()
+	if !tt.HasText(needDevTip) {
+		t.Fatalf("expected hover tooltip %q on %q, texts=%q", needDevTip, sinfBtnLabel, tt.Texts())
+	}
+
+	// 2. Stage 4: Handoff and Direct Install require connected device
+	m.mu.Lock()
+	m.section = "交接"
+	m.taskStage = 4
+	m.transferring = false
+	m.mu.Unlock()
+	tt.Frame()
+
+	directInstallLabel := m.msg(nil).TransferDirectInstallBtn()
+	_ = tt.Click(directInstallLabel)
+	if m.directInstallOn {
+		t.Fatalf("expected %q not to trigger when disconnected", directInstallLabel)
+	}
+	directBox, ok := tt.Find(directInstallLabel)
+	if !ok {
+		t.Fatalf("could not find %q", directInstallLabel)
+	}
+	tt.Move(0, 0)
+	tt.Frame()
+	tt.Move(directBox.X+directBox.W/2, directBox.Y+directBox.H/2)
+	tt.Frame()
+	tt.Advance(700 * time.Millisecond)
+	tt.Frame()
+	if !tt.HasText(needDevTip) {
+		t.Fatalf("expected hover tooltip %q on %q, texts=%q", needDevTip, directInstallLabel, tt.Texts())
+	}
+
+	// 3. Device View: Tool install and Pairing buttons require connected device
+	m.mu.Lock()
+	m.section = "设备"
+	m.pendingToolInstall = ""
+	m.pairingBusy = false
+	m.mu.Unlock()
+	tt.Frame()
+
+	ssInstallLabel := m.msg(nil).ToolInstallSideStoreBtn()
+	_ = tt.Click(ssInstallLabel)
+	if m.pendingToolInstall != "" {
+		t.Fatalf("expected %q not to open confirm modal when disconnected", ssInstallLabel)
+	}
+	pairingPlaceLabel := m.msg(nil).PairingOneClickBtn()
+	_ = tt.Click(pairingPlaceLabel)
+	if m.pairingBusy {
+		t.Fatalf("expected %q not to trigger pairing when disconnected", pairingPlaceLabel)
+	}
+	ssBox, ok := tt.Find(ssInstallLabel)
+	if !ok {
+		t.Fatalf("could not find %q", ssInstallLabel)
+	}
+	tt.Move(0, 0)
+	tt.Frame()
+	tt.Move(ssBox.X+ssBox.W/2, ssBox.Y+ssBox.H/2)
+	tt.Frame()
+	tt.Advance(700 * time.Millisecond)
+	tt.Frame()
+	if !tt.HasText(needDevTip) {
+		t.Fatalf("expected hover tooltip %q on %q, texts=%q", needDevTip, ssInstallLabel, tt.Texts())
+	}
+
+	// 4. Store View: Download and direct install button requires connected device
+	m.mu.Lock()
+	m.section = "商店"
+	m.devices = nil
+	m.storeResults = []appstore.Software{{
+		ID:             101,
+		Name:           "TestStoreApp",
+		BundleID:       "com.example.teststore",
+		Version:        "1.0.0",
+		ArtistName:     "Test Dev",
+		FormattedPrice: "Free",
+	}}
+	m.storeSelected = 0
+	m.mu.Unlock()
+	tt.Frame()
+
+	storeInstallLabel := m.msg(nil).StoreDownloadInstallBtn()
+	storeBox, ok := tt.Find(storeInstallLabel)
+	if !ok {
+		t.Fatalf("could not find %q", storeInstallLabel)
+	}
+	tt.Move(0, 0)
+	tt.Frame()
+	tt.Move(storeBox.X+storeBox.W/2, storeBox.Y+storeBox.H/2)
+	tt.Frame()
+	tt.Advance(700 * time.Millisecond)
+	tt.Frame()
+	if !tt.HasText(needDevTip) {
+		t.Fatalf("expected hover tooltip %q on %q, texts=%q", needDevTip, storeInstallLabel, tt.Texts())
+	}
+
+	// 5. Connecting a device enables buttons
+	m.SetSnapshot(device.Snapshot{
+		Device:            device.Device{ID: 1, UDID: "UDID-CONNECTED", ConnectionType: "USB"},
+		Info:              device.Info{Name: "TestPhone", Version: "17.4", Type: "iPhone15,2"},
+		SideStoreEmbedded: false,
+		USBVerified:       true,
+	}, nil)
+	m.section = "设备"
+	tt.Frame()
+
+	if err := tt.Click(ssInstallLabel); err != nil {
+		t.Fatalf("expected %q to be clickable once device is connected, got err=%v", ssInstallLabel, err)
 	}
 }

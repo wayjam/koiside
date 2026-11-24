@@ -604,10 +604,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 						Transition(feedbackBannerTransition)
 				}
 				ui.Row(c).Gap(10).Children(func() {
-					instBtn := uiPrimaryBtn(c, "store-sinf-usb-install", msg.StoreSinfDirectInstallBtn())
-					if busy {
-						instBtn.Disabled(true)
-					}
+					instBtn := m.deviceBtn(c, msg, "store-sinf-usb-install", msg.StoreSinfDirectInstallBtn(), true, busy)
 					if instBtn.Clicked() {
 						m.directInstallStoreIPA(file.path, file.report.BundleID)
 					}
