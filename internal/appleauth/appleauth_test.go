@@ -24,6 +24,121 @@ import (
 	"howett.net/plist"
 )
 
+func TestGrandSlamClientInfoOnRequests(t *testing.T) {
+	wantDefault := ClientInfo{
+		ClientInfo: "<MacBookPro18,3> <Mac OS X;26.6;25F84> <com.apple.AuthKit/1 (com.apple.akd/1.0)>",
+		UserAgent:  "AuthKit/1 (Macintosh; OS X 26.6) (com.apple.akd/1.0)",
+	}
+	const customAgent = "akd/1.0 CFNetwork/3896.300.31 Darwin/27.3.0"
+	const customMac = "<MacBookAir10,1> <Mac OS X;27.3;26C5035r> <com.apple.AuthKit/1 (com.apple.akd/1.0)>"
+	highSierra := ClientInfo{
+		ClientInfo: "<MacBookPro14,1> <Mac OS X;10.13.6;17G66> <com.apple.AuthKit/1 (com.apple.akd/1.0)>",
+		UserAgent:  "akd/1.0 CFNetwork/897.15 Darwin/17.7.0",
+	}
+	windows := ClientInfo{
+		ClientInfo: "<PC> <Windows;6.2(0,0);9200> <com.apple.AuthKit/1 (com.apple.iTunes/12.12.4.1)>",
+		UserAgent:  "akd/1.0 CFNetwork/808.1.4",
+	}
+	for _, tc := range []struct {
+		name   string
+		server bool
+		input  ClientInfo
+		want   ClientInfo
+	}{
+		{name: "provider default", want: wantDefault},
+		{
+			name:  "custom macOS label",
+			input: ClientInfo{strings.Replace(customMac, "<Mac OS X;", "<macOS;", 1), customAgent},
+			want:  ClientInfo{customMac, customAgent},
+		},
+		{
+			name:   "server Sierra metadata",
+			server: true,
+			input: ClientInfo{
+				ClientInfo: "<MacBookPro13,3> <Mac OS X;10.12.6;16G29> <com.apple.AuthKit/1 (com.apple.akd/1.0)>",
+				UserAgent:  "akd/1.0 CFNetwork/811.5.4 Darwin/16.7.0",
+			},
+			want: wantDefault,
+		},
+		{
+			name:  "obsolete Xcode metadata",
+			input: ClientInfo{strings.Replace(customMac, "com.apple.akd/1.0", "com.apple.dt.Xcode/26.0", 1), customAgent},
+			want:  wantDefault,
+		},
+		{name: "High Sierra compatibility boundary", input: highSierra, want: highSierra},
+		{name: "Windows metadata", input: windows, want: windows},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/v3/client_info" {
+					_ = json.NewEncoder(w).Encode(tc.input)
+					return
+				}
+				if got := r.Header.Get("X-Mme-Client-Info"); got != tc.want.ClientInfo {
+					t.Errorf("%s X-Mme-Client-Info = %q, want %q", r.URL.Path, got, tc.want.ClientInfo)
+				}
+				if got := r.Header.Get("User-Agent"); got != tc.want.UserAgent {
+					t.Errorf("%s User-Agent = %q, want %q", r.URL.Path, got, tc.want.UserAgent)
+				}
+				var reply map[string]any
+				switch r.URL.Path {
+				case "/lookup":
+					reply = map[string]any{"urls": map[string]any{"gsService": "/gs"}}
+				case "/gs":
+					reply = map[string]any{"Response": map[string]any{"accepted": true}}
+				case "/auth":
+					w.WriteHeader(http.StatusNoContent)
+					return
+				default:
+					http.NotFound(w, r)
+					return
+				}
+				raw, _ := plist.Marshal(reply, plist.XMLFormat)
+				_, _ = w.Write(raw)
+			}))
+			defer srv.Close()
+
+			prov := NewRemoteV3AnisetteProvider(srv.URL, nil)
+			if tc.server {
+				prov.SetClientInfoOverride(nil)
+			} else if tc.input != (ClientInfo{}) {
+				prov.SetClientInfoOverride(&tc.input)
+			}
+			info, err := prov.GetClientInfo(t.Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+			gs := NewGrandSlamClientWithHTTP(srv.Client(), info, srv.URL+"/lookup")
+			if err := gs.EnsureBag(t.Context()); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := gs.PlistRequest(t.Context(), srv.URL+"/gs", map[string]any{}, nil); err != nil {
+				t.Fatal(err)
+			}
+			// Plist callers can also supply a client identity via extra headers.
+			extra := http.Header{}
+			extra.Set("X-Mme-Client-Info", info.ClientInfo)
+			extra.Set("User-Agent", info.UserAgent)
+			gsWithOverride := NewGrandSlamClientWithHTTP(srv.Client(), DefaultMacClientInfo, srv.URL+"/lookup")
+			if _, err := gsWithOverride.PlistRequest(t.Context(), srv.URL+"/gs", map[string]any{}, extra); err != nil {
+				t.Fatal(err)
+			}
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL+"/auth", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp, err := gs.DoRequest(req, true)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("auth HTTP %d, want %d", resp.StatusCode, http.StatusNoContent)
+			}
+		})
+	}
+}
+
 func TestLoginWithAnisetteResync2FAAndAppToken(t *testing.T) {
 	const (
 		email    = "user@example.com"

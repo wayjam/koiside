@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -28,8 +29,8 @@ const (
 
 // DefaultMacClientInfo mimics a modern macOS AuthKit client for Xcode token & developer portal calls.
 var DefaultMacClientInfo = ClientInfo{
-	ClientInfo: "<Mac15,7> <macOS;27.0;26A5378j> <com.apple.AuthKit/1 (com.apple.akd/1.0)>",
-	UserAgent:  "akd/1.0 CFNetwork/811.5.4",
+	ClientInfo: "<MacBookPro18,3> <Mac OS X;26.6;25F84> <com.apple.AuthKit/1 (com.apple.akd/1.0)>",
+	UserAgent:  "AuthKit/1 (Macintosh; OS X 26.6) (com.apple.akd/1.0)",
 }
 
 // Storage persists non-password state such as Anisette provisioning data.
@@ -81,6 +82,21 @@ func (m *MemoryStorage) Delete(key string) error {
 type ClientInfo struct {
 	ClientInfo string `json:"client_info"`
 	UserAgent  string `json:"user_agent"`
+}
+
+func (info ClientInfo) forApple() ClientInfo {
+	if strings.Contains(info.ClientInfo, "com.apple.dt.Xcode") {
+		return DefaultMacClientInfo
+	}
+	info.ClientInfo = strings.ReplaceAll(info.ClientInfo, "<macOS;", "<Mac OS X;")
+	if _, version, ok := strings.Cut(info.ClientInfo, "<Mac OS X;10."); ok {
+		version, _, _ = strings.Cut(version, ";")
+		minor, _, _ := strings.Cut(version, ".")
+		if n, err := strconv.Atoi(minor); err == nil && n >= 0 && n < 13 {
+			return DefaultMacClientInfo
+		}
+	}
+	return info
 }
 
 // AnisetteData holds one-time machine attestation headers for Apple requests.

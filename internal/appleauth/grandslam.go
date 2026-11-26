@@ -92,7 +92,7 @@ func (g *GrandSlamClient) EnsureBag(ctx context.Context) error {
 	}
 	g.applyBaseHeaders(req.Header, "text/xml")
 
-	resp, err := g.httpClient.Do(req)
+	resp, err := g.send(req)
 	if err != nil {
 		return fmt.Errorf("appleauth: fetch GrandSlam bag: %w", err)
 	}
@@ -161,6 +161,19 @@ func (g *GrandSlamClient) DoRequest(req *http.Request, smsJSON bool) (*http.Resp
 		}
 	}
 	g.applyBaseHeaders(req.Header, ct)
+	return g.send(req)
+}
+
+func (g *GrandSlamClient) send(req *http.Request) (*http.Response, error) {
+	h := req.Header
+	info := ClientInfo{ClientInfo: h.Get("X-Mme-Client-Info"), UserAgent: h.Get("User-Agent")}
+	compatible := info.forApple()
+	if compatible.ClientInfo != info.ClientInfo {
+		h.Set("X-Mme-Client-Info", compatible.ClientInfo)
+	}
+	if compatible.UserAgent != info.UserAgent {
+		h.Set("User-Agent", compatible.UserAgent)
+	}
 	return g.httpClient.Do(req)
 }
 
@@ -185,7 +198,7 @@ func (g *GrandSlamClient) PlistRequest(ctx context.Context, targetURL string, pa
 			}
 		}
 
-		resp, err := g.httpClient.Do(req)
+		resp, err := g.send(req)
 		if err != nil {
 			lastErr = err
 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) || strings.Contains(err.Error(), "EOF") {

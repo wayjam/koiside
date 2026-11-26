@@ -1,9 +1,17 @@
 package account
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
+
+	"howett.net/plist"
 
 	"koiside/internal/appleauth"
 	"koiside/internal/appstore"
@@ -48,6 +56,69 @@ func TestRestoreDeveloperSessionSkipsWhenEmptyAndRestoresFromStorage(t *testing.
 	}
 	if mgr.Developer().SignedIn() {
 		t.Fatal("should remain signed out with empty storage")
+	}
+}
+
+func TestDeveloperSignInStaleAnisettePreservesStoredState(t *testing.T) {
+	var signInRequests atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var response map[string]any
+		switch r.URL.Path {
+		case "/lookup":
+			response = map[string]any{"urls": map[string]any{"gsService": "http://" + r.Host + "/gs"}}
+		case "/v3/get_headers":
+			_ = json.NewEncoder(w).Encode(map[string]string{"X-Apple-I-MD-M": "test-machine", "X-Apple-I-MD": "test-otp"})
+			return
+		case "/gs":
+			signInRequests.Add(1)
+			response = map[string]any{"Response": map[string]any{
+				"Status": map[string]any{"ec": int64(-22410), "em": "This action could not be completed"},
+			}}
+		default:
+			t.Errorf("unexpected request to %s", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		raw, _ := plist.Marshal(response, plist.XMLFormat)
+		_, _ = w.Write(raw)
+	}))
+	defer srv.Close()
+
+	state, err := plist.Marshal(map[string]any{
+		"keychain_identifier": make([]byte, 16),
+		"adi_pb":              []byte("stored attestation"),
+	}, plist.BinaryFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored := map[string][]byte{
+		appleauth.AnisetteStateKey: state,
+		"active_dev_session":      []byte("stored developer session"),
+	}
+	store := appleauth.NewMemoryStorage()
+	for key, value := range stored {
+		if err := store.Set(key, value); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mgr := NewLocalManager(store)
+	mgr.SetAnisetteURL(srv.URL)
+	mgr.SetTestOverrides(func(info appleauth.ClientInfo) (*appleauth.GrandSlamClient, error) {
+		return appleauth.NewGrandSlamClientWithHTTP(srv.Client(), info, srv.URL+"/lookup"), nil
+	}, "")
+
+	err = mgr.SignInDeveloper(t.Context(), "test@example.com", "test-password", false, nil)
+	var authErr *appleauth.AuthError
+	if !errors.As(err, &authErr) || authErr.Code != -22410 || !strings.Contains(err.Error(), "Reset Attestation State") {
+		t.Fatalf("expected Apple error -22410 with manual recovery guidance, got %v", err)
+	}
+	if got := signInRequests.Load(); got != 1 {
+		t.Errorf("got %d sign-in requests, want 1", got)
+	}
+	for key, want := range stored {
+		if got, err := store.Get(key); err != nil || !bytes.Equal(got, want) {
+			t.Errorf("sign-in failure changed stored %s", key)
+		}
 	}
 }
 

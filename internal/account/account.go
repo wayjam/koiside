@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -255,6 +256,10 @@ func (m *LocalManager) SignInDeveloper(ctx context.Context, email, password stri
 	}
 	acc, err := appleauth.Login(ctx, email, password, m.anisette, gs, on2FA)
 	if err != nil {
+		var authErr *appleauth.AuthError
+		if errors.As(err, &authErr) && authErr.Code == -22410 {
+			return fmt.Errorf("%w. If this persists, use Reset Attestation State in Apple Account settings, then sign in again", err)
+		}
 		return err
 	}
 	devSess, err := devportal.NewSession(ctx, acc)
