@@ -1,11 +1,13 @@
 package signing
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"errors"
 	"math/big"
 	"os"
 	"os/exec"
@@ -153,6 +155,55 @@ func TestSideStoreLiveContainerInjection(t *testing.T) {
 	fwPlist, err := readPlistDict(filepath.Join(fwDir, "Info.plist"))
 	if err != nil || fwPlist["ALTCertificateID"] != "ABCD" {
 		t.Fatalf("expected ALTCertificateID=ABCD, got %+v (%v)", fwPlist, err)
+	}
+}
+
+func TestSignIPAWithPortalChecksRecoveryBundleIDBeforeProvisioning(t *testing.T) {
+	appDir := filepath.Join(t.TempDir(), "LiveContainer.app")
+	fwDir := filepath.Join(appDir, "Frameworks", "SideStoreApp.framework")
+	if err := os.MkdirAll(fwDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := writePlistDict(filepath.Join(appDir, "Info.plist"), map[string]any{
+		"CFBundleIdentifier": "com.kdt.livecontainer",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := writePlistDict(filepath.Join(fwDir, "Info.plist"), map[string]any{
+		"CFBundleIdentifier": "com.SideStore.SideStore",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	errCertificate := errors.New("certificate unavailable")
+	for _, tc := range []struct {
+		name     string
+		bundleID string
+		wantErr  error
+	}{
+		{"different signing convention", "TEAM1.com.kdt.livecontainer", ErrRecoveryBundleIDMismatch},
+		{"matching installed app", "com.kdt.livecontainer.TEAM1", errCertificate},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			certificateRequested := false
+			_, err := SignIPAWithPortal(context.Background(), PortalSignOptions{
+				InputPath:         appDir,
+				DeviceUDID:        "device-udid",
+				Team:              devportal.Team{TeamID: "TEAM1"},
+				Portal:            &devportal.Session{},
+				RecoveryBundleID:  tc.bundleID,
+				EnsureCertificate: func(context.Context) (*devportal.CertificateIdentity, error) {
+					certificateRequested = true
+					return nil, errCertificate
+				},
+			})
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("got error %v, want %v", err, tc.wantErr)
+			}
+			if want := tc.wantErr == errCertificate; certificateRequested != want {
+				t.Errorf("certificate requested = %t, want %t", certificateRequested, want)
+			}
+		})
 	}
 }
 

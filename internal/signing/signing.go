@@ -63,6 +63,9 @@ const (
 	SpecialStikStore     SpecialApp = "StikStore"
 )
 
+// ErrRecoveryBundleIDMismatch indicates that the normal signing identifier cannot update the installed app.
+var ErrRecoveryBundleIDMismatch = errors.New("signing: recovery bundle identifier mismatch")
+
 // PortalSignOptions configures full Developer Portal provisioning + code signing for an IPA or .app.
 type PortalSignOptions struct {
 	InputPath             string
@@ -71,9 +74,10 @@ type PortalSignOptions struct {
 	DeviceUDID            string
 	Team                  devportal.Team
 	Portal                *devportal.Session
-	Cert                  *devportal.CertificateIdentity
+	EnsureCertificate     func(context.Context) (*devportal.CertificateIdentity, error)
 	IncreasedMemoryLimit  bool
 	RegisterAllExtensions bool
+	RecoveryBundleID      string // require the combined app to sign with this exact identifier
 	OnProgress            func(pct float64, stage string)
 }
 
@@ -108,8 +112,8 @@ func DetectSpecialApp(appDir string) SpecialApp {
 // downloads provisioning profiles, injects SideStore/LiveContainer certificate & entitlements,
 // and signs all Mach-O executables and nested frameworks/plugins.
 func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, error) {
-	if opts.Portal == nil || opts.Cert == nil {
-		return Result{}, errors.New("signing: portal session and certificate identity required")
+	if opts.Portal == nil || opts.EnsureCertificate == nil {
+		return Result{}, errors.New("signing: portal session and certificate provider required")
 	}
 	report := func(pct float64, stage string) {
 		if opts.OnProgress != nil {
@@ -123,13 +127,6 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 		return Result{}, err
 	}
 	_ = cleanupDir
-
-	if opts.DeviceUDID != "" {
-		report(0.10, "register_device")
-		if err := opts.Portal.EnsureDeviceRegistered(ctx, opts.Team.TeamID, opts.DeviceName, opts.DeviceUDID); err != nil {
-			return Result{}, fmt.Errorf("signing: register device: %w", err)
-		}
-	}
 
 	special := DetectSpecialApp(appDir)
 	mainInfoPath := filepath.Join(appDir, "Info.plist")
@@ -153,6 +150,26 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 	if !strings.HasSuffix(origMainID, "."+opts.Team.TeamID) {
 		newMainID = origMainID + "." + opts.Team.TeamID
 	}
+	if opts.RecoveryBundleID != "" {
+		if special != SpecialSideStoreLC {
+			return Result{}, errors.New("signing: recovery requires the combined LiveContainer + SideStore IPA")
+		}
+		if newMainID != opts.RecoveryBundleID {
+			return Result{}, fmt.Errorf("%w. Installed bundle ID %q differs from KoiSide's signed bundle ID %q. Use the installer that originally signed this copy", ErrRecoveryBundleIDMismatch, opts.RecoveryBundleID, newMainID)
+		}
+	}
+
+	cert, err := opts.EnsureCertificate(ctx)
+	if err != nil {
+		return Result{}, err
+	}
+	if opts.DeviceUDID != "" {
+		report(0.10, "register_device")
+		if err := opts.Portal.EnsureDeviceRegistered(ctx, opts.Team.TeamID, opts.DeviceName, opts.DeviceUDID); err != nil {
+			return Result{}, fmt.Errorf("signing: register device: %w", err)
+		}
+	}
+
 	mainPlist["CFBundleIdentifier"] = newMainID
 	if bgTasks, ok := mainPlist["BGTaskSchedulerPermittedIdentifiers"].([]any); ok {
 		for i, item := range bgTasks {
@@ -253,7 +270,7 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 	}
 
 	report(0.35, "special_app")
-	if err := applySpecialAppInjection(appDir, special, groupID, opts.Cert); err != nil {
+	if err := applySpecialAppInjection(appDir, special, groupID, cert); err != nil {
 		return Result{}, err
 	}
 
@@ -291,7 +308,7 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 	report(0.55, "codesign")
 	if err := SignAppBundle(appDir, BundleSignConfig{
 		TeamID:      opts.Team.TeamID,
-		Cert:        opts.Cert,
+		Cert:        cert,
 		MainProfile: mainProf,
 		ExtProfiles: extProfiles,
 		Special:     special,

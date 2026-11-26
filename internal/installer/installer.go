@@ -87,16 +87,17 @@ type Progress func(pct int, stage string)
 
 // InstallRequest configures direct desktop sign + USB install + optional pairing injection.
 type InstallRequest struct {
-	Target       ToolTarget
-	LocalIPAPath string // required for TargetCustomIPA, optional override otherwise
-	CacheDir     string
-	Device       device.Device
-	DeviceInfo   device.Info
-	Accounts     account.Manager
-	OnMaxCerts   devportal.MaxCertsHandler
-	OnProgress   Progress
-	HTTPClient   *http.Client
-	DeviceDial   device.Dialer
+	Target           ToolTarget
+	LocalIPAPath     string // required for TargetCustomIPA, optional override otherwise
+	RecoveryBundleID string // update this installed LiveContainer bundle in place
+	CacheDir         string
+	Device           device.Device
+	DeviceInfo       device.Info
+	Accounts         account.Manager
+	OnMaxCerts       devportal.MaxCertsHandler
+	OnProgress       Progress
+	HTTPClient       *http.Client
+	DeviceDial       device.Dialer
 }
 
 // InstallResult summarizes a completed direct install.
@@ -112,6 +113,7 @@ type InstallResult struct {
 
 // InstallDirect downloads the official IPA (if needed), signs it with the active Apple Developer
 // session, uploads & installs over USB, and injects pairing files when installing SideStore / LC+SS.
+// Recovery installs preserve pairing files in the existing app container.
 func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, error) {
 	report := func(pct int, stage string) {
 		if req.OnProgress != nil {
@@ -134,6 +136,28 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 	}
 
 	ipaPath := strings.TrimSpace(req.LocalIPAPath)
+	recovering := req.RecoveryBundleID != ""
+	if recovering {
+		if req.Target != TargetLiveContainerLCSS || ipaPath != "" {
+			return InstallResult{}, errors.New("installer: recovery requires the official LiveContainer + SideStore download")
+		}
+		sess, err := device.DialSession(req.DeviceDial, req.Device.ID, req.Device.UDID)
+		if err != nil {
+			return InstallResult{}, err
+		}
+		err = checkRecoveryApp(sess, req.RecoveryBundleID, team.TeamID)
+		_ = sess.Close()
+		if err != nil {
+			return InstallResult{}, err
+		}
+	}
+
+	workDir, err := os.MkdirTemp("", "koiside-install-*")
+	if err != nil {
+		return InstallResult{}, err
+	}
+	defer os.RemoveAll(workDir)
+
 	if ipaPath == "" {
 		asset, ok := OfficialAssetFor(req.Target)
 		if !ok {
@@ -141,7 +165,9 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 		}
 		report(5, "download")
 		cacheDir := req.CacheDir
-		if cacheDir == "" {
+		if recovering {
+			cacheDir = workDir
+		} else if cacheDir == "" {
 			cacheDir = filepath.Join(os.TempDir(), "koiside-downloads")
 		}
 		if err := os.MkdirAll(cacheDir, 0o755); err != nil {
@@ -163,39 +189,28 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 		}
 	}
 
-	report(28, "certificate")
-	cert, err := devportal.EnsureCertificate(
-		ctx,
-		portal,
-		team.TeamID,
-		req.Accounts.Developer().Email(),
-		localMachineName(),
-		req.Accounts.Storage(),
-		req.OnMaxCerts,
-	)
-	if err != nil {
-		return InstallResult{}, fmt.Errorf("installer: certificate: %w", err)
-	}
-
-	workDir, err := os.MkdirTemp("", "koiside-install-*")
-	if err != nil {
-		return InstallResult{}, err
-	}
-	defer os.RemoveAll(workDir)
-
-	report(35, "signing")
+	appleEmail := req.Accounts.Developer().Email()
 	signed, err := signing.SignIPAWithPortal(ctx, signing.PortalSignOptions{
-		InputPath:             ipaPath,
-		WorkDir:               workDir,
-		DeviceName:            req.DeviceInfo.Name,
-		DeviceUDID:            req.Device.UDID,
-		Team:                  team,
-		Portal:                portal,
-		Cert:                  cert,
+		InputPath:  ipaPath,
+		WorkDir:    filepath.Join(workDir, "app"),
+		DeviceName: req.DeviceInfo.Name,
+		DeviceUDID: req.Device.UDID,
+		Team:       team,
+		Portal:     portal,
+		EnsureCertificate: func(ctx context.Context) (*devportal.CertificateIdentity, error) {
+			report(28, "certificate")
+			cert, err := devportal.EnsureCertificate(ctx, portal, team.TeamID, appleEmail, localMachineName(), req.Accounts.Storage(), req.OnMaxCerts)
+			if err != nil {
+				return nil, fmt.Errorf("installer: certificate: %w", err)
+			}
+			report(29, "signing")
+			return cert, nil
+		},
 		IncreasedMemoryLimit:  true,
 		RegisterAllExtensions: false,
+		RecoveryBundleID:      req.RecoveryBundleID,
 		OnProgress: func(pct float64, stage string) {
-			report(35+int(pct*30.0), stage)
+			report(25+int(pct*55.0), stage)
 		},
 	})
 	if err != nil {
@@ -207,7 +222,17 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 	if err != nil {
 		return InstallResult{}, err
 	}
-	installErr := sess.InstallAppDir(signed.AppDir, func(pct int, status string) {
+	if recovering {
+		if err := checkRecoveryApp(sess, req.RecoveryBundleID, team.TeamID); err != nil {
+			_ = sess.Close()
+			return InstallResult{}, err
+		}
+	}
+	install := sess.InstallAppDir
+	if recovering {
+		install = sess.UpgradeAppDir
+	}
+	installErr := install(signed.AppDir, func(pct int, status string) {
 		report(68+(pct*24)/100, status)
 	})
 	var devKnown, devEnabled, signerTrusted bool
@@ -234,7 +259,7 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 		DeveloperModeEnabled: devEnabled,
 		SignerTrusted:        signerTrusted,
 	}
-	if signed.Special == signing.SpecialSideStore || signed.Special == signing.SpecialSideStoreLC {
+	if !recovering && (signed.Special == signing.SpecialSideStore || signed.Special == signing.SpecialSideStoreLC) {
 		report(94, "pairing")
 		if err := PlacePairingForDevice(req.DeviceDial, req.Device, req.DeviceInfo, req.Accounts.Storage(), signed.BundleID, signed.Special == signing.SpecialSideStoreLC); err != nil {
 			res.PairingWarning = err.Error()
@@ -245,6 +270,23 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 
 	report(100, "complete")
 	return res, nil
+}
+
+func checkRecoveryApp(sess *device.Session, bundleID, teamID string) error {
+	apps, err := sess.ListApps()
+	if err != nil {
+		return fmt.Errorf("installer: check installed app for recovery: %w", err)
+	}
+	for _, app := range apps {
+		if app.BundleID != bundleID {
+			continue
+		}
+		if app.TeamID != "" && app.TeamID != teamID {
+			return fmt.Errorf("installer: select developer team %q to recover %q. The active team is %q", app.TeamID, bundleID, teamID)
+		}
+		return nil
+	}
+	return fmt.Errorf("installer: app %q must already be installed on the selected iPhone to recover it", bundleID)
 }
 
 // InstallStoreIPA installs a pre-signed / App Store SINF IPA directly over USB without re-signing.

@@ -87,6 +87,21 @@ func TestInstallStagedPackageWithOptionsOmitsPackageTypeForStore(t *testing.T) {
 	}
 }
 
+func TestStagedUpgradeUsesUpgradeCommand(t *testing.T) {
+	conn := &fakeInstallConn{reply: encodePlistFrameBytes(map[string]any{"Status": "Complete"})}
+	err := installStagedPackage(conn, "PublicStaging/LiveContainer.app", "Upgrade", InstallOptions{PackageType: "Developer"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request map[string]any
+	if _, err := plist.Unmarshal(conn.written[4:], &request); err != nil {
+		t.Fatal(err)
+	}
+	if request["Command"] != "Upgrade" || request["PackagePath"] != "PublicStaging/LiveContainer.app" {
+		t.Fatalf("unexpected upgrade request: %v", request)
+	}
+}
+
 func TestRpPairingFileAndOpackAndDetectTargets(t *testing.T) {
 	rpf, err := GenerateRpPairingFile("koiside-test")
 	if err != nil {

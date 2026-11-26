@@ -3432,11 +3432,11 @@ func (msgs Messages) MaintainStep3() string {
 	return Catalog.Format(msgs.locale, "maintainStep3", nil)
 }
 
-// MaintainExpiryNote says "剩余天数请以手机端 SideStore My Apps 为准；第一阶段不从桌面推断或自动续签。"
+// MaintainExpiryNote says "在 SideStore → 我的 App 中查看剩余天数。若 iOS …"
 // in the language the app shows.
 func MaintainExpiryNote() string { return In(i18n.Locale()).MaintainExpiryNote() }
 
-// MaintainExpiryNote says "剩余天数请以手机端 SideStore My Apps 为准；第一阶段不从桌面推断或自动续签。"
+// MaintainExpiryNote says "在 SideStore → 我的 App 中查看剩余天数。若 iOS …"
 // in the language of msgs.
 func (msgs Messages) MaintainExpiryNote() string {
 	return Catalog.Format(msgs.locale, "maintainExpiryNote", nil)
@@ -3452,21 +3452,21 @@ func (msgs Messages) MaintainRecoveryBtn() string {
 	return Catalog.Format(msgs.locale, "maintainRecoveryBtn", nil)
 }
 
-// MaintainRecoveryTitle says "SideStore 刷新失败或应用已到期"
+// MaintainRecoveryTitle says "续签与到期恢复"
 // in the language the app shows.
 func MaintainRecoveryTitle() string { return In(i18n.Locale()).MaintainRecoveryTitle() }
 
-// MaintainRecoveryTitle says "SideStore 刷新失败或应用已到期"
+// MaintainRecoveryTitle says "续签与到期恢复"
 // in the language of msgs.
 func (msgs Messages) MaintainRecoveryTitle() string {
 	return Catalog.Format(msgs.locale, "maintainRecoveryTitle", nil)
 }
 
-// MaintainRecoverySubtitle says "先确认 SideStore 本身还能否打开，再按对应路径恢复："
+// MaintainRecoverySubtitle says "先确认 SideStore 能否打开。如果是合装版，先试着打开 LiveContainer。"
 // in the language the app shows.
 func MaintainRecoverySubtitle() string { return In(i18n.Locale()).MaintainRecoverySubtitle() }
 
-// MaintainRecoverySubtitle says "先确认 SideStore 本身还能否打开，再按对应路径恢复："
+// MaintainRecoverySubtitle says "先确认 SideStore 能否打开。如果是合装版，先试着打开 LiveContainer。"
 // in the language of msgs.
 func (msgs Messages) MaintainRecoverySubtitle() string {
 	return Catalog.Format(msgs.locale, "maintainRecoverySubtitle", nil)
@@ -3492,24 +3492,78 @@ func (msgs Messages) MaintainRecoveryOpenableDesc() string {
 	return Catalog.Format(msgs.locale, "maintainRecoveryOpenableDesc", nil)
 }
 
-// MaintainRecoveryExpiredTitle says "SideStore 已经打不开（超过 7 天未刷新）"
+// MaintainRecoveryExpiredTitle says "LiveContainer 或 SideStore 已经打不开"
 // in the language the app shows.
 func MaintainRecoveryExpiredTitle() string { return In(i18n.Locale()).MaintainRecoveryExpiredTitle() }
 
-// MaintainRecoveryExpiredTitle says "SideStore 已经打不开（超过 7 天未刷新）"
+// MaintainRecoveryExpiredTitle says "LiveContainer 或 SideStore 已经打不开"
 // in the language of msgs.
 func (msgs Messages) MaintainRecoveryExpiredTitle() string {
 	return Catalog.Format(msgs.locale, "maintainRecoveryExpiredTitle", nil)
 }
 
-// MaintainRecoveryExpiredDesc says "需要回到电脑使用工具重新安装 SideStore 并重签恢复，保留原有任务记录。"
+// MaintainRecoveryExpiredDesc says "先保留手机上的应用。解锁 iPhone 并通过 USB 连接 Mac，使用原来的 Apple …"
 // in the language the app shows.
 func MaintainRecoveryExpiredDesc() string { return In(i18n.Locale()).MaintainRecoveryExpiredDesc() }
 
-// MaintainRecoveryExpiredDesc says "需要回到电脑使用工具重新安装 SideStore 并重签恢复，保留原有任务记录。"
+// MaintainRecoveryExpiredDesc says "先保留手机上的应用。解锁 iPhone 并通过 USB 连接 Mac，使用原来的 Apple …"
 // in the language of msgs.
 func (msgs Messages) MaintainRecoveryExpiredDesc() string {
 	return Catalog.Format(msgs.locale, "maintainRecoveryExpiredDesc", nil)
+}
+
+// MaintainRecoveryLCBtn says "覆盖恢复 LiveContainer + SideStore"
+// in the language the app shows.
+func MaintainRecoveryLCBtn() string { return In(i18n.Locale()).MaintainRecoveryLCBtn() }
+
+// MaintainRecoveryLCBtn says "覆盖恢复 LiveContainer + SideStore"
+// in the language of msgs.
+func (msgs Messages) MaintainRecoveryLCBtn() string {
+	return Catalog.Format(msgs.locale, "maintainRecoveryLCBtn", nil)
+}
+
+// MaintainRecoveryTarget says "已安装的 Bundle ID：{bundle}"
+// in the language the app shows.
+func MaintainRecoveryTarget(bundle string) string {
+	return In(i18n.Locale()).MaintainRecoveryTarget(bundle)
+}
+
+// MaintainRecoveryTarget says "已安装的 Bundle ID：{bundle}"
+// in the language of msgs.
+func (msgs Messages) MaintainRecoveryTarget(bundle string) string {
+	return Catalog.Format(msgs.locale, "maintainRecoveryTarget", map[string]any{"bundle": bundle})
+}
+
+// MaintainRecoveryOriginalInstaller says "如果原安装工具使用了不同的 Bundle ID…"
+// in the language the app shows.
+func MaintainRecoveryOriginalInstaller() string {
+	return In(i18n.Locale()).MaintainRecoveryOriginalInstaller()
+}
+
+// MaintainRecoveryOriginalInstaller says "如果原安装工具使用了不同的 Bundle ID…"
+// in the language of msgs.
+func (msgs Messages) MaintainRecoveryOriginalInstaller() string {
+	return Catalog.Format(msgs.locale, "maintainRecoveryOriginalInstaller", nil)
+}
+
+// MaintainRecoveryAfterInstall says "恢复后，打开 LiveContainer 和内置 SideStore。连接 Wi-Fi 和 LocalDevVPN，在「我的 App…"
+// in the language the app shows.
+func MaintainRecoveryAfterInstall() string { return In(i18n.Locale()).MaintainRecoveryAfterInstall() }
+
+// MaintainRecoveryAfterInstall says "恢复后，打开 LiveContainer 和内置 SideStore。连接 Wi-Fi 和 LocalDevVPN，在「我的 App…"
+// in the language of msgs.
+func (msgs Messages) MaintainRecoveryAfterInstall() string {
+	return Catalog.Format(msgs.locale, "maintainRecoveryAfterInstall", nil)
+}
+
+// MaintainVerifyProfile says "核对实际描述文件"
+// in the language the app shows.
+func MaintainVerifyProfile() string { return In(i18n.Locale()).MaintainVerifyProfile() }
+
+// MaintainVerifyProfile says "核对实际描述文件"
+// in the language of msgs.
+func (msgs Messages) MaintainVerifyProfile() string {
+	return Catalog.Format(msgs.locale, "maintainVerifyProfile", nil)
 }
 
 // MaintainBackToMaintain says "返回续签说明"
@@ -3612,11 +3666,11 @@ func (msgs Messages) HelpTopicRefreshTitle() string {
 	return Catalog.Format(msgs.locale, "helpTopicRefreshTitle", nil)
 }
 
-// HelpTopicRefreshDesc says "查看 7 天个人签名续签清单与 SideStore 过期后的恢复入口。"
+// HelpTopicRefreshDesc says "查看 7 天续签步骤，或恢复过期的 LiveContainer 和 SideStore。"
 // in the language the app shows.
 func HelpTopicRefreshDesc() string { return In(i18n.Locale()).HelpTopicRefreshDesc() }
 
-// HelpTopicRefreshDesc says "查看 7 天个人签名续签清单与 SideStore 过期后的恢复入口。"
+// HelpTopicRefreshDesc says "查看 7 天续签步骤，或恢复过期的 LiveContainer 和 SideStore。"
 // in the language of msgs.
 func (msgs Messages) HelpTopicRefreshDesc() string {
 	return Catalog.Format(msgs.locale, "helpTopicRefreshDesc", nil)
@@ -5270,41 +5324,41 @@ func (msgs Messages) ToolConfirmLCOnlyDesc() string {
 	return Catalog.Format(msgs.locale, "toolConfirmLCOnlyDesc", nil)
 }
 
-// ToolConfirmConflictEmbedded says "检测到当前手机已装「LiveContainer + SideStore 合装版」。再装独立 SideStore 会多占 1 …"
+// ToolConfirmConflictEmbedded says "已安装 LiveContainer + SideStore 合装版。独立 SideStore …"
 // in the language the app shows.
 func ToolConfirmConflictEmbedded() string { return In(i18n.Locale()).ToolConfirmConflictEmbedded() }
 
-// ToolConfirmConflictEmbedded says "检测到当前手机已装「LiveContainer + SideStore 合装版」。再装独立 SideStore 会多占 1 …"
+// ToolConfirmConflictEmbedded says "已安装 LiveContainer + SideStore 合装版。独立 SideStore …"
 // in the language of msgs.
 func (msgs Messages) ToolConfirmConflictEmbedded() string {
 	return Catalog.Format(msgs.locale, "toolConfirmConflictEmbedded", nil)
 }
 
-// ToolConfirmConflictStandalone says "检测到当前手机已装「独立版 SideStore」。若改为合装版，建议先在手机删除独立 SideStore…"
+// ToolConfirmConflictStandalone says "已安装独立版 SideStore。先完成内置 SideStore 的设置，再按需移除独立版。"
 // in the language the app shows.
 func ToolConfirmConflictStandalone() string { return In(i18n.Locale()).ToolConfirmConflictStandalone() }
 
-// ToolConfirmConflictStandalone says "检测到当前手机已装「独立版 SideStore」。若改为合装版，建议先在手机删除独立 SideStore…"
+// ToolConfirmConflictStandalone says "已安装独立版 SideStore。先完成内置 SideStore 的设置，再按需移除独立版。"
 // in the language of msgs.
 func (msgs Messages) ToolConfirmConflictStandalone() string {
 	return Catalog.Format(msgs.locale, "toolConfirmConflictStandalone", nil)
 }
 
-// LcAdvancedTitle says "进阶用法：同时运行多个 App & 添加到桌面"
+// LcAdvancedTitle says "LiveContainer 多开"
 // in the language the app shows.
 func LcAdvancedTitle() string { return In(i18n.Locale()).LcAdvancedTitle() }
 
-// LcAdvancedTitle says "进阶用法：同时运行多个 App & 添加到桌面"
+// LcAdvancedTitle says "LiveContainer 多开"
 // in the language of msgs.
 func (msgs Messages) LcAdvancedTitle() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedTitle", nil)
 }
 
-// LcAdvancedMultiTitle says "1. 让容器内 App 可以同时启动（Shared App）"
+// LcAdvancedMultiTitle says "让容器内 App 同时运行"
 // in the language the app shows.
 func LcAdvancedMultiTitle() string { return In(i18n.Locale()).LcAdvancedMultiTitle() }
 
-// LcAdvancedMultiTitle says "1. 让容器内 App 可以同时启动（Shared App）"
+// LcAdvancedMultiTitle says "让容器内 App 同时运行"
 // in the language of msgs.
 func (msgs Messages) LcAdvancedMultiTitle() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedMultiTitle", nil)
@@ -5320,24 +5374,154 @@ func (msgs Messages) LcAdvancedMultiDesc() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedMultiDesc", nil)
 }
 
-// LcAdvancedShortcutTitle says "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）"
+// ShortcutsTitle says "iPhone 快捷指令"
 // in the language the app shows.
-func LcAdvancedShortcutTitle() string { return In(i18n.Locale()).LcAdvancedShortcutTitle() }
+func ShortcutsTitle() string { return In(i18n.Locale()).ShortcutsTitle() }
 
-// LcAdvancedShortcutTitle says "2. 通过快捷指令添加到 iPhone 主屏幕（7 步）"
+// ShortcutsTitle says "iPhone 快捷指令"
 // in the language of msgs.
-func (msgs Messages) LcAdvancedShortcutTitle() string {
-	return Catalog.Format(msgs.locale, "lcAdvancedShortcutTitle", nil)
+func (msgs Messages) ShortcutsTitle() string {
+	return Catalog.Format(msgs.locale, "shortcutsTitle", nil)
 }
 
-// LcAdvancedShortcutSteps says "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App I…"
+// ShortcutsShareHint says "导出签名后的 .shortcut 文件，通过隔空投送发到 iPhone，打开文件即可添加到「快捷指令」。"
 // in the language the app shows.
-func LcAdvancedShortcutSteps() string { return In(i18n.Locale()).LcAdvancedShortcutSteps() }
+func ShortcutsShareHint() string { return In(i18n.Locale()).ShortcutsShareHint() }
 
-// LcAdvancedShortcutSteps says "1. 打开 LiveContainer → Apps，长按想添加到桌面的 App。\n2. 点 Add to Home Screen → 先点 Save App I…"
+// ShortcutsShareHint says "导出签名后的 .shortcut 文件，通过隔空投送发到 iPhone，打开文件即可添加到「快捷指令」。"
 // in the language of msgs.
-func (msgs Messages) LcAdvancedShortcutSteps() string {
-	return Catalog.Format(msgs.locale, "lcAdvancedShortcutSteps", nil)
+func (msgs Messages) ShortcutsShareHint() string {
+	return Catalog.Format(msgs.locale, "shortcutsShareHint", nil)
+}
+
+// ShortcutsRefreshTitle says "刷新 App 签名"
+// in the language the app shows.
+func ShortcutsRefreshTitle() string { return In(i18n.Locale()).ShortcutsRefreshTitle() }
+
+// ShortcutsRefreshTitle says "刷新 App 签名"
+// in the language of msgs.
+func (msgs Messages) ShortcutsRefreshTitle() string {
+	return Catalog.Format(msgs.locale, "shortcutsRefreshTitle", nil)
+}
+
+// ShortcutsRefreshHint says "运行前连接 Wi-Fi 和 LocalDevVPN。合装版需要保留 LiveProcess 扩展。若要定时续签，在 iPhone …"
+// in the language the app shows.
+func ShortcutsRefreshHint() string { return In(i18n.Locale()).ShortcutsRefreshHint() }
+
+// ShortcutsRefreshHint says "运行前连接 Wi-Fi 和 LocalDevVPN。合装版需要保留 LiveProcess 扩展。若要定时续签，在 iPhone …"
+// in the language of msgs.
+func (msgs Messages) ShortcutsRefreshHint() string {
+	return Catalog.Format(msgs.locale, "shortcutsRefreshHint", nil)
+}
+
+// ShortcutsRefreshSideStore says "用 SideStore 续签"
+// in the language the app shows.
+func ShortcutsRefreshSideStore() string { return In(i18n.Locale()).ShortcutsRefreshSideStore() }
+
+// ShortcutsRefreshSideStore says "用 SideStore 续签"
+// in the language of msgs.
+func (msgs Messages) ShortcutsRefreshSideStore() string {
+	return Catalog.Format(msgs.locale, "shortcutsRefreshSideStore", nil)
+}
+
+// ShortcutsRefreshLC says "用 LiveContainer 续签"
+// in the language the app shows.
+func ShortcutsRefreshLC() string { return In(i18n.Locale()).ShortcutsRefreshLC() }
+
+// ShortcutsRefreshLC says "用 LiveContainer 续签"
+// in the language of msgs.
+func (msgs Messages) ShortcutsRefreshLC() string {
+	return Catalog.Format(msgs.locale, "shortcutsRefreshLC", nil)
+}
+
+// ShortcutsRefreshNeedsDevice says "连接并解锁装有 SideStore 或 LiveContainer + SideStore 的 iPhone，即可导出对应的续签指令。"
+// in the language the app shows.
+func ShortcutsRefreshNeedsDevice() string { return In(i18n.Locale()).ShortcutsRefreshNeedsDevice() }
+
+// ShortcutsRefreshNeedsDevice says "连接并解锁装有 SideStore 或 LiveContainer + SideStore 的 iPhone，即可导出对应的续签指令。"
+// in the language of msgs.
+func (msgs Messages) ShortcutsRefreshNeedsDevice() string {
+	return Catalog.Format(msgs.locale, "shortcutsRefreshNeedsDevice", nil)
+}
+
+// ShortcutsLaunchTitle says "打开 LiveContainer 内的 App"
+// in the language the app shows.
+func ShortcutsLaunchTitle() string { return In(i18n.Locale()).ShortcutsLaunchTitle() }
+
+// ShortcutsLaunchTitle says "打开 LiveContainer 内的 App"
+// in the language of msgs.
+func (msgs Messages) ShortcutsLaunchTitle() string {
+	return Catalog.Format(msgs.locale, "shortcutsLaunchTitle", nil)
+}
+
+// ShortcutsLaunchHint says "选择检测到的容器 App 导出。在 iPhone 上运行一次确认可以打开，再点「分享 → …"
+// in the language the app shows.
+func ShortcutsLaunchHint() string { return In(i18n.Locale()).ShortcutsLaunchHint() }
+
+// ShortcutsLaunchHint says "选择检测到的容器 App 导出。在 iPhone 上运行一次确认可以打开，再点「分享 → …"
+// in the language of msgs.
+func (msgs Messages) ShortcutsLaunchHint() string {
+	return Catalog.Format(msgs.locale, "shortcutsLaunchHint", nil)
+}
+
+// ShortcutsLaunchURLHint says "如果列表里没有目标 App 或数据容器，在 LiveContainer 中长按 App，选择「添加到主屏幕 → …"
+// in the language the app shows.
+func ShortcutsLaunchURLHint() string { return In(i18n.Locale()).ShortcutsLaunchURLHint() }
+
+// ShortcutsLaunchURLHint says "如果列表里没有目标 App 或数据容器，在 LiveContainer 中长按 App，选择「添加到主屏幕 → …"
+// in the language of msgs.
+func (msgs Messages) ShortcutsLaunchURLHint() string {
+	return Catalog.Format(msgs.locale, "shortcutsLaunchURLHint", nil)
+}
+
+// ShortcutsLaunchURL says "LiveContainer 启动链接"
+// in the language the app shows.
+func ShortcutsLaunchURL() string { return In(i18n.Locale()).ShortcutsLaunchURL() }
+
+// ShortcutsLaunchURL says "LiveContainer 启动链接"
+// in the language of msgs.
+func (msgs Messages) ShortcutsLaunchURL() string {
+	return Catalog.Format(msgs.locale, "shortcutsLaunchURL", nil)
+}
+
+// ShortcutsExport says "导出快捷指令…"
+// in the language the app shows.
+func ShortcutsExport() string { return In(i18n.Locale()).ShortcutsExport() }
+
+// ShortcutsExport says "导出快捷指令…"
+// in the language of msgs.
+func (msgs Messages) ShortcutsExport() string {
+	return Catalog.Format(msgs.locale, "shortcutsExport", nil)
+}
+
+// ShortcutsSaving says "正在导出快捷指令…"
+// in the language the app shows.
+func ShortcutsSaving() string { return In(i18n.Locale()).ShortcutsSaving() }
+
+// ShortcutsSaving says "正在导出快捷指令…"
+// in the language of msgs.
+func (msgs Messages) ShortcutsSaving() string {
+	return Catalog.Format(msgs.locale, "shortcutsSaving", nil)
+}
+
+// ShortcutsSaved says "已保存 {file}。通过隔空投送发到 iPhone。"
+// in the language the app shows.
+func ShortcutsSaved(file string) string { return In(i18n.Locale()).ShortcutsSaved(file) }
+
+// ShortcutsSaved says "已保存 {file}。通过隔空投送发到 iPhone。"
+// in the language of msgs.
+func (msgs Messages) ShortcutsSaved(file string) string {
+	return Catalog.Format(msgs.locale, "shortcutsSaved", map[string]any{"file": file})
+}
+
+// ShortcutsSaveFailed says "无法导出快捷指令。{detail}"
+// in the language the app shows.
+func ShortcutsSaveFailed(detail string) string { return In(i18n.Locale()).ShortcutsSaveFailed(detail) }
+
+// ShortcutsSaveFailed says "无法导出快捷指令。{detail}"
+// in the language of msgs.
+func (msgs Messages) ShortcutsSaveFailed(detail string) string {
+	return Catalog.Format(msgs.locale, "shortcutsSaveFailed", map[string]any{"detail": detail})
 }
 
 // TransferUSBVerifiedLC says "LiveContainer 文稿容器可访问。点击传送后将写入 /Documents 并校验哈希。"

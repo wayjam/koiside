@@ -20,6 +20,7 @@ type InstalledApp struct {
 	TeamID          string
 	FileSharing     bool
 	DocumentBrowser bool
+	URLSchemes      []string
 }
 
 // ListApps queries user-installed apps over an authenticated Session (read-only).
@@ -44,6 +45,7 @@ func (s *Session) ListApps() ([]InstalledApp, error) {
 				"SignerIdentity",
 				"UIFileSharingEnabled",
 				"UISupportsDocumentBrowser",
+				"CFBundleURLTypes",
 				"Entitlements",
 			},
 		},
@@ -103,6 +105,19 @@ func parseInstalledApp(m map[string]any) InstalledApp {
 		}
 	}
 
+	var urlSchemes []string
+	if types, ok := m["CFBundleURLTypes"].([]any); ok {
+		for _, entry := range types {
+			item, _ := entry.(map[string]any)
+			schemes, _ := item["CFBundleURLSchemes"].([]any)
+			for _, value := range schemes {
+				if scheme := stringValue(value); scheme != "" {
+					urlSchemes = append(urlSchemes, scheme)
+				}
+			}
+		}
+	}
+
 	return InstalledApp{
 		BundleID:        stringValue(m["CFBundleIdentifier"]),
 		Name:            name,
@@ -113,5 +128,6 @@ func parseInstalledApp(m map[string]any) InstalledApp {
 		TeamID:          teamID,
 		FileSharing:     fileSharing,
 		DocumentBrowser: docBrowser,
+		URLSchemes:      urlSchemes,
 	}
 }

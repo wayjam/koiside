@@ -361,7 +361,7 @@ func TestEndToEndTaskFlowRoutePrepareConflictHandoffVerifyAndMaintain(t *testing
 	if err := tt.Click("刷新失败或已到期？"); err != nil {
 		t.Fatal(err)
 	}
-	if !tt.HasText("SideStore 刷新失败或应用已到期") {
+	if !tt.HasText(m.msg(nil).MaintainRecoveryTitle()) || !tt.HasText(m.msg(nil).MaintainRecoveryLCBtn()) {
 		t.Fatalf("recovery view missing: %q", tt.Texts())
 	}
 }
@@ -1265,7 +1265,7 @@ func TestToolInstallConfirmModalAndLCAdvancedGuides(t *testing.T) {
 	if err := tt.Click("安装 SideStore"); err != nil {
 		t.Fatal(err)
 	}
-	if !tt.HasText("确认安装 SideStore") || !tt.HasText("LiveContainer + SideStore 合装版") {
+	if !tt.HasText("确认安装 SideStore") || !tt.HasText(m.msg(nil).ToolConfirmConflictEmbedded()) {
 		t.Fatalf("expected tool confirm modal with conflict warning: %q", tt.Texts())
 	}
 	if err := tt.Click("取消"); err != nil {
@@ -1275,7 +1275,7 @@ func TestToolInstallConfirmModalAndLCAdvancedGuides(t *testing.T) {
 		t.Fatalf("expected confirm modal closed after cancel")
 	}
 
-	// Stage 4 LiveContainer inside includes collapsible Shared App + Shortcuts guide
+	// Stage 4 offers help for LiveContainer apps.
 	m.mu.Lock()
 	m.installRoute = "livecontainer"
 	m.lcPlacement = "inside"
@@ -1283,7 +1283,7 @@ func TestToolInstallConfirmModalAndLCAdvancedGuides(t *testing.T) {
 	m.taskStage = 4
 	m.mu.Unlock()
 	tt.Frame()
-	if !tt.HasText("进阶用法：同时运行多个 App & 添加到桌面") {
+	if !tt.HasText(m.msg(nil).LcAdvancedTitle()) {
 		t.Fatalf("expected LC advanced usage collapsible in stage 4: %q", tt.Texts())
 	}
 }

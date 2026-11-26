@@ -100,6 +100,15 @@ func (a *AFC) UploadDir(localDir, remoteDir string, onProgress func(uploaded, to
 // InstallAppDir uploads a signed .app directory to PublicStaging/<name> via com.apple.afc
 // and triggers com.apple.mobile.installation_proxy Install.
 func (s *Session) InstallAppDir(appDir string, onProgress InstallProgress) error {
+	return s.installAppDir(appDir, "Install", onProgress)
+}
+
+// UpgradeAppDir replaces an installed app using installation_proxy Upgrade.
+func (s *Session) UpgradeAppDir(appDir string, onProgress InstallProgress) error {
+	return s.installAppDir(appDir, "Upgrade", onProgress)
+}
+
+func (s *Session) installAppDir(appDir, command string, onProgress InstallProgress) error {
 	report := func(pct int, status string) {
 		if onProgress != nil {
 			onProgress(pct, status)
@@ -134,7 +143,7 @@ func (s *Session) InstallAppDir(appDir string, onProgress InstallProgress) error
 	}
 	defer instConn.Close()
 
-	return InstallStagedPackage(instConn, stageDir, onProgress)
+	return installStagedPackage(instConn, stageDir, command, InstallOptions{PackageType: "Developer"}, onProgress)
 }
 
 // InstallOptions configures installation_proxy ClientOptions for staged packages.
@@ -210,12 +219,16 @@ func (s *Session) InstallIPAFile(ipaPath string, opts InstallOptions, onProgress
 
 // InstallStagedPackageWithOptions sends Install to installation_proxy with configurable ClientOptions.
 func InstallStagedPackageWithOptions(conn io.ReadWriteCloser, packagePath string, opts InstallOptions, onProgress InstallProgress) error {
+	return installStagedPackage(conn, packagePath, "Install", opts, onProgress)
+}
+
+func installStagedPackage(conn io.ReadWriteCloser, packagePath, command string, opts InstallOptions, onProgress InstallProgress) error {
 	clientOpts := map[string]any{}
 	if opts.PackageType != "" {
 		clientOpts["PackageType"] = opts.PackageType
 	}
 	req := map[string]any{
-		"Command":       "Install",
+		"Command":       command,
 		"PackagePath":   packagePath,
 		"ClientOptions": clientOpts,
 	}

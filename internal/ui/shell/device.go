@@ -14,6 +14,7 @@ import (
 
 	"koiside/internal/device"
 	"koiside/internal/installer"
+	"koiside/internal/signing"
 	"koiside/locales"
 )
 
@@ -1274,9 +1275,9 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 						ui.Column(c).FillWidth().Gap(6).Padding(4, 0, 0, 0).Children(func() {
 							ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(12)
 							ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(11).TextColor(t.TextMuted)
-							ui.Divider(c)
-							ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(12)
-							ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(11).TextColor(t.TextMuted)
+							if uiBtn(c, "handoff-iphone-shortcuts", msg.ShortcutsTitle()).Clicked() {
+								m.openHelp("shortcuts")
+							}
 						})
 					}).Cursor(ui.CursorPointer)
 				})
@@ -1321,16 +1322,8 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 				}
 			})
 			ui.Divider(c)
-			ui.Row(c).FillWidth().Padding(16, 18).Gap(14).AlignItems(ui.Center).Children(func() {
-				ui.Icon(c, phWarningFill).Width(20).Height(20).TextColor(ui.Hex("#F59E0B"))
-				ui.Column(c).Grow(1).Gap(3).Children(func() {
-					ui.Text(c, msg.MaintainRecoveryExpiredTitle()).Bold().FontSize(14)
-					ui.Text(c, msg.MaintainRecoveryExpiredDesc()).FontSize(12).TextColor(t.TextMuted)
-				})
-				if uiBtn(c, "recovery-open-setup", msg.DeviceViewToolGuide()).Clicked() {
-					m.openHelp("setup")
-				}
-			})
+			m.recoveryInstallRow(c, msg)
+			m.toolInstallStatusRow(c, msg)
 		})
 		return
 	}
@@ -1365,15 +1358,11 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 		ui.Text(c, msg.MaintainStep1()).FontSize(13)
 		ui.Text(c, msg.MaintainStep2()).FontSize(13)
 		ui.Text(c, msg.MaintainStep3()).FontSize(13)
-		if m.installRoute == "livecontainer" && m.lcPlacement != "outside" {
-			ui.Divider(c)
-			ui.Text(c, msg.LcAdvancedTitle()).Bold().FontSize(13)
-			ui.Text(c, msg.LcAdvancedMultiTitle()+" — "+msg.LcAdvancedMultiDesc()).FontSize(12).TextColor(t.TextMuted)
-			ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(12)
-			ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(12).TextColor(t.TextMuted)
-		}
 		ui.Divider(c)
 		ui.Text(c, msg.MaintainExpiryNote()).FontSize(12).TextColor(t.TextMuted)
+		if uiBtn(c, "maintain-verify-profile", msg.MaintainVerifyProfile()).Clicked() {
+			c.OpenURL("https://livecontainer.github.io/docs/guides/refresh-verification")
+		}
 	})
 	ui.Row(c).Gap(10).Children(func() {
 		if uiBtn(c, "maintain-recovery-btn", msg.MaintainRecoveryBtn()).Clicked() {
@@ -1382,6 +1371,33 @@ func (m *Model) maintainView(c *ui.Context, msg locales.Messages, _ bool) {
 		if uiPrimaryBtn(c, "maintain-home-btn", msg.GuideFinish()).Clicked() {
 			m.section = "准备"
 		}
+	})
+	m.shortcutsPanel(c, msg)
+}
+
+func (m *Model) recoveryInstallRow(c *ui.Context, msg locales.Messages) {
+	t := c.Theme()
+	m.mu.Lock()
+	lc, busy := m.lcApp, m.toolInstalling
+	m.mu.Unlock()
+	ui.Column(c).FillWidth().Padding(16, 18).Gap(8).Children(func() {
+		ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
+			ui.Icon(c, phWarningFill).Width(20).Height(20).TextColor(ui.Hex("#F59E0B"))
+			ui.Text(c, msg.MaintainRecoveryExpiredTitle()).Grow(1).Bold().FontSize(14)
+		})
+		ui.Text(c, msg.MaintainRecoveryExpiredDesc()).FontSize(13)
+		ui.Text(c, msg.MaintainRecoveryOriginalInstaller()).FontSize(12).TextColor(t.TextMuted)
+		if lc != nil {
+			monoText(c, msg.MaintainRecoveryTarget(lc.BundleID)).FontSize(11).TextColor(t.TextMuted)
+		}
+		ui.Row(c).FillWidth().Wrap().Gap(8).Children(func() {
+			if m.deviceBtn(c, msg, "recover-lcss-btn", msg.MaintainRecoveryLCBtn(), true, busy || lc == nil).Clicked() && lc != nil {
+				m.installEcosystemTool(installer.TargetLiveContainerLCSS, lc.BundleID)
+			}
+			if uiBtn(c, "recovery-open-setup", msg.ToolsOpenGuide()).Clicked() {
+				c.OpenURL("https://livecontainer.github.io/docs/installation/lc_sidestore")
+			}
+		})
 	})
 }
 
@@ -1518,7 +1534,7 @@ func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
 					m.mu.Lock()
 					m.pendingToolInstall = ""
 					m.mu.Unlock()
-					m.installEcosystemTool(target)
+					m.installEcosystemTool(target, "")
 				}
 			})
 		})
@@ -1530,22 +1546,29 @@ func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
 	}
 }
 
-func (m *Model) installEcosystemTool(target installer.ToolTarget) {
+func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundleID string) {
 	msg := m.msg(nil)
-	if !m.hasConnectedDevice() {
-		m.mu.Lock()
+	m.mu.Lock()
+	if len(m.devices) == 0 || m.deviceErr != "" {
 		m.toolInstallErr = msg.ToolInstallNeedDevice()
 		m.mu.Unlock()
 		return
 	}
 	if m.services.Accounts == nil || !m.services.Accounts.Developer().SignedIn() {
-		m.mu.Lock()
 		m.toolInstallErr = msg.ToolInstallNeedLogin()
 		m.mu.Unlock()
-		m.navigateToAccountForLogin("device", m.section, m.taskStage)
+		source := "device"
+		if recoveryBundleID != "" {
+			source = "task"
+		}
+		m.navigateToAccountForLogin(source, m.section, m.taskStage)
 		return
 	}
-	m.mu.Lock()
+	if recoveryBundleID != "" && (m.lcApp == nil || m.lcApp.BundleID != recoveryBundleID) {
+		m.toolInstallErr = msg.MaintainRecoveryOriginalInstaller()
+		m.mu.Unlock()
+		return
+	}
 	if m.toolInstalling {
 		m.mu.Unlock()
 		return
@@ -1565,12 +1588,13 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget) {
 
 	go func() {
 		res, err := installer.InstallDirect(context.Background(), installer.InstallRequest{
-			Target:     target,
-			CacheDir:   filepath.Join(localDataDir(), "downloads"),
-			Device:     dev,
-			DeviceInfo: info,
-			Accounts:   m.services.Accounts,
-			OnMaxCerts: m.promptMaxCerts,
+			Target:           target,
+			RecoveryBundleID: recoveryBundleID,
+			CacheDir:         filepath.Join(localDataDir(), "downloads"),
+			Device:           dev,
+			DeviceInfo:       info,
+			Accounts:         m.services.Accounts,
+			OnMaxCerts:       m.promptMaxCerts,
 			OnProgress: func(pct int, stage string) {
 				m.mu.Lock()
 				m.toolInstallPct = pct
@@ -1585,12 +1609,17 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget) {
 		curMsg := m.msg(nil)
 		m.mu.Lock()
 		m.toolInstalling = false
-		if err != nil {
+		if errors.Is(err, signing.ErrRecoveryBundleIDMismatch) {
+			m.toolInstallErr = curMsg.MaintainRecoveryOriginalInstaller()
+		} else if err != nil {
 			m.toolInstallErr = err.Error()
 		} else {
 			m.toolInstallPct = 100
 			m.toolInstallDone = true
 			m.toolInstallMsg = curMsg.ToolInstallSucceeded(res.BundleID)
+			if recoveryBundleID != "" {
+				m.toolInstallMsg += "\n" + curMsg.MaintainRecoveryAfterInstall()
+			}
 			if res.PairingWarning != "" {
 				m.toolInstallMsg += " (" + friendlyError(curMsg, res.PairingWarning) + ")"
 			}

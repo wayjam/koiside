@@ -125,6 +125,8 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 		})
 	})
 
+	m.shortcutsPanel(c, msg)
+
 	ui.Column(c).FillWidth().Gap(3).Children(func() {
 		ui.Text(c, msg.ToolsTitle()).FontSize(16).Bold()
 		ui.Text(c, msg.ToolsDetectedNote()).FontSize(12).TextColor(t.TextMuted)
@@ -196,9 +198,6 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 				ui.Column(c).FillWidth().Gap(6).Padding(4, 0, 0, 0).Children(func() {
 					ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(13)
 					ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(12).TextColor(t.TextMuted)
-					ui.Divider(c)
-					ui.Text(c, msg.LcAdvancedShortcutTitle()).Bold().FontSize(13)
-					ui.Text(c, msg.LcAdvancedShortcutSteps()).FontSize(12).TextColor(t.TextMuted)
 				})
 			}).Cursor(ui.CursorPointer)
 		})

@@ -22,6 +22,7 @@ Built in Go with [mygo](https://github.com/egoist/mygo), KoiSide uses GPU-render
 - **Inspect and prepare IPA files.** Check metadata, architectures, FairPlay encryption, provisioning information, extensions, and Watch components. Preview display-name or Bundle ID changes and export a new copy while preserving the input file. Inspection and export work offline.
 - **Choose how to sideload.** Hand off an IPA over USB to SideStore or LiveContainer where file sharing is available, or use desktop signing and USB installation. Free Personal Team accounts are supported for development signing.
 - **Set up your device.** Check connected iPhones and installed apps, prepare pairing files, and follow setup instructions for SideStore, LocalDevVPN, and LiveContainer.
+- **Set up iPhone shortcuts.** Export a signed shortcut for SideStore refresh or to launch a specific LiveContainer app from the Home Screen.
 - **Manage Apple accounts.** Use a shared account interface for App Store and developer services, with service-specific sessions and signing credentials. App Store search and downloads depend on Apple's services and account region.
 - **Use KoiSide in your language.** Switch between Simplified Chinese, English, Russian, and Japanese.
 - **Use the CLI or MCP server.** Inspect files, query devices, and automate supported operations from the same executable.
@@ -47,6 +48,16 @@ For an ad-hoc signed build that macOS blocks, review the app's source and follow
 - Use an IPA suitable for your chosen installation route. App Store downloads can retain FairPlay encryption and require a different, sideloadable build for re-signing.
 - Free Personal Team provisioning profiles expire after seven days. Refresh before expiry through your chosen workflow. KoiSide's guides explain when to use SideStore, LocalDevVPN, Wi-Fi, and iOS Developer Mode.
 - USB file transfer and installation have separate results. After a SideStore handoff, complete the installation on your iPhone. LiveContainer runs imported apps inside its container, with compatibility depending on the app and configuration.
+
+### Shortcuts and expired LiveContainer installs
+
+1. In KoiSide, open **Sideload Help → iPhone Shortcuts**. Connect and unlock your iPhone to export a refresh shortcut for the detected SideStore or LiveContainer + SideStore installation.
+2. For a Home Screen shortcut, select a detected LiveContainer app. For a specific data container or an app outside the detected list, copy its launch URL from LiveContainer and paste it into KoiSide.
+3. AirDrop the exported `.shortcut` file to the iPhone and open it in Shortcuts. Test the shortcut once. To pin an app shortcut, select **Share → Add to Home Screen**. You can save the app icon from LiveContainer before adding it. [LiveContainer Home Screen guide](https://livecontainer.github.io/docs/guides/add-to-home-screen)
+
+Connect to Wi-Fi and LocalDevVPN before running the refresh shortcut. LiveContainer + SideStore requires the **LiveProcess** extension for its refresh action. To schedule refreshes, add **Set VPN** before the refresh action, select your LocalDevVPN profile, and create a daily **Time of Day** personal automation that runs the shortcut. Check **My Apps** after the first run. If the displayed days and iOS disagree, verify the profile installed on the phone. [Combined edition setup](https://livecontainer.github.io/docs/installation/lc_sidestore#auto-refresh-shortcut) · [Profile verification](https://livecontainer.github.io/docs/guides/refresh-verification)
+
+If iOS says LiveContainer is no longer available after expiry, keep the existing app on the phone. Its built-in SideStore cannot open to renew the host. Open **Sideload Help → App expiring soon or refresh failed → Refresh Failed or Expired?** in KoiSide. Use **Recover LiveContainer + SideStore** with the original Apple Account and developer team. Recovery checks the installed Bundle ID before updating it over USB. If the original installer used a different Bundle ID, use that installer and its original signing settings. Once LiveContainer opens again, connect LocalDevVPN and refresh in the built-in SideStore. [LiveContainer + SideStore setup](https://livecontainer.github.io/docs/installation/lc_sidestore#setup-after-installing)
 
 ## Build from source
 

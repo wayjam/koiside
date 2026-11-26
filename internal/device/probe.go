@@ -97,6 +97,14 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 			}
 		}
 	}
+	if snap.LiveContainer != nil {
+		for _, scheme := range snap.LiveContainer.URLSchemes {
+			if strings.EqualFold(scheme, "sidestore") || strings.HasPrefix(strings.ToLower(scheme), "sidestore-") {
+				snap.SideStoreEmbedded = true
+				break
+			}
+		}
+	}
 
 	docsBundleID := ""
 	if snap.SideStore != nil && snap.SideStore.BundleID != "" {
@@ -117,6 +125,10 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 				snap.USBVerified = true
 			}
 			if snap.LiveContainer != nil && docsBundleID == snap.LiveContainer.BundleID {
+				if !snap.SideStoreEmbedded {
+					st, err := afc.Stat("/Documents/SideStore")
+					snap.SideStoreEmbedded = err == nil && st.Type == "S_IFDIR"
+				}
 				snap.LiveContainerApps = readLiveContainerApps(afc)
 				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/SideStore/Documents/ConsoleLogs", "/Documents/ConsoleLogs"})
 			} else {
@@ -127,23 +139,15 @@ func ProbeFirst(dial Dialer) (Snapshot, error) {
 	}
 	if snap.LiveContainer != nil && snap.LiveContainer.BundleID != "" && snap.LiveContainer.BundleID != docsBundleID {
 		if afc, err := sess.VendDocuments(snap.LiveContainer.BundleID); err == nil {
+			if !snap.SideStoreEmbedded {
+				st, err := afc.Stat("/Documents/SideStore")
+				snap.SideStoreEmbedded = err == nil && st.Type == "S_IFDIR"
+			}
 			snap.LiveContainerApps = readLiveContainerApps(afc)
 			if snap.LatestSideStoreLog == nil {
 				snap.LatestSideStoreLog = readLatestSideStoreLog(afc, []string{"/Documents/SideStore/Documents/ConsoleLogs"})
 			}
 			afc.Close()
-		}
-	}
-	if snap.SideStore == nil && snap.LiveContainer != nil {
-		if snap.LatestSideStoreLog != nil {
-			snap.SideStoreEmbedded = true
-		} else {
-			for _, node := range snap.SideStoreTree {
-				if node.IsDir && strings.EqualFold(node.Name, "SideStore") {
-					snap.SideStoreEmbedded = true
-					break
-				}
-			}
 		}
 	}
 	return snap, nil

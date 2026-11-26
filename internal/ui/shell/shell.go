@@ -66,6 +66,7 @@ type Model struct {
 	language          string
 	guideStep         int
 	helpTopic         string
+	shortcutLaunchURL string
 	settingsSection   string
 
 	appQuery    string
@@ -157,6 +158,9 @@ type Model struct {
 	toolInstallMsg     string
 	toolInstallErr     string
 	toolInstallDone    bool
+	shortcutBusy       bool
+	shortcutStatus     string
+	shortcutFailed     bool
 	pairingBusy        bool
 	pairingMsg         string
 	pairingErr         string
