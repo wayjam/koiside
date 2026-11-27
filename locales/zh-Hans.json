@@ -822,6 +822,7 @@
   "errFriendlyNoDevice": "未检测到通过 USB 连接的 iPhone，请检查数据线与接口。",
   "errFriendlyAuth": "Apple ID 凭据或会话已失效，请前往「Apple 账号」重新登录。",
   "errFriendlyNetwork": "连接 Apple 或 Anisette 服务超时/失败，请检查网络后重试。",
+  "errFriendlyDeviceDisconnected": "与 iPhone 的连接中断。请用 USB 连接并解锁 iPhone，然后重试。",
   "errFriendlyMaxCerts": "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。",
   "errFriendlyMaxAppIDs": "免费个人团队 7 天内最多注册 10 个 App ID，请等待旧名额到期释放。",
   "toolsManageOnDeviceBtn": "前往「设备」安装或管理",

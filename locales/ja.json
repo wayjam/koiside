@@ -672,6 +672,7 @@
   "errFriendlyNoDevice": "USB 経由で iPhone が検出されませんでした。ケーブルと接続を確認してください。",
   "errFriendlyAuth": "Apple ID セッションが期限切れか無効です。 Apple アカウントで再度サインインします。",
   "errFriendlyNetwork": "タイムアウトしたか、Apple / Anisette サーバーへのアクセスに失敗しました。ネットワークを確認して再試行してください。",
+  "errFriendlyDeviceDisconnected": "iPhone との接続が切れました。USB で接続し、ロックを解除してから再試行してください。",
   "errFriendlyMaxCerts": "開発証明書の制限に達しました。 Apple アカウントで未使用の証明書を取り消します。",
   "errFriendlyMaxAppIDs": "無料のパーソナル チームは、7 日間あたり 10 個のアプリ ID に制限されています。既存の ID の有効期限が切れるまで待ちます。",
   "toolsManageOnDeviceBtn": "デバイスへのインストールと管理",

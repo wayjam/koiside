@@ -661,6 +661,7 @@
   "errFriendlyNoDevice": "No iPhone detected over USB. Check your cable and connection.",
   "errFriendlyAuth": "Apple ID session expired or invalid. Sign in again under Apple Account.",
   "errFriendlyNetwork": "Timed out or failed reaching Apple / Anisette servers. Check your network and retry.",
+  "errFriendlyDeviceDisconnected": "The connection to the iPhone was interrupted. Unlock your iPhone, connect it over USB, and try again.",
   "errFriendlyMaxCerts": "Development certificate limit reached. Revoke an unused certificate under Apple Account.",
   "errFriendlyMaxAppIDs": "Free Personal Teams are limited to 10 App IDs per 7 days. Wait for an existing ID to expire.",
   "toolsManageOnDeviceBtn": "Install & Manage in Device",

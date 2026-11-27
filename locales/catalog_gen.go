@@ -5648,6 +5648,16 @@ func (msgs Messages) ErrFriendlyNetwork() string {
 	return Catalog.Format(msgs.locale, "errFriendlyNetwork", nil)
 }
 
+// ErrFriendlyDeviceDisconnected says "与 iPhone 的连接中断。请用 USB 连接并解锁 iPhone，然后重试。"
+// in the language the app shows.
+func ErrFriendlyDeviceDisconnected() string { return In(i18n.Locale()).ErrFriendlyDeviceDisconnected() }
+
+// ErrFriendlyDeviceDisconnected says "与 iPhone 的连接中断。请用 USB 连接并解锁 iPhone，然后重试。"
+// in the language of msgs.
+func (msgs Messages) ErrFriendlyDeviceDisconnected() string {
+	return Catalog.Format(msgs.locale, "errFriendlyDeviceDisconnected", nil)
+}
+
 // ErrFriendlyMaxCerts says "开发证书数量已达上限，请在「Apple 账号」吊销旧证书后重试。"
 // in the language the app shows.
 func ErrFriendlyMaxCerts() string { return In(i18n.Locale()).ErrFriendlyMaxCerts() }

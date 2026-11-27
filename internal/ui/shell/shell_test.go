@@ -17,6 +17,7 @@ import (
 	"koiside/internal/device"
 	"koiside/internal/devportal"
 	"koiside/internal/ipa"
+	"koiside/locales"
 )
 
 func newTest(t *testing.T, dark bool) (*Model, *ui.Tester) {
@@ -27,6 +28,16 @@ func newTest(t *testing.T, dark bool) (*Model, *ui.Tester) {
 		tt.SetDark(true)
 	}
 	return m, tt
+}
+
+func TestFriendlyErrorDistinguishesDeviceAndAppleDisconnects(t *testing.T) {
+	msg := locales.In("en")
+	if got := friendlyError(msg, "device: upload to PublicStaging/LiveContainer.app: EOF"); got != msg.ErrFriendlyDeviceDisconnected() {
+		t.Fatalf("unexpected device upload error: %q", got)
+	}
+	if got := friendlyError(msg, "appleauth: GrandSlam request failed: EOF"); got != msg.ErrFriendlyNetwork() {
+		t.Fatalf("unexpected Apple connection error: %q", got)
+	}
 }
 
 func TestHomeShowsNextStep(t *testing.T) {

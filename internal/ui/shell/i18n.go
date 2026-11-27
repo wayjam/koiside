@@ -276,6 +276,8 @@ func friendlyError(msg locales.Messages, raw string) string {
 		return msg.ErrFriendlyMaxAppIDs()
 	case strings.Contains(low, "not signed in") || strings.Contains(low, "2fa") || strings.Contains(low, "bad password") || strings.Contains(low, "20101") || strings.Contains(low, "22406"):
 		return msg.ErrFriendlyAuth()
+	case strings.HasPrefix(low, "device: ") && strings.HasSuffix(low, "eof"):
+		return msg.ErrFriendlyDeviceDisconnected()
 	case strings.Contains(low, "timeout") || strings.Contains(low, "deadline") || strings.Contains(low, "eof") || strings.Contains(low, "connection refused") || strings.Contains(low, "no such host"):
 		return msg.ErrFriendlyNetwork()
 	default:
