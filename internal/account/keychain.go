@@ -18,8 +18,10 @@ const (
 	savedAccountsKey      = "saved_apple_accounts"
 )
 
+var errKeychainItemNotFound = errors.New("keychain item not found")
+
 // KeychainStorage stores secrets (Anisette state, developer keys, pairing files,
-// and opt-in saved Apple passwords) in macOS Keychain via /usr/bin/security.
+// and opt-in saved Apple passwords) in macOS Keychain.
 // It fails closed when Keychain is unavailable and never writes secrets to files.
 type KeychainStorage struct {
 	mu      sync.Mutex
@@ -36,6 +38,15 @@ func (k *KeychainStorage) Get(key string) ([]byte, error) {
 	if key == "" {
 		return nil, errors.New("account: empty storage key")
 	}
+	value, err := readNativeKeychainItem(k.service+".native", key)
+	// Earlier builds created items with the security CLI's access controls.
+	if !errors.Is(err, errKeychainItemNotFound) {
+		return value, err
+	}
+	return k.readLegacyItem(key)
+}
+
+func (k *KeychainStorage) readLegacyItem(key string) ([]byte, error) {
 	out, err := exec.Command("/usr/bin/security", "find-generic-password",
 		"-s", k.service, "-a", key, "-w").Output()
 	if err != nil {
@@ -57,13 +68,7 @@ func (k *KeychainStorage) Set(key string, value []byte) error {
 	if key == "" {
 		return errors.New("account: empty storage key")
 	}
-	encoded := "b64:" + base64.StdEncoding.EncodeToString(value)
-	cmd := exec.Command("/usr/bin/security", "add-generic-password",
-		"-U", "-s", k.service, "-a", key, "-w")
-	// The security CLI prompts on stdin when -w is last and has no argument.
-	// This keeps the secret out of the process argument list.
-	cmd.Stdin = strings.NewReader(encoded + "\n")
-	if err := cmd.Run(); err != nil {
+	if err := writeNativeKeychainItem(k.service+".native", key, value); err != nil {
 		return fmt.Errorf("account: write Keychain item: %w", err)
 	}
 	return nil
@@ -75,6 +80,9 @@ func (k *KeychainStorage) DeleteKey(key string) error {
 	}
 	k.mu.Lock()
 	defer k.mu.Unlock()
+	if err := deleteNativeKeychainItem(k.service+".native", key); err != nil && !errors.Is(err, errKeychainItemNotFound) {
+		return err
+	}
 	_ = exec.Command("/usr/bin/security", "delete-generic-password", "-s", k.service, "-a", key).Run()
 	return nil
 }
