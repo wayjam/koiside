@@ -25,6 +25,11 @@ const (
 	accountTabStore     = 1
 )
 
+const (
+	anisettePresetJkcoxson  = "mac-ani.jkcoxson.com"
+	anisettePresetSideStore = "new.ani.sidestore.io"
+)
+
 type accountTabStatus uint8
 
 const (
@@ -468,17 +473,54 @@ func (m *Model) renderDeveloperAccountTab(c *ui.Context, msg locales.Messages) {
 	if m.anisetteInput == "" {
 		m.anisetteInput = mgr.AnisetteURL()
 	}
+	currentURL := m.anisetteInput
+	presetCustom := msg.AccountAnisetteCustom()
+	presetOptions := []string{anisettePresetJkcoxson, anisettePresetSideStore, presetCustom}
+	if m.anisettePreset == "" {
+		switch currentURL {
+		case "https://" + anisettePresetJkcoxson, "http://" + anisettePresetJkcoxson, anisettePresetJkcoxson:
+			m.anisettePreset = anisettePresetJkcoxson
+		case "https://" + anisettePresetSideStore, "http://" + anisettePresetSideStore, anisettePresetSideStore:
+			m.anisettePreset = anisettePresetSideStore
+		default:
+			m.anisettePreset = presetCustom
+		}
+	}
 	insetGroup(c, "account-anisette-group", func() {
 		ui.Column(c).FillWidth().Padding(16, 18).Gap(10).Children(func() {
 			ui.Text(c, msg.AccountAnisetteTitle()).Bold().FontSize(14)
 			ui.Text(c, msg.AccountAnisetteDesc()).FontSize(12).TextColor(t.TextMuted)
-			ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
-				ui.TextInput(c.Key("acc-anisette-url"), &m.anisetteInput).
-					Placeholder(msg.AccountAnisetteURLPlaceholder()).Grow(1).Label(msg.AccountAnisetteTitle())
-				if uiBtn(c, "acc-anisette-save", msg.AccountAnisetteSaveBtn()).Clicked() {
-					mgr.SetAnisetteURL(m.anisetteInput)
-					m.anisetteInput = mgr.AnisetteURL()
-					m.addLog("anisette server updated")
+			ui.Row(c).FillWidth().Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
+				oldPreset := m.anisettePreset
+				sel := ui.Select(c.Key("acc-anisette-select"), &m.anisettePreset, presetOptions)
+				if m.anisettePreset != oldPreset {
+					switch m.anisettePreset {
+					case anisettePresetJkcoxson:
+						m.anisetteInput = "https://" + anisettePresetJkcoxson
+						mgr.SetAnisetteURL(m.anisetteInput)
+						m.anisetteInput = mgr.AnisetteURL()
+						m.anisetteNotice = ""
+						m.addLog("anisette server updated: " + m.anisetteInput)
+					case anisettePresetSideStore:
+						m.anisetteInput = "https://" + anisettePresetSideStore
+						mgr.SetAnisetteURL(m.anisetteInput)
+						m.anisetteInput = mgr.AnisetteURL()
+						m.anisetteNotice = ""
+						m.addLog("anisette server updated: " + m.anisetteInput)
+					case presetCustom:
+						// user can edit in text input
+					}
+				}
+				_ = sel
+				if m.anisettePreset == presetCustom {
+					ui.TextInput(c.Key("acc-anisette-url"), &m.anisetteInput).
+						Placeholder(msg.AccountAnisetteURLPlaceholder()).Grow(1).MinWidth(200).Label(msg.AccountAnisetteTitle())
+					if uiBtn(c, "acc-anisette-save", msg.AccountAnisetteSaveBtn()).Clicked() {
+						mgr.SetAnisetteURL(m.anisetteInput)
+						m.anisetteInput = mgr.AnisetteURL()
+						m.anisetteNotice = ""
+						m.addLog("anisette server updated: " + m.anisetteInput)
+					}
 				}
 				if uiBtn(c, "acc-anisette-reset", msg.AccountAnisetteResetBtn()).Clicked() {
 					_ = mgr.ResetAnisetteState(context.Background())

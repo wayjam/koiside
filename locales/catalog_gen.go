@@ -4394,6 +4394,16 @@ func (msgs Messages) AccountAnisetteURLPlaceholder() string {
 	return Catalog.Format(msgs.locale, "accountAnisetteURLPlaceholder", nil)
 }
 
+// AccountAnisetteCustom says "自定义地址…"
+// in the language the app shows.
+func AccountAnisetteCustom() string { return In(i18n.Locale()).AccountAnisetteCustom() }
+
+// AccountAnisetteCustom says "自定义地址…"
+// in the language of msgs.
+func (msgs Messages) AccountAnisetteCustom() string {
+	return Catalog.Format(msgs.locale, "accountAnisetteCustom", nil)
+}
+
 // AccountAnisetteSaveBtn says "保存地址"
 // in the language the app shows.
 func AccountAnisetteSaveBtn() string { return In(i18n.Locale()).AccountAnisetteSaveBtn() }

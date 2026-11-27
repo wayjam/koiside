@@ -139,6 +139,7 @@ type Model struct {
 	loginErr           string
 	anisetteInput      string
 	anisetteNotice     string
+	anisettePreset     string
 	twoFactorPrompt    *appleauth.TwoFactorPrompt
 	twoFactorRespCh    chan appleauth.TwoFactorResponse
 	twoFactorCode      string

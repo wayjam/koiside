@@ -600,6 +600,7 @@
   "accountAnisetteTitle": "Anisette v3 服务",
   "accountAnisetteDesc": "仅用于生成 Apple 设备证明请求头，不发送 Apple ID 密码；可替换为自建 Anisette v3 地址。",
   "accountAnisetteURLPlaceholder": "https://mac-ani.jkcoxson.com",
+  "accountAnisetteCustom": "自定义地址…",
   "accountAnisetteSaveBtn": "保存地址",
   "accountAnisetteResetBtn": "重置设备证明状态",
   "accountAnisetteResetDone": "Anisette 设备证明状态已清除",
