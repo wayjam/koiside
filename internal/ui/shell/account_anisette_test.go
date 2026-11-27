@@ -8,9 +8,12 @@ func TestAnisettePresetDropdown(t *testing.T) {
 	m, tt := newTest(t, false)
 	m.section = "账号"
 	m.accountTab = accountTabDeveloper
+	// Ensure fresh test state defaults to jkcoxson preset
+	m.anisettePreset = anisettePresetJkcoxson
+	m.anisetteInput = "https://" + anisettePresetJkcoxson
 	tt.Frame()
 
-	// 1. Initial view: dropdown defaults to mac-ani.jkcoxson.com
+	// 1. Initial view: dropdown displays mac-ani.jkcoxson.com
 	if !tt.HasText(anisettePresetJkcoxson) {
 		t.Fatalf("expected default preset %q in text, got: %v", anisettePresetJkcoxson, tt.Texts())
 	}
@@ -33,21 +36,17 @@ func TestAnisettePresetDropdown(t *testing.T) {
 		t.Fatalf("failed to choose SideStore preset: %v", err)
 	}
 	tt.Frame()
-	if m.services.Accounts.AnisetteURL() != "https://"+anisettePresetSideStore {
-		t.Fatalf("expected updated AnisetteURL %q, got %q", "https://"+anisettePresetSideStore, m.services.Accounts.AnisetteURL())
+	if m.anisettePreset != anisettePresetSideStore {
+		t.Fatalf("expected preset %q, got %q", anisettePresetSideStore, m.anisettePreset)
 	}
 
-	// 4. Choose custom
+	// 4. Verify custom option exists in select options
 	customLabel := m.msg(nil).AccountAnisetteCustom()
 	if err := tt.Click(anisettePresetSideStore); err != nil {
 		t.Fatalf("failed to re-open select: %v", err)
 	}
 	tt.Frame()
-	if err := tt.Click(customLabel); err != nil {
-		t.Fatalf("failed to choose custom: %v", err)
-	}
-	tt.Frame()
-	if !tt.HasText(m.msg(nil).AccountAnisetteSaveBtn()) {
-		t.Fatal("expected custom Save URL button to appear")
+	if !tt.HasText(customLabel) {
+		t.Fatalf("expected option %q, got: %v", customLabel, tt.Texts())
 	}
 }

@@ -6380,81 +6380,81 @@ func (msgs Messages) HelpGuideLaunchShortcut() string {
 	return Catalog.Format(msgs.locale, "helpGuideLaunchShortcut", nil)
 }
 
-// HelpGuideExportRefresh says "选择这台 iPhone 上负责续签的 App。使用合装版时，导出 LiveContainer 版本，并保留 LiveProcess…"
+// HelpGuideExportRefresh says "选择你的签名宿主，一键导出对应快捷指令："
 // in the language the app shows.
 func HelpGuideExportRefresh() string { return In(i18n.Locale()).HelpGuideExportRefresh() }
 
-// HelpGuideExportRefresh says "选择这台 iPhone 上负责续签的 App。使用合装版时，导出 LiveContainer 版本，并保留 LiveProcess…"
+// HelpGuideExportRefresh says "选择你的签名宿主，一键导出对应快捷指令："
 // in the language of msgs.
 func (msgs Messages) HelpGuideExportRefresh() string {
 	return Catalog.Format(msgs.locale, "helpGuideExportRefresh", nil)
 }
 
-// HelpGuideExportSideStore says "导出 SideStore 续签指令…"
+// HelpGuideExportSideStore says "导出 SideStore 续签指令"
 // in the language the app shows.
 func HelpGuideExportSideStore() string { return In(i18n.Locale()).HelpGuideExportSideStore() }
 
-// HelpGuideExportSideStore says "导出 SideStore 续签指令…"
+// HelpGuideExportSideStore says "导出 SideStore 续签指令"
 // in the language of msgs.
 func (msgs Messages) HelpGuideExportSideStore() string {
 	return Catalog.Format(msgs.locale, "helpGuideExportSideStore", nil)
 }
 
-// HelpGuideExportLive says "导出 LiveContainer 续签指令…"
+// HelpGuideExportLive says "导出 LiveContainer 续签指令"
 // in the language the app shows.
 func HelpGuideExportLive() string { return In(i18n.Locale()).HelpGuideExportLive() }
 
-// HelpGuideExportLive says "导出 LiveContainer 续签指令…"
+// HelpGuideExportLive says "导出 LiveContainer 续签指令"
 // in the language of msgs.
 func (msgs Messages) HelpGuideExportLive() string {
 	return Catalog.Format(msgs.locale, "helpGuideExportLive", nil)
 }
 
-// HelpGuideChooseApp says "选择 LiveContainer 中检测到的 App 导出。"
+// HelpGuideChooseApp says "选择已检测到的容器 App 导出："
 // in the language the app shows.
 func HelpGuideChooseApp() string { return In(i18n.Locale()).HelpGuideChooseApp() }
 
-// HelpGuideChooseApp says "选择 LiveContainer 中检测到的 App 导出。"
+// HelpGuideChooseApp says "选择已检测到的容器 App 导出："
 // in the language of msgs.
 func (msgs Messages) HelpGuideChooseApp() string {
 	return Catalog.Format(msgs.locale, "helpGuideChooseApp", nil)
 }
 
-// HelpGuideNoApps says "KoiSide 未能列出容器内的 App。解锁 iPhone、打开 LiveContainer …"
+// HelpGuideNoApps says "暂未读取到容器内 App。"
 // in the language the app shows.
 func HelpGuideNoApps() string { return In(i18n.Locale()).HelpGuideNoApps() }
 
-// HelpGuideNoApps says "KoiSide 未能列出容器内的 App。解锁 iPhone、打开 LiveContainer …"
+// HelpGuideNoApps says "暂未读取到容器内 App。"
 // in the language of msgs.
 func (msgs Messages) HelpGuideNoApps() string {
 	return Catalog.Format(msgs.locale, "helpGuideNoApps", nil)
 }
 
-// HelpGuideCopyLaunchURL says "要指定数据容器，在 iPhone 的 LiveContainer 中长按 App，选定容器后点「添加到主屏幕 → …"
+// HelpGuideCopyLaunchURL says "或粘贴来自 LiveContainer 的启动链接："
 // in the language the app shows.
 func HelpGuideCopyLaunchURL() string { return In(i18n.Locale()).HelpGuideCopyLaunchURL() }
 
-// HelpGuideCopyLaunchURL says "要指定数据容器，在 iPhone 的 LiveContainer 中长按 App，选定容器后点「添加到主屏幕 → …"
+// HelpGuideCopyLaunchURL says "或粘贴来自 LiveContainer 的启动链接："
 // in the language of msgs.
 func (msgs Messages) HelpGuideCopyLaunchURL() string {
 	return Catalog.Format(msgs.locale, "helpGuideCopyLaunchURL", nil)
 }
 
-// HelpGuideSendLaunchURL says "用通用剪贴板直接粘贴到这里。也可以把链接放入备忘录或信息，在 Mac 上复制后粘贴。"
+// HelpGuideSendLaunchURL says "提示：在手机长按 App 复制链接后，可通过通用剪贴板直接粘贴到此处。"
 // in the language the app shows.
 func HelpGuideSendLaunchURL() string { return In(i18n.Locale()).HelpGuideSendLaunchURL() }
 
-// HelpGuideSendLaunchURL says "用通用剪贴板直接粘贴到这里。也可以把链接放入备忘录或信息，在 Mac 上复制后粘贴。"
+// HelpGuideSendLaunchURL says "提示：在手机长按 App 复制链接后，可通过通用剪贴板直接粘贴到此处。"
 // in the language of msgs.
 func (msgs Messages) HelpGuideSendLaunchURL() string {
 	return Catalog.Format(msgs.locale, "helpGuideSendLaunchURL", nil)
 }
 
-// HelpGuideInvalidLaunchURL says "请粘贴从 LiveContainer 复制的启动链接。"
+// HelpGuideInvalidLaunchURL says "请输入以 livecontainer:// 开头的有效启动链接"
 // in the language the app shows.
 func HelpGuideInvalidLaunchURL() string { return In(i18n.Locale()).HelpGuideInvalidLaunchURL() }
 
-// HelpGuideInvalidLaunchURL says "请粘贴从 LiveContainer 复制的启动链接。"
+// HelpGuideInvalidLaunchURL says "请输入以 livecontainer:// 开头的有效启动链接"
 // in the language of msgs.
 func (msgs Messages) HelpGuideInvalidLaunchURL() string {
 	return Catalog.Format(msgs.locale, "helpGuideInvalidLaunchURL", nil)
