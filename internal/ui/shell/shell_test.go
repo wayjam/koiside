@@ -77,48 +77,28 @@ func TestRecentFileOpensDetail(t *testing.T) {
 	}
 }
 
-func TestGuideCanBeSkippedAndStepped(t *testing.T) {
+func TestHelpGuideCanBeClosedAndStepped(t *testing.T) {
 	m, tt := newTest(t, false)
-	if err := tt.Click("侧载帮助"); err != nil {
-		t.Fatal(err)
+	for _, action := range []struct{ button, text string }{
+		{"侧载帮助", "侧载帮助与配套工具"},
+		{"SideStore 设置与恢复", "第 1 步，共 3 步"},
+		{"下一步 →", "第 2 步，共 3 步"},
+		{"上一步", "第 1 步，共 3 步"},
+		{"下一步 →", "第 2 步，共 3 步"},
+		{"下一步 →", "第 3 步，共 3 步"},
+		{"完成", "侧载帮助与配套工具"},
+		{"SideStore 设置与恢复", "第 1 步，共 3 步"},
+		{"关闭", "侧载帮助与配套工具"},
+	} {
+		if err := tt.Click(action.button); err != nil {
+			t.Fatal(err)
+		}
+		if !tt.HasText(action.text) {
+			t.Fatalf("after %q, expected %q, got %q", action.button, action.text, tt.Texts())
+		}
 	}
-	if err := tt.Click("SideStore 设置与恢复"); err != nil {
-		t.Fatal(err)
-	}
-	if !tt.HasText("第 1 步，共 3 步") || !tt.HasText("连接 iPhone") {
-		t.Fatalf("step 1 texts %q", tt.Texts())
-	}
-	if err := tt.Click("继续"); err != nil {
-		t.Fatal(err)
-	}
-	if !tt.HasText("第 2 步，共 3 步") || !tt.HasText("准备并检查 IPA") {
-		t.Fatalf("step 2 texts %q", tt.Texts())
-	}
-	if err := tt.Click("继续"); err != nil {
-		t.Fatal(err)
-	}
-	if !tt.HasText("第 3 步，共 3 步") || !tt.HasText("交接给 SideStore") {
-		t.Fatalf("step 3 texts %q", tt.Texts())
-	}
-	if err := tt.Click("完成并前往首页"); err != nil {
-		t.Fatal(err)
-	}
-	if m.section != "准备" || !tt.HasText("把想用的 App 装到 iPhone") {
-		t.Fatalf("section %s texts %q", m.section, tt.Texts())
-	}
-
-	// Re-enter via help and skip
-	if err := tt.Click("侧载帮助"); err != nil {
-		t.Fatal(err)
-	}
-	if err := tt.Click("SideStore 设置与恢复"); err != nil {
-		t.Fatal(err)
-	}
-	if err := tt.Click("跳过引导"); err != nil {
-		t.Fatal(err)
-	}
-	if m.section != "准备" {
-		t.Fatalf("expected home after skip, got %s", m.section)
+	if m.section != "工具" || tt.HasText("第 1 步，共 3 步") {
+		t.Fatalf("closing the guide should leave the help page, got %q", tt.Texts())
 	}
 }
 
@@ -217,8 +197,8 @@ func TestDeviceViewRendersDisconnectedAndConnected(t *testing.T) {
 	if err := tt.Click("查看工具指引"); err != nil {
 		t.Fatal(err)
 	}
-	if m.section != "工具" {
-		t.Fatalf("expected help/tools section, got %s", m.section)
+	if m.section != "设备" || !tt.HasText("第 1 步，共 3 步") {
+		t.Fatalf("expected the setup guide over Device, got %q", tt.Texts())
 	}
 }
 

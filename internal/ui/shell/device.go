@@ -1276,7 +1276,7 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 							ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(12)
 							ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(11).TextColor(t.TextMuted)
 							if uiBtn(c, "handoff-iphone-shortcuts", msg.ShortcutsTitle()).Clicked() {
-								m.openHelp("shortcuts")
+								m.openHelp(helpShortcutLaunch)
 							}
 						})
 					}).Cursor(ui.CursorPointer)

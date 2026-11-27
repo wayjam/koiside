@@ -65,9 +65,14 @@ type Model struct {
 	appearance        string
 	language          string
 	guideStep         int
-	helpTopic         string
-	shortcutLaunchURL string
 	settingsSection   string
+
+	helpTopic               string
+	helpStep                int
+	helpFileError           string
+	shortcutLaunchURL       string
+	shortcutSchedule        bool
+	shortcutTroubleshooting bool
 
 	appQuery    string
 	appFilter   int // 0: all, 1: sideloaded
@@ -159,8 +164,7 @@ type Model struct {
 	toolInstallErr     string
 	toolInstallDone    bool
 	shortcutBusy       bool
-	shortcutStatus     string
-	shortcutFailed     bool
+	shortcutResults    map[string]shortcutResult
 	pairingBusy        bool
 	pairingMsg         string
 	pairingErr         string
@@ -255,7 +259,10 @@ func (m *Model) openHelp(topic string) {
 	if m.isTaskSection(m.section) {
 		m.lastTaskSection = m.section
 	}
-	m.helpTopic = topic
+	if topic != "" {
+		m.startHelpGuide(topic)
+		return
+	}
 	m.section = "工具"
 }
 
@@ -321,6 +328,7 @@ func (m *Model) view(c *ui.Context) {
 		})
 		m.accountReturnOverlay(c, msg, true)
 		m.openPathDialog(c, msg)
+		m.helpGuideModal(c, msg)
 		m.toolInstallConfirmModal(c, msg)
 		m.revokeCertConfirmModal(c, msg)
 		m.accountModals(c, msg)
@@ -355,6 +363,7 @@ func (m *Model) view(c *ui.Context) {
 	})
 	m.accountReturnOverlay(c, msg, false)
 	m.openPathDialog(c, msg)
+	m.helpGuideModal(c, msg)
 	m.toolInstallConfirmModal(c, msg)
 	m.revokeCertConfirmModal(c, msg)
 	m.accountModals(c, msg)
@@ -740,7 +749,7 @@ func (m *Model) workspace(c *ui.Context, msg locales.Messages, compact bool) {
 	if secKey == "" {
 		secKey = "准备"
 	}
-	ui.Column(c.Key("workspace-"+secKey)).FillWidth().Gap(gap).Transition(workspaceEnterTransition).Children(func() {
+	ui.Column(c.Key("workspace-" + secKey)).FillWidth().Gap(gap).Transition(workspaceEnterTransition).Children(func() {
 		switch m.section {
 		case "工具":
 			m.tools(c, msg)

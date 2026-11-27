@@ -5384,16 +5384,6 @@ func (msgs Messages) ShortcutsTitle() string {
 	return Catalog.Format(msgs.locale, "shortcutsTitle", nil)
 }
 
-// ShortcutsShareHint says "导出签名后的 .shortcut 文件，通过隔空投送发到 iPhone，打开文件即可添加到「快捷指令」。"
-// in the language the app shows.
-func ShortcutsShareHint() string { return In(i18n.Locale()).ShortcutsShareHint() }
-
-// ShortcutsShareHint says "导出签名后的 .shortcut 文件，通过隔空投送发到 iPhone，打开文件即可添加到「快捷指令」。"
-// in the language of msgs.
-func (msgs Messages) ShortcutsShareHint() string {
-	return Catalog.Format(msgs.locale, "shortcutsShareHint", nil)
-}
-
 // ShortcutsRefreshTitle says "刷新 App 签名"
 // in the language the app shows.
 func ShortcutsRefreshTitle() string { return In(i18n.Locale()).ShortcutsRefreshTitle() }
@@ -5402,36 +5392,6 @@ func ShortcutsRefreshTitle() string { return In(i18n.Locale()).ShortcutsRefreshT
 // in the language of msgs.
 func (msgs Messages) ShortcutsRefreshTitle() string {
 	return Catalog.Format(msgs.locale, "shortcutsRefreshTitle", nil)
-}
-
-// ShortcutsRefreshHint says "运行前连接 Wi-Fi 和 LocalDevVPN。合装版需要保留 LiveProcess 扩展。若要定时续签，在 iPhone …"
-// in the language the app shows.
-func ShortcutsRefreshHint() string { return In(i18n.Locale()).ShortcutsRefreshHint() }
-
-// ShortcutsRefreshHint says "运行前连接 Wi-Fi 和 LocalDevVPN。合装版需要保留 LiveProcess 扩展。若要定时续签，在 iPhone …"
-// in the language of msgs.
-func (msgs Messages) ShortcutsRefreshHint() string {
-	return Catalog.Format(msgs.locale, "shortcutsRefreshHint", nil)
-}
-
-// ShortcutsRefreshSideStore says "用 SideStore 续签"
-// in the language the app shows.
-func ShortcutsRefreshSideStore() string { return In(i18n.Locale()).ShortcutsRefreshSideStore() }
-
-// ShortcutsRefreshSideStore says "用 SideStore 续签"
-// in the language of msgs.
-func (msgs Messages) ShortcutsRefreshSideStore() string {
-	return Catalog.Format(msgs.locale, "shortcutsRefreshSideStore", nil)
-}
-
-// ShortcutsRefreshLC says "用 LiveContainer 续签"
-// in the language the app shows.
-func ShortcutsRefreshLC() string { return In(i18n.Locale()).ShortcutsRefreshLC() }
-
-// ShortcutsRefreshLC says "用 LiveContainer 续签"
-// in the language of msgs.
-func (msgs Messages) ShortcutsRefreshLC() string {
-	return Catalog.Format(msgs.locale, "shortcutsRefreshLC", nil)
 }
 
 // ShortcutsRefreshNeedsDevice says "连接并解锁装有 SideStore 或 LiveContainer + SideStore 的 iPhone，即可导出对应的续签指令。"
@@ -5452,26 +5412,6 @@ func ShortcutsLaunchTitle() string { return In(i18n.Locale()).ShortcutsLaunchTit
 // in the language of msgs.
 func (msgs Messages) ShortcutsLaunchTitle() string {
 	return Catalog.Format(msgs.locale, "shortcutsLaunchTitle", nil)
-}
-
-// ShortcutsLaunchHint says "选择检测到的容器 App 导出。在 iPhone 上运行一次确认可以打开，再点「分享 → …"
-// in the language the app shows.
-func ShortcutsLaunchHint() string { return In(i18n.Locale()).ShortcutsLaunchHint() }
-
-// ShortcutsLaunchHint says "选择检测到的容器 App 导出。在 iPhone 上运行一次确认可以打开，再点「分享 → …"
-// in the language of msgs.
-func (msgs Messages) ShortcutsLaunchHint() string {
-	return Catalog.Format(msgs.locale, "shortcutsLaunchHint", nil)
-}
-
-// ShortcutsLaunchURLHint says "如果列表里没有目标 App 或数据容器，在 LiveContainer 中长按 App，选择「添加到主屏幕 → …"
-// in the language the app shows.
-func ShortcutsLaunchURLHint() string { return In(i18n.Locale()).ShortcutsLaunchURLHint() }
-
-// ShortcutsLaunchURLHint says "如果列表里没有目标 App 或数据容器，在 LiveContainer 中长按 App，选择「添加到主屏幕 → …"
-// in the language of msgs.
-func (msgs Messages) ShortcutsLaunchURLHint() string {
-	return Catalog.Format(msgs.locale, "shortcutsLaunchURLHint", nil)
 }
 
 // ShortcutsLaunchURL says "LiveContainer 启动链接"
@@ -5504,11 +5444,11 @@ func (msgs Messages) ShortcutsSaving() string {
 	return Catalog.Format(msgs.locale, "shortcutsSaving", nil)
 }
 
-// ShortcutsSaved says "已保存 {file}。通过隔空投送发到 iPhone。"
+// ShortcutsSaved says "已保存 {file}。"
 // in the language the app shows.
 func ShortcutsSaved(file string) string { return In(i18n.Locale()).ShortcutsSaved(file) }
 
-// ShortcutsSaved says "已保存 {file}。通过隔空投送发到 iPhone。"
+// ShortcutsSaved says "已保存 {file}。"
 // in the language of msgs.
 func (msgs Messages) ShortcutsSaved(file string) string {
 	return Catalog.Format(msgs.locale, "shortcutsSaved", map[string]any{"file": file})
@@ -6098,4 +6038,524 @@ func SettingsAboutSource() string { return In(i18n.Locale()).SettingsAboutSource
 // in the language of msgs.
 func (msgs Messages) SettingsAboutSource() string {
 	return Catalog.Format(msgs.locale, "settingsAboutSource", nil)
+}
+
+// HelpGuideOpen says "打开引导"
+// in the language the app shows.
+func HelpGuideOpen() string { return In(i18n.Locale()).HelpGuideOpen() }
+
+// HelpGuideOpen says "打开引导"
+// in the language of msgs.
+func (msgs Messages) HelpGuideOpen() string {
+	return Catalog.Format(msgs.locale, "helpGuideOpen", nil)
+}
+
+// HelpGuideClose says "关闭"
+// in the language the app shows.
+func HelpGuideClose() string { return In(i18n.Locale()).HelpGuideClose() }
+
+// HelpGuideClose says "关闭"
+// in the language of msgs.
+func (msgs Messages) HelpGuideClose() string {
+	return Catalog.Format(msgs.locale, "helpGuideClose", nil)
+}
+
+// HelpGuidePrevious says "上一步"
+// in the language the app shows.
+func HelpGuidePrevious() string { return In(i18n.Locale()).HelpGuidePrevious() }
+
+// HelpGuidePrevious says "上一步"
+// in the language of msgs.
+func (msgs Messages) HelpGuidePrevious() string {
+	return Catalog.Format(msgs.locale, "helpGuidePrevious", nil)
+}
+
+// HelpGuideNext says "下一步"
+// in the language the app shows.
+func HelpGuideNext() string { return In(i18n.Locale()).HelpGuideNext() }
+
+// HelpGuideNext says "下一步"
+// in the language of msgs.
+func (msgs Messages) HelpGuideNext() string {
+	return Catalog.Format(msgs.locale, "helpGuideNext", nil)
+}
+
+// HelpGuideFinish says "完成"
+// in the language the app shows.
+func HelpGuideFinish() string { return In(i18n.Locale()).HelpGuideFinish() }
+
+// HelpGuideFinish says "完成"
+// in the language of msgs.
+func (msgs Messages) HelpGuideFinish() string {
+	return Catalog.Format(msgs.locale, "helpGuideFinish", nil)
+}
+
+// HelpGuideTrust says "信任"
+// in the language the app shows.
+func HelpGuideTrust() string { return In(i18n.Locale()).HelpGuideTrust() }
+
+// HelpGuideTrust says "信任"
+// in the language of msgs.
+func (msgs Messages) HelpGuideTrust() string {
+	return Catalog.Format(msgs.locale, "helpGuideTrust", nil)
+}
+
+// HelpGuideCheckDevice says "检查连接"
+// in the language the app shows.
+func HelpGuideCheckDevice() string { return In(i18n.Locale()).HelpGuideCheckDevice() }
+
+// HelpGuideCheckDevice says "检查连接"
+// in the language of msgs.
+func (msgs Messages) HelpGuideCheckDevice() string {
+	return Catalog.Format(msgs.locale, "helpGuideCheckDevice", nil)
+}
+
+// HelpGuideInstall says "安装"
+// in the language the app shows.
+func HelpGuideInstall() string { return In(i18n.Locale()).HelpGuideInstall() }
+
+// HelpGuideInstall says "安装"
+// in the language of msgs.
+func (msgs Messages) HelpGuideInstall() string {
+	return Catalog.Format(msgs.locale, "helpGuideInstall", nil)
+}
+
+// HelpGuideCheckTransfer says "检查传输"
+// in the language the app shows.
+func HelpGuideCheckTransfer() string { return In(i18n.Locale()).HelpGuideCheckTransfer() }
+
+// HelpGuideCheckTransfer says "检查传输"
+// in the language of msgs.
+func (msgs Messages) HelpGuideCheckTransfer() string {
+	return Catalog.Format(msgs.locale, "helpGuideCheckTransfer", nil)
+}
+
+// HelpGuideFindFile says "查找 IPA"
+// in the language the app shows.
+func HelpGuideFindFile() string { return In(i18n.Locale()).HelpGuideFindFile() }
+
+// HelpGuideFindFile says "查找 IPA"
+// in the language of msgs.
+func (msgs Messages) HelpGuideFindFile() string {
+	return Catalog.Format(msgs.locale, "helpGuideFindFile", nil)
+}
+
+// HelpGuideImport says "导入"
+// in the language the app shows.
+func HelpGuideImport() string { return In(i18n.Locale()).HelpGuideImport() }
+
+// HelpGuideImport says "导入"
+// in the language of msgs.
+func (msgs Messages) HelpGuideImport() string {
+	return Catalog.Format(msgs.locale, "helpGuideImport", nil)
+}
+
+// HelpGuideCheckLaunch says "检查能否打开"
+// in the language the app shows.
+func HelpGuideCheckLaunch() string { return In(i18n.Locale()).HelpGuideCheckLaunch() }
+
+// HelpGuideCheckLaunch says "检查能否打开"
+// in the language of msgs.
+func (msgs Messages) HelpGuideCheckLaunch() string {
+	return Catalog.Format(msgs.locale, "helpGuideCheckLaunch", nil)
+}
+
+// HelpGuideTestRefresh says "试跑续签"
+// in the language the app shows.
+func HelpGuideTestRefresh() string { return In(i18n.Locale()).HelpGuideTestRefresh() }
+
+// HelpGuideTestRefresh says "试跑续签"
+// in the language of msgs.
+func (msgs Messages) HelpGuideTestRefresh() string {
+	return Catalog.Format(msgs.locale, "helpGuideTestRefresh", nil)
+}
+
+// HelpGuideVerify says "验证"
+// in the language the app shows.
+func HelpGuideVerify() string { return In(i18n.Locale()).HelpGuideVerify() }
+
+// HelpGuideVerify says "验证"
+// in the language of msgs.
+func (msgs Messages) HelpGuideVerify() string {
+	return Catalog.Format(msgs.locale, "helpGuideVerify", nil)
+}
+
+// HelpGuideExport says "导出"
+// in the language the app shows.
+func HelpGuideExport() string { return In(i18n.Locale()).HelpGuideExport() }
+
+// HelpGuideExport says "导出"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExport() string {
+	return Catalog.Format(msgs.locale, "helpGuideExport", nil)
+}
+
+// HelpGuideSend says "投送并导入"
+// in the language the app shows.
+func HelpGuideSend() string { return In(i18n.Locale()).HelpGuideSend() }
+
+// HelpGuideSend says "投送并导入"
+// in the language of msgs.
+func (msgs Messages) HelpGuideSend() string {
+	return Catalog.Format(msgs.locale, "helpGuideSend", nil)
+}
+
+// HelpGuidePin says "试开并添加"
+// in the language the app shows.
+func HelpGuidePin() string { return In(i18n.Locale()).HelpGuidePin() }
+
+// HelpGuidePin says "试开并添加"
+// in the language of msgs.
+func (msgs Messages) HelpGuidePin() string {
+	return Catalog.Format(msgs.locale, "helpGuidePin", nil)
+}
+
+// HelpGuideSchedule says "设置每日自动化"
+// in the language the app shows.
+func HelpGuideSchedule() string { return In(i18n.Locale()).HelpGuideSchedule() }
+
+// HelpGuideSchedule says "设置每日自动化"
+// in the language of msgs.
+func (msgs Messages) HelpGuideSchedule() string {
+	return Catalog.Format(msgs.locale, "helpGuideSchedule", nil)
+}
+
+// HelpGuideAirDrop says "隔空投送…"
+// in the language the app shows.
+func HelpGuideAirDrop() string { return In(i18n.Locale()).HelpGuideAirDrop() }
+
+// HelpGuideAirDrop says "隔空投送…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideAirDrop() string {
+	return Catalog.Format(msgs.locale, "helpGuideAirDrop", nil)
+}
+
+// HelpGuideFinder says "在 Finder 中显示"
+// in the language the app shows.
+func HelpGuideFinder() string { return In(i18n.Locale()).HelpGuideFinder() }
+
+// HelpGuideFinder says "在 Finder 中显示"
+// in the language of msgs.
+func (msgs Messages) HelpGuideFinder() string {
+	return Catalog.Format(msgs.locale, "helpGuideFinder", nil)
+}
+
+// HelpGuideExportFirst says "先导出快捷指令，再继续。"
+// in the language the app shows.
+func HelpGuideExportFirst() string { return In(i18n.Locale()).HelpGuideExportFirst() }
+
+// HelpGuideExportFirst says "先导出快捷指令，再继续。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExportFirst() string {
+	return Catalog.Format(msgs.locale, "helpGuideExportFirst", nil)
+}
+
+// HelpGuideFileMissing says "文件已移动或无法访问。请返回上一步重新导出。"
+// in the language the app shows.
+func HelpGuideFileMissing() string { return In(i18n.Locale()).HelpGuideFileMissing() }
+
+// HelpGuideFileMissing says "文件已移动或无法访问。请返回上一步重新导出。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideFileMissing() string {
+	return Catalog.Format(msgs.locale, "helpGuideFileMissing", nil)
+}
+
+// HelpGuideAirDropUnavailable says "隔空投送暂不可用。可在 Finder 中显示文件，再从共享菜单发送。"
+// in the language the app shows.
+func HelpGuideAirDropUnavailable() string { return In(i18n.Locale()).HelpGuideAirDropUnavailable() }
+
+// HelpGuideAirDropUnavailable says "隔空投送暂不可用。可在 Finder 中显示文件，再从共享菜单发送。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideAirDropUnavailable() string {
+	return Catalog.Format(msgs.locale, "helpGuideAirDropUnavailable", nil)
+}
+
+// HelpGuideConnectCable says "解锁 iPhone，用支持数据传输的线连接 Mac。"
+// in the language the app shows.
+func HelpGuideConnectCable() string { return In(i18n.Locale()).HelpGuideConnectCable() }
+
+// HelpGuideConnectCable says "解锁 iPhone，用支持数据传输的线连接 Mac。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideConnectCable() string {
+	return Catalog.Format(msgs.locale, "helpGuideConnectCable", nil)
+}
+
+// HelpGuideConnectTrust says "在 iPhone …"
+// in the language the app shows.
+func HelpGuideConnectTrust() string { return In(i18n.Locale()).HelpGuideConnectTrust() }
+
+// HelpGuideConnectTrust says "在 iPhone …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideConnectTrust() string {
+	return Catalog.Format(msgs.locale, "helpGuideConnectTrust", nil)
+}
+
+// HelpGuideConnectCheck says "在 KoiSide 重新检测。识别到 iPhone 后，可以打开「设备」查看已安装 App 和文稿访问状态。"
+// in the language the app shows.
+func HelpGuideConnectCheck() string { return In(i18n.Locale()).HelpGuideConnectCheck() }
+
+// HelpGuideConnectCheck says "在 KoiSide 重新检测。识别到 iPhone 后，可以打开「设备」查看已安装 App 和文稿访问状态。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideConnectCheck() string {
+	return Catalog.Format(msgs.locale, "helpGuideConnectCheck", nil)
+}
+
+// HelpGuideSetupInstall says "在「设备」安装 SideStore 或 LiveContainer + SideStore …"
+// in the language the app shows.
+func HelpGuideSetupInstall() string { return In(i18n.Locale()).HelpGuideSetupInstall() }
+
+// HelpGuideSetupInstall says "在「设备」安装 SideStore 或 LiveContainer + SideStore …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideSetupInstall() string {
+	return Catalog.Format(msgs.locale, "helpGuideSetupInstall", nil)
+}
+
+// HelpGuideMissingCheck says "先查看 KoiSide 的传输结果。如果已经把 IPA 导出到 Mac，可以直接在这一步投送。"
+// in the language the app shows.
+func HelpGuideMissingCheck() string { return In(i18n.Locale()).HelpGuideMissingCheck() }
+
+// HelpGuideMissingCheck says "先查看 KoiSide 的传输结果。如果已经把 IPA 导出到 Mac，可以直接在这一步投送。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideMissingCheck() string {
+	return Catalog.Format(msgs.locale, "helpGuideMissingCheck", nil)
+}
+
+// HelpGuideMissingFind says "在 iPhone 打开「文件 → 浏览 → 我的 iPhone」，进入 USB 传输时选择的 SideStore 或 LiveContaine…"
+// in the language the app shows.
+func HelpGuideMissingFind() string { return In(i18n.Locale()).HelpGuideMissingFind() }
+
+// HelpGuideMissingFind says "在 iPhone 打开「文件 → 浏览 → 我的 iPhone」，进入 USB 传输时选择的 SideStore 或 LiveContaine…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideMissingFind() string {
+	return Catalog.Format(msgs.locale, "helpGuideMissingFind", nil)
+}
+
+// HelpGuideMissingImport says "要导入到容器，打开 LiveContainer 点「＋」。要通过 SideStore 安装，先连 LocalDevVPN，再打开 …"
+// in the language the app shows.
+func HelpGuideMissingImport() string { return In(i18n.Locale()).HelpGuideMissingImport() }
+
+// HelpGuideMissingImport says "要导入到容器，打开 LiveContainer 点「＋」。要通过 SideStore 安装，先连 LocalDevVPN，再打开 …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideMissingImport() string {
+	return Catalog.Format(msgs.locale, "helpGuideMissingImport", nil)
+}
+
+// HelpGuideRefreshSession says "若提示「会话已过期」，在 SideStore 的 Settings 重新登录。合装版要先从 LiveContainer …"
+// in the language the app shows.
+func HelpGuideRefreshSession() string { return In(i18n.Locale()).HelpGuideRefreshSession() }
+
+// HelpGuideRefreshSession says "若提示「会话已过期」，在 SideStore 的 Settings 重新登录。合装版要先从 LiveContainer …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideRefreshSession() string {
+	return Catalog.Format(msgs.locale, "helpGuideRefreshSession", nil)
+}
+
+// HelpGuideRefreshShortcut says "配置续签快捷指令"
+// in the language the app shows.
+func HelpGuideRefreshShortcut() string { return In(i18n.Locale()).HelpGuideRefreshShortcut() }
+
+// HelpGuideRefreshShortcut says "配置续签快捷指令"
+// in the language of msgs.
+func (msgs Messages) HelpGuideRefreshShortcut() string {
+	return Catalog.Format(msgs.locale, "helpGuideRefreshShortcut", nil)
+}
+
+// HelpGuideLaunchShortcut says "给容器 App 添加桌面入口"
+// in the language the app shows.
+func HelpGuideLaunchShortcut() string { return In(i18n.Locale()).HelpGuideLaunchShortcut() }
+
+// HelpGuideLaunchShortcut says "给容器 App 添加桌面入口"
+// in the language of msgs.
+func (msgs Messages) HelpGuideLaunchShortcut() string {
+	return Catalog.Format(msgs.locale, "helpGuideLaunchShortcut", nil)
+}
+
+// HelpGuideExportRefresh says "选择这台 iPhone 上负责续签的 App。使用合装版时，导出 LiveContainer 版本，并保留 LiveProcess…"
+// in the language the app shows.
+func HelpGuideExportRefresh() string { return In(i18n.Locale()).HelpGuideExportRefresh() }
+
+// HelpGuideExportRefresh says "选择这台 iPhone 上负责续签的 App。使用合装版时，导出 LiveContainer 版本，并保留 LiveProcess…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExportRefresh() string {
+	return Catalog.Format(msgs.locale, "helpGuideExportRefresh", nil)
+}
+
+// HelpGuideExportSideStore says "导出 SideStore 续签指令…"
+// in the language the app shows.
+func HelpGuideExportSideStore() string { return In(i18n.Locale()).HelpGuideExportSideStore() }
+
+// HelpGuideExportSideStore says "导出 SideStore 续签指令…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExportSideStore() string {
+	return Catalog.Format(msgs.locale, "helpGuideExportSideStore", nil)
+}
+
+// HelpGuideExportLive says "导出 LiveContainer 续签指令…"
+// in the language the app shows.
+func HelpGuideExportLive() string { return In(i18n.Locale()).HelpGuideExportLive() }
+
+// HelpGuideExportLive says "导出 LiveContainer 续签指令…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExportLive() string {
+	return Catalog.Format(msgs.locale, "helpGuideExportLive", nil)
+}
+
+// HelpGuideChooseApp says "选择 LiveContainer 中检测到的 App 导出。"
+// in the language the app shows.
+func HelpGuideChooseApp() string { return In(i18n.Locale()).HelpGuideChooseApp() }
+
+// HelpGuideChooseApp says "选择 LiveContainer 中检测到的 App 导出。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideChooseApp() string {
+	return Catalog.Format(msgs.locale, "helpGuideChooseApp", nil)
+}
+
+// HelpGuideNoApps says "KoiSide 未能列出容器内的 App。解锁 iPhone、打开 LiveContainer …"
+// in the language the app shows.
+func HelpGuideNoApps() string { return In(i18n.Locale()).HelpGuideNoApps() }
+
+// HelpGuideNoApps says "KoiSide 未能列出容器内的 App。解锁 iPhone、打开 LiveContainer …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideNoApps() string {
+	return Catalog.Format(msgs.locale, "helpGuideNoApps", nil)
+}
+
+// HelpGuideCopyLaunchURL says "要指定数据容器，在 iPhone 的 LiveContainer 中长按 App，选定容器后点「添加到主屏幕 → …"
+// in the language the app shows.
+func HelpGuideCopyLaunchURL() string { return In(i18n.Locale()).HelpGuideCopyLaunchURL() }
+
+// HelpGuideCopyLaunchURL says "要指定数据容器，在 iPhone 的 LiveContainer 中长按 App，选定容器后点「添加到主屏幕 → …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideCopyLaunchURL() string {
+	return Catalog.Format(msgs.locale, "helpGuideCopyLaunchURL", nil)
+}
+
+// HelpGuideSendLaunchURL says "用通用剪贴板直接粘贴到这里。也可以把链接放入备忘录或信息，在 Mac 上复制后粘贴。"
+// in the language the app shows.
+func HelpGuideSendLaunchURL() string { return In(i18n.Locale()).HelpGuideSendLaunchURL() }
+
+// HelpGuideSendLaunchURL says "用通用剪贴板直接粘贴到这里。也可以把链接放入备忘录或信息，在 Mac 上复制后粘贴。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideSendLaunchURL() string {
+	return Catalog.Format(msgs.locale, "helpGuideSendLaunchURL", nil)
+}
+
+// HelpGuideInvalidLaunchURL says "请粘贴从 LiveContainer 复制的启动链接。"
+// in the language the app shows.
+func HelpGuideInvalidLaunchURL() string { return In(i18n.Locale()).HelpGuideInvalidLaunchURL() }
+
+// HelpGuideInvalidLaunchURL says "请粘贴从 LiveContainer 复制的启动链接。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideInvalidLaunchURL() string {
+	return Catalog.Format(msgs.locale, "helpGuideInvalidLaunchURL", nil)
+}
+
+// HelpGuideReceiveShortcut says "在 Mac 的隔空投送窗口选择你的 iPhone。\n在 iPhone 上打开收到的文件，点「添加快捷指令」。"
+// in the language the app shows.
+func HelpGuideReceiveShortcut() string { return In(i18n.Locale()).HelpGuideReceiveShortcut() }
+
+// HelpGuideReceiveShortcut says "在 Mac 的隔空投送窗口选择你的 iPhone。\n在 iPhone 上打开收到的文件，点「添加快捷指令」。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideReceiveShortcut() string {
+	return Catalog.Format(msgs.locale, "helpGuideReceiveShortcut", nil)
+}
+
+// HelpGuideTryRefresh says "在 iPhone 连接 Wi‑Fi 和 LocalDevVPN。\n运行刚导入的续签指令。\n打开 SideStore →「我的 App…"
+// in the language the app shows.
+func HelpGuideTryRefresh() string { return In(i18n.Locale()).HelpGuideTryRefresh() }
+
+// HelpGuideTryRefresh says "在 iPhone 连接 Wi‑Fi 和 LocalDevVPN。\n运行刚导入的续签指令。\n打开 SideStore →「我的 App…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideTryRefresh() string {
+	return Catalog.Format(msgs.locale, "helpGuideTryRefresh", nil)
+}
+
+// HelpGuideScheduleSteps says "编辑指令，在 Refresh All Apps 前添加「设置 VPN」，选择 LocalDevVPN。\n打开「快捷指令 → …"
+// in the language the app shows.
+func HelpGuideScheduleSteps() string { return In(i18n.Locale()).HelpGuideScheduleSteps() }
+
+// HelpGuideScheduleSteps says "编辑指令，在 Refresh All Apps 前添加「设置 VPN」，选择 LocalDevVPN。\n打开「快捷指令 → …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideScheduleSteps() string {
+	return Catalog.Format(msgs.locale, "helpGuideScheduleSteps", nil)
+}
+
+// HelpGuidePinSteps says "在 iPhone 的「快捷指令」中运行刚导入的指令，确认打开的是目标 App。\n…"
+// in the language the app shows.
+func HelpGuidePinSteps() string { return In(i18n.Locale()).HelpGuidePinSteps() }
+
+// HelpGuidePinSteps says "在 iPhone 的「快捷指令」中运行刚导入的指令，确认打开的是目标 App。\n…"
+// in the language of msgs.
+func (msgs Messages) HelpGuidePinSteps() string {
+	return Catalog.Format(msgs.locale, "helpGuidePinSteps", nil)
+}
+
+// HelpGuideScanning says "正在检测 iPhone…"
+// in the language the app shows.
+func HelpGuideScanning() string { return In(i18n.Locale()).HelpGuideScanning() }
+
+// HelpGuideScanning says "正在检测 iPhone…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideScanning() string {
+	return Catalog.Format(msgs.locale, "helpGuideScanning", nil)
+}
+
+// HelpGuidePaste says "粘贴启动链接"
+// in the language the app shows.
+func HelpGuidePaste() string { return In(i18n.Locale()).HelpGuidePaste() }
+
+// HelpGuidePaste says "粘贴启动链接"
+// in the language of msgs.
+func (msgs Messages) HelpGuidePaste() string {
+	return Catalog.Format(msgs.locale, "helpGuidePaste", nil)
+}
+
+// HelpGuideRefreshHelp says "续签失败怎么办"
+// in the language the app shows.
+func HelpGuideRefreshHelp() string { return In(i18n.Locale()).HelpGuideRefreshHelp() }
+
+// HelpGuideRefreshHelp says "续签失败怎么办"
+// in the language of msgs.
+func (msgs Messages) HelpGuideRefreshHelp() string {
+	return Catalog.Format(msgs.locale, "helpGuideRefreshHelp", nil)
+}
+
+// HelpGuideVPNConnect says "连接 Wi‑Fi。打开 LocalDevVPN，点 Connect。若 iOS 提示添加 VPN 配置，请在手机上允许。"
+// in the language the app shows.
+func HelpGuideVPNConnect() string { return In(i18n.Locale()).HelpGuideVPNConnect() }
+
+// HelpGuideVPNConnect says "连接 Wi‑Fi。打开 LocalDevVPN，点 Connect。若 iOS 提示添加 VPN 配置，请在手机上允许。"
+// in the language of msgs.
+func (msgs Messages) HelpGuideVPNConnect() string {
+	return Catalog.Format(msgs.locale, "helpGuideVPNConnect", nil)
+}
+
+// HelpGuideVPNCheck says "在 SideStore 安装或续签前，先确认 LocalDevVPN 显示 Connected。如果切换到了其他 VPN…"
+// in the language the app shows.
+func HelpGuideVPNCheck() string { return In(i18n.Locale()).HelpGuideVPNCheck() }
+
+// HelpGuideVPNCheck says "在 SideStore 安装或续签前，先确认 LocalDevVPN 显示 Connected。如果切换到了其他 VPN…"
+// in the language of msgs.
+func (msgs Messages) HelpGuideVPNCheck() string {
+	return Catalog.Format(msgs.locale, "helpGuideVPNCheck", nil)
+}
+
+// HelpGuideLiveInstall says "在「设备」选择独立 LiveContainer 或合装版。使用合装版时，按内置 SideStore …"
+// in the language the app shows.
+func HelpGuideLiveInstall() string { return In(i18n.Locale()).HelpGuideLiveInstall() }
+
+// HelpGuideLiveInstall says "在「设备」选择独立 LiveContainer 或合装版。使用合装版时，按内置 SideStore …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideLiveInstall() string {
+	return Catalog.Format(msgs.locale, "helpGuideLiveInstall", nil)
+}
+
+// HelpGuideLiveImport says "在 iPhone 打开 LiveContainer，点「＋」，在「文件」选择 IPA。导入后先运行一次，确认 App …"
+// in the language the app shows.
+func HelpGuideLiveImport() string { return In(i18n.Locale()).HelpGuideLiveImport() }
+
+// HelpGuideLiveImport says "在 iPhone 打开 LiveContainer，点「＋」，在「文件」选择 IPA。导入后先运行一次，确认 App …"
+// in the language of msgs.
+func (msgs Messages) HelpGuideLiveImport() string {
+	return Catalog.Format(msgs.locale, "helpGuideLiveImport", nil)
 }

@@ -10,6 +10,7 @@ type toolGuide struct {
 	name   string
 	state  string
 	next   string
+	topic  string
 	source string
 }
 
@@ -55,9 +56,9 @@ func (m *Model) guides(msg locales.Messages) []toolGuide {
 		}
 	}
 	return []toolGuide{
-		{name: "SideStore", state: sideState, next: msg.ToolSideStoreNext(), source: "https://docs.sidestore.io/docs/installation/install"},
-		{name: "LocalDevVPN", state: vpnState, next: msg.ToolVPNNext(), source: "https://apps.apple.com/app/localdevvpn/id6755608044"},
-		{name: "LiveContainer", state: lcState, next: msg.ToolLCNext(), source: "https://livecontainer.github.io/docs/installation/lc_sidestore"},
+		{name: "SideStore", state: sideState, next: msg.ToolSideStoreNext(), topic: "setup"},
+		{name: "LocalDevVPN", state: vpnState, next: msg.ToolVPNNext(), topic: "vpn", source: localDevVPNURL},
+		{name: "LiveContainer", state: lcState, next: msg.ToolLCNext(), topic: "livecontainer"},
 	}
 }
 
@@ -76,14 +77,10 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 	})
 
 	insetGroup(c, "help-topics-group", func() {
-		topicRow := func(id string, icon *ui.SVG, title, desc string, action func()) {
-			bg := t.Surface
-			if m.helpTopic == id {
-				bg = t.Selection
-			}
+		topicRow := func(id string, icon *ui.SVG, title, desc string) {
 			row := ui.ButtonBase(c.Key("help-topic-"+id)).FillWidth().Padding(14, 18).
-				Background(bg).Label(title).Cursor(ui.CursorPointer).Transition(colorTransition)
-			if m.helpTopic != id && row.Hovered() {
+				Background(t.Surface).Label(title).Description(desc).Cursor(ui.CursorPointer).Transition(colorTransition)
+			if row.Hovered() {
 				row.Background(t.SurfaceHover)
 			}
 			applyPressPose(row, 0.992)
@@ -102,27 +99,17 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 				})
 			})
 			if row.Clicked() {
-				action()
+				m.startHelpGuide(id)
 			}
 		}
 
-		topicRow("connect", phUSB, msg.HelpTopicConnectTitle(), msg.HelpTopicConnectDesc(), func() {
-			m.section = "设备"
-		})
+		topicRow("connect", phUSB, msg.HelpTopicConnectTitle(), msg.HelpTopicConnectDesc())
 		ui.Divider(c)
-		topicRow("setup", phCompass, msg.HelpTopicSetupTitle(), msg.HelpTopicSetupDesc(), func() {
-			m.guideStep = 1
-			m.section = "引导"
-		})
+		topicRow("setup", phCompass, msg.HelpTopicSetupTitle(), msg.HelpTopicSetupDesc())
 		ui.Divider(c)
-		topicRow("missing", phFolderOpen, msg.HelpTopicMissingFileTitle(), msg.HelpTopicMissingFileDesc(), func() {
-			m.goTaskSection("交接", 4)
-		})
+		topicRow("missing", phFolderOpen, msg.HelpTopicMissingFileTitle(), msg.HelpTopicMissingFileDesc())
 		ui.Divider(c)
-		topicRow("refresh", phRefresh, msg.HelpTopicRefreshTitle(), msg.HelpTopicRefreshDesc(), func() {
-			m.recoveryMode = false
-			m.goTaskSection("维护", 5)
-		})
+		topicRow("refresh", phRefresh, msg.HelpTopicRefreshTitle(), msg.HelpTopicRefreshDesc())
 	})
 
 	m.shortcutsPanel(c, msg)
@@ -169,8 +156,8 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 							m.section = "设备"
 						}
 					}
-					if uiBtn(c, "tool-"+guide.name, msg.ToolsOpenGuide()).Clicked() {
-						c.OpenURL(guide.source)
+					if uiBtn(c, "tool-"+guide.name, msg.HelpGuideOpen()).Clicked() {
+						m.startHelpGuide(guide.topic)
 					}
 				})
 			}
@@ -190,17 +177,6 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 			}
 		}
 		m.toolInstallStatusRow(c, msg)
-	})
-
-	insetGroup(c, "help-lc-advanced-group", func() {
-		ui.Column(c).FillWidth().Padding(14, 18).Gap(8).Transition(heightTransition).Children(func() {
-			ui.Collapsible(c.Key("help-lc-advanced-collapsible"), msg.LcAdvancedTitle(), &m.showLCAdvanced, func() {
-				ui.Column(c).FillWidth().Gap(6).Padding(4, 0, 0, 0).Children(func() {
-					ui.Text(c, msg.LcAdvancedMultiTitle()).Bold().FontSize(13)
-					ui.Text(c, msg.LcAdvancedMultiDesc()).FontSize(12).TextColor(t.TextMuted)
-				})
-			}).Cursor(ui.CursorPointer)
-		})
 	})
 }
 
