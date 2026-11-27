@@ -415,7 +415,7 @@
   "accountMaxCertsRevokeContinue": "選択を取り消して続行",
   "accountAnisetteTitle": "Anisette v3 サービス",
   "accountAnisetteDesc": "マシン認証ヘッダーのみを提供します (パスワードを受信することはありません)。いつでもセルフホスト URL に置き換えてください。",
-  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteURLPlaceholder": "https://mac-ani.jkcoxson.com",
   "accountAnisetteSaveBtn": "URLを保存",
   "accountAnisetteResetBtn": "認証状態のリセット",
   "accountAnisetteResetDone": "Anisette の認証状態をリセットしました",

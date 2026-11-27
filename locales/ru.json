@@ -415,7 +415,7 @@
   "accountMaxCertsRevokeContinue": "Отменить выбранное и продолжить",
   "accountAnisetteTitle": "Сервер Anisette v3",
   "accountAnisetteDesc": "Передаёт только заголовки аттестации устройства (пароль не отправляется). При желании укажите свой URL.",
-  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteURLPlaceholder": "https://mac-ani.jkcoxson.com",
   "accountAnisetteSaveBtn": "Сохранить",
   "accountAnisetteResetBtn": "Сбросить",
   "accountAnisetteResetDone": "Состояние аттестации Anisette очищено",

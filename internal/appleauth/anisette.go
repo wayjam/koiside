@@ -23,7 +23,7 @@ import (
 const (
 	// DefaultAnisetteV3URL is the default community-compatible Anisette v3 endpoint.
 	// Only provisioning/header metadata is sent here; Apple ID passwords are never sent to Anisette servers.
-	DefaultAnisetteV3URL = "https://ani.iloader.app"
+	DefaultAnisetteV3URL = "https://mac-ani.jkcoxson.com"
 	AnisetteStateKey     = "anisette_state"
 )
 

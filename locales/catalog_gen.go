@@ -4384,11 +4384,11 @@ func (msgs Messages) AccountAnisetteDesc() string {
 	return Catalog.Format(msgs.locale, "accountAnisetteDesc", nil)
 }
 
-// AccountAnisetteURLPlaceholder says "https://ani.iloader.app"
+// AccountAnisetteURLPlaceholder says "https://mac-ani.jkcoxson.com"
 // in the language the app shows.
 func AccountAnisetteURLPlaceholder() string { return In(i18n.Locale()).AccountAnisetteURLPlaceholder() }
 
-// AccountAnisetteURLPlaceholder says "https://ani.iloader.app"
+// AccountAnisetteURLPlaceholder says "https://mac-ani.jkcoxson.com"
 // in the language of msgs.
 func (msgs Messages) AccountAnisetteURLPlaceholder() string {
 	return Catalog.Format(msgs.locale, "accountAnisetteURLPlaceholder", nil)

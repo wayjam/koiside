@@ -459,7 +459,7 @@
   "accountMaxCertsRevokeContinue": "Revoke Selected & Continue",
   "accountAnisetteTitle": "Anisette v3 Service",
   "accountAnisetteDesc": "Supplies machine attestation headers only (never receives your password). Replace with your self-hosted URL anytime.",
-  "accountAnisetteURLPlaceholder": "https://ani.iloader.app",
+  "accountAnisetteURLPlaceholder": "https://mac-ani.jkcoxson.com",
   "accountAnisetteSaveBtn": "Save URL",
   "accountAnisetteResetBtn": "Reset Attestation State",
   "accountAnisetteResetDone": "Anisette attestation state cleared",
