@@ -1594,6 +1594,9 @@ func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
 	}
 }
 
+func (m *Model) recordStore() *installer.RecordStore {
+	return installer.NewRecordStore(filepath.Join(localDataDir(), "installed_records.json"))
+}
 func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundleID string) {
 	msg := m.msg(nil)
 	m.mu.Lock()
@@ -1643,6 +1646,7 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundle
 			DeviceInfo:       info,
 			Accounts:         m.services.Accounts,
 			OnMaxCerts:       m.promptMaxCerts,
+			RecordStore:      m.recordStore(),
 			OnProgress: func(pct int, stage string) {
 				m.mu.Lock()
 				m.toolInstallPct = pct
@@ -1827,6 +1831,7 @@ func (m *Model) directInstallSelected() {
 			Device:         dev,
 			DeviceInfo:     info,
 			Accounts:       m.services.Accounts,
+			RecordStore:    m.recordStore(),
 			OnMaxCerts:     m.promptMaxCerts,
 			OnProgress: func(pct int, stage string) {
 				m.mu.Lock()

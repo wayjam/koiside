@@ -6,6 +6,7 @@ import (
 	"encoding/asn1"
 	"errors"
 	"fmt"
+	"time"
 
 	"howett.net/plist"
 )
@@ -34,12 +35,13 @@ func AppleCACertificates() ([]*x509.Certificate, error) {
 
 // ProvisioningProfile holds the parsed XML plist and embedded certificates from a .mobileprovision file.
 type ProvisioningProfile struct {
-	Raw          []byte
-	Entitlements map[string]any
-	TeamID       string
-	AppIDName    string
-	UUID         string
-	Certs        []*x509.Certificate
+	Raw            []byte
+	Entitlements   map[string]any
+	TeamID         string
+	AppIDName      string
+	UUID           string
+	ExpirationDate time.Time
+	Certs          []*x509.Certificate
 }
 
 // ParseProvisioningProfile extracts the CMS-wrapped XML plist and developer certificates from a .mobileprovision blob.
@@ -89,7 +91,10 @@ func ParseProvisioningProfile(raw []byte) (*ProvisioningProfile, error) {
 	}
 	uuid, _ := dict["UUID"].(string)
 	name, _ := dict["AppIDName"].(string)
-
+	var exp time.Time
+	if d, ok := dict["ExpirationDate"].(time.Time); ok {
+		exp = d
+	}
 	var certs []*x509.Certificate
 	if devs, ok := dict["DeveloperCertificates"].([]any); ok {
 		for _, item := range devs {
@@ -115,12 +120,13 @@ func ParseProvisioningProfile(raw []byte) (*ProvisioningProfile, error) {
 	}
 
 	return &ProvisioningProfile{
-		Raw:          raw,
-		Entitlements: ent,
-		TeamID:       teamID,
-		AppIDName:    name,
-		UUID:         uuid,
-		Certs:        certs,
+		Raw:            raw,
+		Entitlements:   ent,
+		TeamID:         teamID,
+		AppIDName:      name,
+		UUID:           uuid,
+		ExpirationDate: exp,
+		Certs:          certs,
 	}, nil
 }
 

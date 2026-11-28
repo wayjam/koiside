@@ -99,6 +99,7 @@ type InstallRequest struct {
 	OnProgress       Progress
 	HTTPClient       *http.Client
 	DeviceDial       device.Dialer
+	RecordStore      *RecordStore
 }
 
 // InstallResult summarizes a completed direct install.
@@ -110,6 +111,7 @@ type InstallResult struct {
 	DeveloperModeKnown   bool
 	DeveloperModeEnabled bool
 	SignerTrusted        bool
+	Record               Record
 }
 
 // InstallDirect downloads the official IPA (if needed), signs it with the active Apple Developer
@@ -268,6 +270,22 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 			res.PairingInjected = true
 		}
 	}
+	rec := Record{
+		InstalledID:   signed.BundleID,
+		OriginalID:    signed.OriginalID,
+		Name:          signed.AppName,
+		TeamID:        team.TeamID,
+		CertSerial:    signed.CertSerial,
+		IDs:           signed.IDs,
+		ProfileUUID:   signed.ProfileUUID,
+		ProfileExpiry: signed.ProfileExpiry,
+		InstalledAt:   time.Now().UTC(),
+		Kind:          string(signed.Special),
+	}
+	if req.RecordStore != nil {
+		_ = req.RecordStore.Upsert(rec)
+	}
+	res.Record = rec
 
 	report(100, "complete")
 	return res, nil

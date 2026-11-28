@@ -137,3 +137,48 @@ func TestRpPairingFileAndOpackAndDetectTargets(t *testing.T) {
 		t.Fatalf("unexpected pairing targets: %+v", targets)
 	}
 }
+func TestInstallProvisioningProfileSendsMisagentPayload(t *testing.T) {
+	conn := &fakeInstallConn{
+		reply: encodePlistFrameBytes(map[string]any{"Status": int64(0)}),
+	}
+	payload := []byte("fake-mobileprovision-bytes")
+	sess := &Session{
+		startService: func(name string) (io.ReadWriteCloser, error) {
+			if name != misagentService {
+				t.Fatalf("unexpected service: %s", name)
+			}
+			return conn, nil
+		},
+	}
+	if err := sess.InstallProvisioningProfile(payload); err != nil {
+		t.Fatalf("InstallProvisioningProfile failed: %v", err)
+	}
+
+	var req map[string]any
+	if _, err := plist.Unmarshal(conn.written[4:], &req); err != nil {
+		t.Fatal(err)
+	}
+	if req["MessageType"] != "Install" || req["ProfileType"] != "Provisioning" {
+		t.Fatalf("unexpected misagent message: %+v", req)
+	}
+	if !bytes.Equal(req["Profile"].([]byte), payload) {
+		t.Fatalf("unexpected profile payload in misagent request")
+	}
+}
+
+func TestInstallProvisioningProfileHandlesRefusal(t *testing.T) {
+	conn := &fakeInstallConn{
+		reply: encodePlistFrameBytes(map[string]any{
+			"Status": int64(1),
+			"Error":  "ProfileNotFound",
+		}),
+	}
+	sess := &Session{
+		startService: func(name string) (io.ReadWriteCloser, error) {
+			return conn, nil
+		},
+	}
+	if err := sess.InstallProvisioningProfile([]byte("sample")); err == nil {
+		t.Fatal("expected error on status != 0, got nil")
+	}
+}

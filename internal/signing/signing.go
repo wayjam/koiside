@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"howett.net/plist"
 
@@ -28,13 +29,17 @@ type Request struct {
 
 // Result is a signed archive or extracted .app directory. Producing one does not mean it was installed.
 type Result struct {
-	OutputPath  string
-	AppDir      string
-	BundleID    string
-	ProfileUUID string
-	Special     SpecialApp
+	OutputPath    string
+	AppDir        string
+	BundleID      string
+	OriginalID    string
+	AppName       string
+	CertSerial    string
+	ProfileUUID   string
+	ProfileExpiry time.Time
+	IDs           map[string]string // relative bundle path -> registered bundle ID
+	Special       SpecialApp
 }
-
 // Service signs an archive.
 type Service interface {
 	Sign(ctx context.Context, req Request) (Result, error)
@@ -318,15 +323,25 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 	}
 
 	report(0.70, "signed")
+	bundleIDs := map[string]string{".": newMainID}
+	for extID, prof := range extProfiles {
+		if prof != nil {
+			bundleIDs[extID] = extID
+		}
+	}
 	return Result{
-		OutputPath:  appDir,
-		AppDir:      appDir,
-		BundleID:    newMainID,
-		ProfileUUID: mainProf.UUID,
-		Special:     special,
+		OutputPath:    appDir,
+		AppDir:        appDir,
+		BundleID:      newMainID,
+		OriginalID:    origMainID,
+		AppName:       appName,
+		CertSerial:    cert.SerialNumberHex(),
+		ProfileUUID:   mainProf.UUID,
+		ProfileExpiry: mainProf.ExpirationDate,
+		IDs:           bundleIDs,
+		Special:       special,
 	}, nil
 }
-
 // BundleSignConfig configures pure-Go code signing of an extracted .app bundle.
 type BundleSignConfig struct {
 	TeamID      string

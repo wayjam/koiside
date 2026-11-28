@@ -97,12 +97,13 @@ func (rec PairRecord) tlsConfig() (*tls.Config, error) {
 
 // Session is an authenticated lockdownd connection for read-only service queries.
 type Session struct {
-	dial      Dialer
-	deviceID  int
-	conn      io.ReadWriteCloser
-	sessionID string
-	tlsCfg    *tls.Config
-	Info      Info
+	dial         Dialer
+	deviceID     int
+	conn         io.ReadWriteCloser
+	sessionID    string
+	tlsCfg       *tls.Config
+	Info         Info
+	startService func(string) (io.ReadWriteCloser, error)
 }
 
 // DialSession opens a read-only lockdownd session using the existing pairing record.
@@ -191,12 +192,13 @@ func DialSession(dial Dialer, deviceID int, udid string) (*Session, error) {
 	}
 
 	return &Session{
-		dial:      dial,
-		deviceID:  deviceID,
-		conn:      conn,
-		sessionID: sessID,
-		tlsCfg:    tlsCfg,
-		Info:      info,
+		dial:         dial,
+		deviceID:     deviceID,
+		conn:         conn,
+		sessionID:    sessID,
+		tlsCfg:       tlsCfg,
+		Info:         info,
+		startService: nil,
 	}, nil
 }
 
@@ -217,6 +219,9 @@ func (s *Session) Close() error {
 
 // StartService asks lockdownd to start name and returns a connected channel (wrapped in TLS when requested).
 func (s *Session) StartService(name string) (io.ReadWriteCloser, error) {
+	if s.startService != nil {
+		return s.startService(name)
+	}
 	reply, err := exchange(s.conn, map[string]any{
 		"Label":   "koiside",
 		"Request": "StartService",

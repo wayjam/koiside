@@ -511,6 +511,7 @@ func InstallIPA(ctx context.Context, d Deps, targetOrPath string, autoRevokeOlde
 		DeviceInfo:   snap.Info,
 		Accounts:     d.Accounts,
 		DeviceDial:   d.Dial,
+		RecordStore:  installer.NewRecordStore(filepath.Join(d.CacheDir, "installed_records.json")),
 		OnProgress:   onProgress,
 		OnMaxCerts: func(certs []devportal.DevelopmentCertificate) ([]string, error) {
 			if autoRevokeOldest && len(certs) > 0 {
