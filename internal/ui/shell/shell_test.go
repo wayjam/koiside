@@ -1646,3 +1646,51 @@ func TestButtonsDisabledWhenDeviceDisconnectedWithTooltip(t *testing.T) {
 		t.Fatalf("expected %q to be clickable once device is connected, got err=%v", ssInstallLabel, err)
 	}
 }
+
+func TestHandoffCountsEveryExtensionItRegisters(t *testing.T) {
+	m, tt := newTest(t, false)
+	m.mu.Lock()
+	m.files = []archiveState{{
+		path:  "/tmp/Ext.ipa",
+		ready: true,
+		report: ipa.Report{
+			DisplayName: "Ext",
+			BundleID:    "com.example.ext",
+			Version:     "1.0",
+			Components: []ipa.Component{
+				{Path: "Payload/Ext.app", Kind: "app", BundleID: "com.example.ext.TEAM"},
+				{Path: "Payload/Ext.app/PlugIns/Share.appex", Kind: "extension", BundleID: "com.example.ext.share.TEAM"},
+				{Path: "Payload/Ext.app/PlugIns/Deep/Nested.appex", Kind: "extension", BundleID: "com.example.ext.nested.TEAM"},
+			},
+		},
+	}}
+	m.selected = 0
+	m.section = "交接"
+	m.taskStage = 4
+	m.mu.Unlock()
+	tt.Frame()
+
+	const note = "此 IPA 含 2 个扩展"
+	if !tt.HasText(note) {
+		t.Fatalf("expected the direct-install note, got %q", tt.Texts())
+	}
+	const toggle = "仅安装主程序，跳过扩展"
+	if err := tt.Click(toggle); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if box, ok := tt.AccessByRole(ui.RoleCheckBox, toggle); !ok || !box.Checked {
+		t.Fatalf("skip toggle did not stay checked: %+v (found %v)", box, ok)
+	}
+	if m.skipExtensionsFor != "/tmp/Ext.ipa" {
+		t.Fatalf("skip choice not remembered for this IPA: %q", m.skipExtensionsFor)
+	}
+
+	m.mu.Lock()
+	m.files[0].report.Components = m.files[0].report.Components[:1]
+	m.mu.Unlock()
+	tt.Frame()
+	if tt.HasText(note) || tt.HasText(toggle) {
+		t.Fatalf("extension controls must disappear without extensions, got %q", tt.Texts())
+	}
+}

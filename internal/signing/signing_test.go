@@ -242,18 +242,29 @@ func TestSignRealLiveContainerSideStoreBundleIfCached(t *testing.T) {
 	}
 	leafDER, _ := x509.CreateCertificate(rand.Reader, leafTpl, caCert, &leafKey.PublicKey, caKey)
 	leafCert, _ := x509.ParseCertificate(leafDER)
-	profPlist, _ := plist.Marshal(map[string]any{
-		"UUID":           "11111111-2222-3333-4444-555555555555",
-		"AppIDName":      "LiveContainer",
-		"TeamIdentifier": []string{"TEAM1"},
-		"Entitlements": map[string]any{
-			"application-identifier": "TEAM1.com.kdt.livecontainer.TEAM1",
-			"get-task-allow":         true,
-		},
-	}, plist.XMLFormat)
-	prof, err := ParseProvisioningProfile(wrapTestCMS(profPlist))
-	if err != nil {
-		t.Fatal(err)
+	profileFor := func(appID string) *ProvisioningProfile {
+		raw, _ := plist.Marshal(map[string]any{
+			"UUID":                  "11111111-2222-3333-4444-555555555555",
+			"AppIDName":             appID,
+			"TeamIdentifier":        []string{"TEAM1"},
+			"DeveloperCertificates": [][]byte{leafDER},
+			"Entitlements": map[string]any{
+				"application-identifier": "TEAM1." + appID,
+				"get-task-allow":         true,
+			},
+		}, plist.XMLFormat)
+		p, err := ParseProvisioningProfile(wrapTestCMS(raw))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	prof := profileFor("com.kdt.livecontainer.TEAM1")
+	extProfiles := map[string]*ProvisioningProfile{}
+	for _, dir := range findExtensionDirs(appDir) {
+		if id := readBundleIdentifier(filepath.Join(dir, "Info.plist")); id != "" {
+			extProfiles[id] = profileFor(id)
+		}
 	}
 	cid := &devportal.CertificateIdentity{MachineID: "M1", PrivateKey: leafKey, Certificate: leafCert}
 	if err := applySpecialAppInjection(appDir, SpecialSideStoreLC, "group.com.SideStore.SideStore.TEAM1", cid); err != nil {
@@ -263,6 +274,7 @@ func TestSignRealLiveContainerSideStoreBundleIfCached(t *testing.T) {
 		TeamID:      "TEAM1",
 		Cert:        cid,
 		MainProfile: prof,
+		ExtProfiles: extProfiles,
 		Special:     SpecialSideStoreLC,
 	}); err != nil {
 		t.Fatalf("SignAppBundle failed: %v", err)
@@ -322,4 +334,172 @@ func indexString(s, sub string) int {
 		}
 	}
 	return -1
+}
+
+// extensionFixture builds an app with one PlugIns/*.appex and returns the
+// directories plus a signing identity and two profiles. The extension's
+// profile carries the extension's own application-identifier.
+func extensionFixture(t *testing.T) (appDir, extDir string, cert *devportal.CertificateIdentity, mainProf, extProf *ProvisioningProfile) {
+	t.Helper()
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "hello.go")
+	if err := os.WriteFile(src, []byte("package main\nfunc main(){}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	appDir = filepath.Join(tmp, "Sample.app")
+	extDir = filepath.Join(appDir, "PlugIns", "Share.appex")
+	if err := os.MkdirAll(extDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(appDir, "Sample")
+	if out, err := exec.Command("go", "build", "-o", bin, src).CombinedOutput(); err != nil {
+		t.Fatalf("go build failed: %v\n%s", err, out)
+	}
+	exec, err := os.ReadFile(bin)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(extDir, "Share"), exec, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeInfo := func(dir, id, name, exe string) {
+		raw, _ := plist.Marshal(map[string]any{
+			"CFBundleIdentifier": id,
+			"CFBundleExecutable": exe,
+			"CFBundleName":       name,
+			"CFBundleVersion":    "1.0",
+		}, plist.XMLFormat)
+		if err := os.WriteFile(filepath.Join(dir, "Info.plist"), raw, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeInfo(appDir, "com.example.sample.TEAM123", "Sample", "Sample")
+	writeInfo(extDir, "com.example.sample.share.TEAM123", "Share", "Share")
+
+	caKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	caTpl := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "Test WWDR"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(24 * time.Hour),
+		IsCA:                  true,
+		BasicConstraintsValid: true,
+	}
+	caDER, _ := x509.CreateCertificate(rand.Reader, caTpl, caTpl, &caKey.PublicKey, caKey)
+	caCert, _ := x509.ParseCertificate(caDER)
+	leafKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	leafTpl := &x509.Certificate{
+		SerialNumber: big.NewInt(42),
+		Subject:      pkix.Name{CommonName: "Apple Development: Test", OrganizationalUnit: []string{"TEAM123"}},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+	}
+	leafDER, _ := x509.CreateCertificate(rand.Reader, leafTpl, caCert, &leafKey.PublicKey, caKey)
+	leafCert, _ := x509.ParseCertificate(leafDER)
+	cert = &devportal.CertificateIdentity{MachineID: "M1", PrivateKey: leafKey, Certificate: leafCert}
+
+	profile := func(uuid, appID string) *ProvisioningProfile {
+		raw, _ := plist.Marshal(map[string]any{
+			"UUID":                  uuid,
+			"AppIDName":             appID,
+			"TeamIdentifier":        []string{"TEAM123"},
+			"DeveloperCertificates": [][]byte{leafDER},
+			"Entitlements": map[string]any{
+				"application-identifier": "TEAM123." + appID,
+				"get-task-allow":         true,
+			},
+		}, plist.XMLFormat)
+		p, err := ParseProvisioningProfile(wrapTestCMS(raw))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	return appDir, extDir, cert, profile("11111111-2222-3333-4444-555555555555", "com.example.sample.TEAM123"),
+		profile("66666666-7777-8888-9999-000000000000", "com.example.sample.share.TEAM123")
+}
+
+func embeddedAppID(t *testing.T, bundleDir string) string {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join(bundleDir, "embedded.mobileprovision"))
+	if err != nil {
+		t.Fatalf("read embedded profile in %s: %v", filepath.Base(bundleDir), err)
+	}
+	p, err := ParseProvisioningProfile(raw)
+	if err != nil {
+		t.Fatalf("parse embedded profile: %v", err)
+	}
+	id, _ := p.Entitlements["application-identifier"].(string)
+	return id
+}
+
+func TestSignAppBundleGivesEachExtensionItsOwnProfile(t *testing.T) {
+	appDir, extDir, cert, mainProf, extProf := extensionFixture(t)
+	err := SignAppBundle(appDir, BundleSignConfig{
+		TeamID:      "TEAM123",
+		Cert:        cert,
+		MainProfile: mainProf,
+		ExtProfiles: map[string]*ProvisioningProfile{"com.example.sample.share.TEAM123": extProf},
+	})
+	if err != nil {
+		t.Fatalf("SignAppBundle failed: %v", err)
+	}
+	if got := embeddedAppID(t, extDir); got != "TEAM123.com.example.sample.share.TEAM123" {
+		t.Fatalf("extension sealed with %q, want its own profile", got)
+	}
+	if got := embeddedAppID(t, appDir); got != "TEAM123.com.example.sample.TEAM123" {
+		t.Fatalf("main app sealed with %q", got)
+	}
+}
+
+func TestSignAppBundleDropsAnExtensionWithoutItsOwnProfile(t *testing.T) {
+	appDir, extDir, cert, mainProf, _ := extensionFixture(t)
+	err := SignAppBundle(appDir, BundleSignConfig{
+		TeamID:                      "TEAM123",
+		Cert:                        cert,
+		MainProfile:                 mainProf,
+		DropUnprovisionedExtensions: true,
+	})
+	if err != nil {
+		t.Fatalf("SignAppBundle failed: %v", err)
+	}
+	if _, err := os.Stat(extDir); !os.IsNotExist(err) {
+		t.Fatalf("extension survived without a profile (err=%v)", err)
+	}
+	if got := embeddedAppID(t, appDir); got != "TEAM123.com.example.sample.TEAM123" {
+		t.Fatalf("main app sealed with %q", got)
+	}
+}
+
+func TestSignAppBundleRefusesAnExtensionWithoutAProfileByDefault(t *testing.T) {
+	appDir, extDir, cert, mainProf, _ := extensionFixture(t)
+	err := SignAppBundle(appDir, BundleSignConfig{
+		TeamID:      "TEAM123",
+		Cert:        cert,
+		MainProfile: mainProf,
+	})
+	if err == nil || !stringContains(err.Error(), "com.example.sample.share.TEAM123") {
+		t.Fatalf("want an error naming the extension, got %v", err)
+	}
+	if _, statErr := os.Stat(extDir); statErr != nil {
+		t.Fatalf("the extension must stay when signing refuses: %v", statErr)
+	}
+}
+
+func TestFindExtensionDirsFindsEveryAppex(t *testing.T) {
+	dir := t.TempDir()
+	for _, rel := range []string{
+		"PlugIns/Share.appex",
+		"PlugIns/Deep/Nested.appex",
+		"Watch/App.app/PlugIns/Watch.appex",
+		"Frameworks/Lib.framework",
+	} {
+		if err := os.MkdirAll(filepath.Join(dir, rel), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := len(findExtensionDirs(dir)); got != 3 {
+		t.Fatalf("found %d extensions, want 3: %v", got, findExtensionDirs(dir))
+	}
 }

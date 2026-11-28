@@ -174,6 +174,7 @@ type Model struct {
 	directStage        string
 	directErr          string
 	directDoneMsg      string
+	skipExtensionsFor  string
 
 	storeLoginEmail    string
 	storeLoginPass     string

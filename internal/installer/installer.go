@@ -90,6 +90,7 @@ type InstallRequest struct {
 	Target           ToolTarget
 	LocalIPAPath     string // required for TargetCustomIPA, optional override otherwise
 	RecoveryBundleID string // update this installed LiveContainer bundle in place
+	SkipExtensions   bool   // sign only the main app, leaving out app extensions
 	CacheDir         string
 	Device           device.Device
 	DeviceInfo       device.Info
@@ -207,7 +208,7 @@ func InstallDirect(ctx context.Context, req InstallRequest) (InstallResult, erro
 			return cert, nil
 		},
 		IncreasedMemoryLimit:  true,
-		RegisterAllExtensions: false,
+		RegisterAllExtensions: !req.SkipExtensions,
 		RecoveryBundleID:      req.RecoveryBundleID,
 		OnProgress: func(pct float64, stage string) {
 			report(25+int(pct*55.0), stage)

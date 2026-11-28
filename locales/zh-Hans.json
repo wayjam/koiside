@@ -644,6 +644,9 @@
 
   "transferDirectInstallTitle": "桌面签名并直接安装到 iPhone",
   "transferDirectInstallDesc": "使用当前登录的 Apple 账号签名此 IPA 并通过 USB 安装到设备（安装后仍可在 SideStore 续签）。",
+  "transferExtensionsNote": "此 IPA 含 {count} 个扩展。每个扩展会单独注册一个 App ID。",
+  "@transferExtensionsNote": { "placeholders": { "count": { "type": "int" } } },
+  "transferSkipExtensions": "仅安装主程序，跳过扩展",
   "transferDirectInstallBtn": "桌面签名并安装",
 
   "deviceDevModeOn": "开发者模式：已开启",

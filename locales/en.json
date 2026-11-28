@@ -486,6 +486,9 @@
 
   "transferDirectInstallTitle": "Sign & Install Directly via USB",
   "transferDirectInstallDesc": "Sign this IPA with your active Apple Account and install directly over USB.",
+  "transferExtensionsNote": "This IPA has {count} app extension(s). Each registers its own App ID.",
+  "@transferExtensionsNote": { "placeholders": { "count": { "type": "int" } } },
+  "transferSkipExtensions": "Install the main app only, skip extensions",
   "transferDirectInstallBtn": "Sign & Install IPA",
 
   "deviceDevModeOn": "Developer Mode: Enabled",

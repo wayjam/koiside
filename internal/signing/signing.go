@@ -307,11 +307,12 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 
 	report(0.55, "codesign")
 	if err := SignAppBundle(appDir, BundleSignConfig{
-		TeamID:      opts.Team.TeamID,
-		Cert:        cert,
-		MainProfile: mainProf,
-		ExtProfiles: extProfiles,
-		Special:     special,
+		TeamID:                      opts.Team.TeamID,
+		Cert:                        cert,
+		MainProfile:                 mainProf,
+		ExtProfiles:                 extProfiles,
+		Special:                     special,
+		DropUnprovisionedExtensions: !opts.RegisterAllExtensions,
 	}); err != nil {
 		return Result{}, err
 	}
@@ -333,6 +334,9 @@ type BundleSignConfig struct {
 	MainProfile *ProvisioningProfile
 	ExtProfiles map[string]*ProvisioningProfile
 	Special     SpecialApp
+	// DropUnprovisionedExtensions removes an app extension that has no profile
+	// of its own instead of sealing it with the app's profile.
+	DropUnprovisionedExtensions bool
 }
 
 // SignAppBundle signs all frameworks, dynamic libraries, app extensions, and the main app bundle.
@@ -408,7 +412,13 @@ func SignAppBundle(appDir string, cfg BundleSignConfig) error {
 		if isExt {
 			prof = cfg.ExtProfiles[bundleID]
 			if prof == nil {
-				prof = cfg.MainProfile
+				if !cfg.DropUnprovisionedExtensions {
+					return fmt.Errorf("signing: extension %q has no provisioning profile; register its App ID or drop extensions", bundleID)
+				}
+				if err := os.RemoveAll(childDir); err != nil {
+					return fmt.Errorf("signing: drop extension %q: %w", bundleID, err)
+				}
+				continue
 			}
 			_ = os.WriteFile(filepath.Join(childDir, "embedded.mobileprovision"), prof.Raw, 0o644)
 			ent = cloneEntitlements(prof.Entitlements)
@@ -609,17 +619,20 @@ func prepareAppDir(inputPath, workDir string) (string, string, error) {
 	return appDirs[0], workDir, nil
 }
 
+// findExtensionDirs returns every .appex bundle in the app, at any depth.
+// It must match the set SignAppBundle signs, or an extension would be sealed
+// with the app's profile.
 func findExtensionDirs(appDir string) []string {
 	var out []string
-	entries, err := os.ReadDir(filepath.Join(appDir, "PlugIns"))
-	if err != nil {
-		return nil
-	}
-	for _, e := range entries {
-		if e.IsDir() && strings.HasSuffix(e.Name(), ".appex") {
-			out = append(out, filepath.Join(appDir, "PlugIns", e.Name()))
+	_ = filepath.WalkDir(appDir, func(p string, d os.DirEntry, err error) error {
+		if err != nil || !d.IsDir() || p == appDir {
+			return nil
 		}
-	}
+		if strings.HasSuffix(d.Name(), ".appex") {
+			out = append(out, p)
+		}
+		return nil
+	})
 	return out
 }
 

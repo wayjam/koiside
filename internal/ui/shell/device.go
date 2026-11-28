@@ -1020,6 +1020,17 @@ func (m *Model) renderDeviceDocs(c *ui.Context, msg locales.Messages) {
 	})
 }
 
+// extensionCount counts the app extensions a direct install registers.
+func extensionCount(file archiveState) int {
+	n := 0
+	for _, comp := range file.report.Components {
+		if comp.Kind == "extension" || comp.Kind == "watch-extension" {
+			n++
+		}
+	}
+	return n
+}
+
 func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) {
 	t := c.Theme()
 	m.taskHeaderAndSteps(c, msg, 4)
@@ -1035,6 +1046,10 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 	if hasFile {
 		targetFilename = filepath.Base(m.effectiveArchivePath(file))
 		targetBundleID = m.effectiveBundleID(file)
+	}
+	extCount := 0
+	if hasFile {
+		extCount = extensionCount(file)
 	}
 	installedMatch, installedOnDevice := m.findInstalledConflict(targetBundleID)
 
@@ -1176,6 +1191,21 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 					} else if dErr != "" {
 						ui.Text(c.Key("direct-install-err"), msg.ToolInstallFailed(friendlyError(msg, dErr))).FontSize(11).TextColor(ui.Hex("#EF4444")).
 							Transition(feedbackBannerTransition)
+					}
+					if hasFile && extCount > 0 && !dOn {
+						skip := m.skipExtensionsFor == file.path
+						ui.Column(c).FillWidth().Padding(6, 0, 0, 0).Gap(3).Children(func() {
+							ui.Text(c.Key("direct-ext-note"), msg.TransferExtensionsNote(extCount)).
+								FontSize(11).TextColor(t.TextMuted)
+							if ui.Checkbox(c.Key("direct-skip-ext"), &skip, msg.TransferSkipExtensions()).
+								Cursor(ui.CursorPointer).Changed() {
+								if skip {
+									m.skipExtensionsFor = file.path
+								} else {
+									m.skipExtensionsFor = ""
+								}
+							}
+						})
 					}
 				})
 				directBtn := m.deviceBtn(c, msg, "transfer-direct-install-btn", msg.TransferDirectInstallBtn(), primary && !installedOnDevice, m.directInstallOn)
@@ -1792,12 +1822,13 @@ func (m *Model) directInstallSelected() {
 
 	go func() {
 		res, err := installer.InstallDirect(context.Background(), installer.InstallRequest{
-			Target:       installer.TargetCustomIPA,
-			LocalIPAPath: targetIPA,
-			Device:       dev,
-			DeviceInfo:   info,
-			Accounts:     m.services.Accounts,
-			OnMaxCerts:   m.promptMaxCerts,
+			Target:         installer.TargetCustomIPA,
+			LocalIPAPath:   targetIPA,
+			SkipExtensions: m.skipExtensionsFor == file.path,
+			Device:         dev,
+			DeviceInfo:     info,
+			Accounts:       m.services.Accounts,
+			OnMaxCerts:     m.promptMaxCerts,
 			OnProgress: func(pct int, stage string) {
 				m.mu.Lock()
 				m.directPct = pct
