@@ -291,24 +291,10 @@ type cdParams struct {
 	codeBytes     []byte
 }
 
-func buildCodeDirectory(p cdParams) []byte {
+func buildCodeDirectories(p cdParams, computeCodeHashes bool) (cdSHA1, cdSHA256 []byte) {
 	const pageSize = 4096
 	const pageShift = 12
-	digestLen := 32
-	if p.digestType == csHashSHA1 {
-		digestLen = 20
-	}
 
-	hashWith := func(data []byte) []byte {
-		if p.digestType == csHashSHA1 {
-			s := sha1.Sum(data)
-			return s[:]
-		}
-		s := sha256.Sum256(data)
-		return s[:]
-	}
-
-	// Count special slots: max slot index among specials (slots 1..7)
 	maxSpecial := uint32(0)
 	for slot := range p.specialSlots {
 		if slot > 0 && slot < 0x1000 && slot > maxSpecial {
@@ -317,13 +303,6 @@ func buildCodeDirectory(p cdParams) []byte {
 	}
 
 	nCodeSlots := int((p.codeLimit + pageSize - 1) / pageSize)
-
-	// Header size for version 0x20400 (SupportsExecSeg) = 88 bytes (from start of payload after 8-byte blob header, so 96 bytes from blob start? Let's measure carefully).
-	// Standard XNU CS_CodeDirectory fields up to execSegFlags:
-	// magic(4) + length(4) + version(4) + flags(4) + hashOffset(4) + identOffset(4) + nSpecialSlots(4) + nCodeSlots(4) +
-	// codeLimit(4) + hashSize(1) + hashType(1) + platform(1) + pageSize(1) + spare2(4) +
-	// scatterOffset(4) + teamOffset(4) + spare3(4) + codeLimit64(8) +
-	// execSegBase(8) + execSegLimit(8) + execSegFlags(8) = 88 bytes total (including 8-byte blob header).
 	const hdrLen = 88
 
 	identOff := hdrLen
@@ -337,61 +316,88 @@ func buildCodeDirectory(p cdParams) []byte {
 		curOff += len(teamBytes)
 	}
 
-	hashOffset := curOff + int(maxSpecial)*digestLen
-	totalLen := hashOffset + nCodeSlots*digestLen
+	hashOff1 := curOff + int(maxSpecial)*20
+	totalLen1 := hashOff1 + nCodeSlots*20
 
-	buf := make([]byte, totalLen)
-	binary.BigEndian.PutUint32(buf[0:4], csMagicCodeDirectory)
-	binary.BigEndian.PutUint32(buf[4:8], uint32(totalLen))
-	binary.BigEndian.PutUint32(buf[8:12], csVersionExecSeg)
-	binary.BigEndian.PutUint32(buf[12:16], p.flags)
-	binary.BigEndian.PutUint32(buf[16:20], uint32(hashOffset))
-	binary.BigEndian.PutUint32(buf[20:24], uint32(identOff))
-	binary.BigEndian.PutUint32(buf[24:28], maxSpecial)
-	binary.BigEndian.PutUint32(buf[28:32], uint32(nCodeSlots))
-	if p.codeLimit <= 0xffffffff {
-		binary.BigEndian.PutUint32(buf[32:36], uint32(p.codeLimit))
-	} else {
-		binary.BigEndian.PutUint32(buf[32:36], 0)
-	}
-	buf[36] = byte(digestLen)
-	buf[37] = p.digestType
-	buf[38] = p.platform
-	buf[39] = pageShift
-	binary.BigEndian.PutUint32(buf[40:44], 0) // spare2
-	binary.BigEndian.PutUint32(buf[44:48], 0) // scatterOffset
-	binary.BigEndian.PutUint32(buf[48:52], uint32(teamOff))
-	binary.BigEndian.PutUint32(buf[52:56], 0) // spare3
-	if p.codeLimit > 0xffffffff {
-		binary.BigEndian.PutUint64(buf[56:64], p.codeLimit)
-	}
-	binary.BigEndian.PutUint64(buf[64:72], p.execSegBase)
-	binary.BigEndian.PutUint64(buf[72:80], p.execSegLimit)
-	binary.BigEndian.PutUint64(buf[80:88], p.execSegFlags)
+	hashOff2 := curOff + int(maxSpecial)*32
+	totalLen2 := hashOff2 + nCodeSlots*32
 
-	copy(buf[identOff:], identBytes)
-	if teamOff > 0 {
-		copy(buf[teamOff:], teamBytes)
+	buf1 := make([]byte, totalLen1)
+	buf2 := make([]byte, totalLen2)
+
+	fillHeader := func(buf []byte, totalLen, hashOffset int, digestLen byte, digestType uint8) {
+		binary.BigEndian.PutUint32(buf[0:4], csMagicCodeDirectory)
+		binary.BigEndian.PutUint32(buf[4:8], uint32(totalLen))
+		binary.BigEndian.PutUint32(buf[8:12], csVersionExecSeg)
+		binary.BigEndian.PutUint32(buf[12:16], p.flags)
+		binary.BigEndian.PutUint32(buf[16:20], uint32(hashOffset))
+		binary.BigEndian.PutUint32(buf[20:24], uint32(identOff))
+		binary.BigEndian.PutUint32(buf[24:28], maxSpecial)
+		binary.BigEndian.PutUint32(buf[28:32], uint32(nCodeSlots))
+		if p.codeLimit <= 0xffffffff {
+			binary.BigEndian.PutUint32(buf[32:36], uint32(p.codeLimit))
+		} else {
+			binary.BigEndian.PutUint32(buf[32:36], 0)
+		}
+		buf[36] = digestLen
+		buf[37] = digestType
+		buf[38] = p.platform
+		buf[39] = pageShift
+		binary.BigEndian.PutUint32(buf[40:44], 0) // spare2
+		binary.BigEndian.PutUint32(buf[44:48], 0) // scatterOffset
+		binary.BigEndian.PutUint32(buf[48:52], uint32(teamOff))
+		binary.BigEndian.PutUint32(buf[52:56], 0) // spare3
+		if p.codeLimit > 0xffffffff {
+			binary.BigEndian.PutUint64(buf[56:64], p.codeLimit)
+		}
+		binary.BigEndian.PutUint64(buf[64:72], p.execSegBase)
+		binary.BigEndian.PutUint64(buf[72:80], p.execSegLimit)
+		binary.BigEndian.PutUint64(buf[80:88], p.execSegFlags)
+
+		copy(buf[identOff:], identBytes)
+		if teamOff > 0 {
+			copy(buf[teamOff:], teamBytes)
+		}
 	}
 
-	// Fill special slot hashes backwards from hashOffset (slot s is at hashOffset - s*digestLen).
+	fillHeader(buf1, totalLen1, hashOff1, 20, csHashSHA1)
+	fillHeader(buf2, totalLen2, hashOff2, 32, csHashSHA256)
+
 	for s := uint32(1); s <= maxSpecial; s++ {
-		off := hashOffset - int(s)*digestLen
+		off1 := hashOff1 - int(s)*20
+		off2 := hashOff2 - int(s)*32
 		if raw, ok := p.specialSlots[s]; ok {
-			copy(buf[off:off+digestLen], hashWith(raw))
+			s1 := sha1.Sum(raw)
+			s2 := sha256.Sum256(raw)
+			copy(buf1[off1:off1+20], s1[:])
+			copy(buf2[off2:off2+32], s2[:])
 		}
 	}
 
-	// Fill code page hashes.
-	for i := 0; i < nCodeSlots; i++ {
-		start := i * pageSize
-		end := start + pageSize
-		if uint64(end) > p.codeLimit {
-			end = int(p.codeLimit)
+	if computeCodeHashes && len(p.codeBytes) > 0 {
+		for i := 0; i < nCodeSlots; i++ {
+			start := i * pageSize
+			end := start + pageSize
+			if uint64(end) > p.codeLimit {
+				end = int(p.codeLimit)
+			}
+			chunk := p.codeBytes[start:end]
+			s1 := sha1.Sum(chunk)
+			s2 := sha256.Sum256(chunk)
+			copy(buf1[hashOff1+i*20:hashOff1+(i+1)*20], s1[:])
+			copy(buf2[hashOff2+i*32:hashOff2+(i+1)*32], s2[:])
 		}
-		copy(buf[hashOffset+i*digestLen:hashOffset+(i+1)*digestLen], hashWith(p.codeBytes[start:end]))
 	}
-	return buf
+
+	return buf1, buf2
+}
+
+func buildCodeDirectory(p cdParams) []byte {
+	cdSHA1, cdSHA256 := buildCodeDirectories(p, true)
+	if p.digestType == csHashSHA1 {
+		return cdSHA1
+	}
+	return cdSHA256
 }
 
 // buildCMSSignature builds an Apple-compatible PKCS#7 / CMS SignedData DER signature over mainCD,

@@ -3,6 +3,7 @@ package signing
 import (
 	"crypto/sha1"
 	"crypto/sha256"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,12 +61,33 @@ func BuildCodeResources(bundleDir, mainExecutable string) ([]byte, error) {
 			return nil
 		}
 
-		raw, readErr := os.ReadFile(path)
-		if readErr != nil {
-			return readErr
+		var s1 [20]byte
+		var s2 [32]byte
+		info, statErr := d.Info()
+		if statErr == nil && info.Size() <= 64*1024 {
+			raw, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
+			s1 = sha1.Sum(raw)
+			s2 = sha256.Sum256(raw)
+		} else {
+			f, openErr := os.Open(path)
+			if openErr != nil {
+				return openErr
+			}
+			h1 := sha1.New()
+			h2 := sha256.New()
+			mw := io.MultiWriter(h1, h2)
+			buf := make([]byte, 64*1024)
+			_, copyErr := io.CopyBuffer(mw, f, buf)
+			_ = f.Close()
+			if copyErr != nil {
+				return copyErr
+			}
+			copy(s1[:], h1.Sum(nil))
+			copy(s2[:], h2.Sum(nil))
 		}
-		s1 := sha1.Sum(raw)
-		s2 := sha256.Sum256(raw)
 		files[rel] = s1[:]
 		files2[rel] = map[string]any{
 			"hash":  s1[:],

@@ -218,7 +218,6 @@ func signThinMachO(raw []byte, opts BinarySignOptions) ([]byte, error) {
 
 	// Pad codeLimit to 16-byte boundary before embedding signature SuperBlob.
 	sigStart := alignUp64(codeLimit, 16)
-	padLen := int(sigStart - codeLimit)
 
 	// Prepare special slots
 	specials := map[uint32][]byte{}
@@ -247,134 +246,139 @@ func signThinMachO(raw []byte, opts BinarySignOptions) ([]byte, error) {
 		flags = csFlagAdhoc
 	}
 
-	// Build two-pass layout: pass 1 uses zeroed CMS signature placeholder to finalize load command sizes;
-	// pass 2 computes exact CodeDirectory hashes over the updated header/load commands/code bytes and signs CMS.
-	buildAll := func(sigDataLen int) ([]byte, error) {
-		newNcmd := mf.Ncmd
-		newSizeOfCmds := mf.Cmdsz
-		if !hasCodeSig {
-			newNcmd++
-			newSizeOfCmds += 16
-			if uint64(hdrSize)+uint64(newSizeOfCmds) > minSectionFileOff {
-				return nil, errors.New("signing: insufficient header padding for LC_CODE_SIGNATURE")
-			}
-		}
+	// Probe signature superblob size with dummy page hashes (no out allocation, no page reads).
+	cdP := cdParams{
+		ident:        opts.Identifier,
+		teamID:       opts.TeamID,
+		flags:        flags,
+		codeLimit:    sigStart,
+		execSegBase:  textBase,
+		execSegLimit: textLimit,
+		execSegFlags: execFlags,
+		platform:     0,
+		specialSlots: specials,
+	}
+	probeSHA1, probeSHA256 := buildCodeDirectories(cdP, false)
+	probeSlots := make([]slotBlob, 0, 6)
+	probeSlots = append(probeSlots, slotBlob{slot: csSlotCodeDirectory, data: probeSHA1})
+	if b, ok := specials[csSlotRequirements]; ok {
+		probeSlots = append(probeSlots, slotBlob{slot: csSlotRequirements, data: b})
+	}
+	if b, ok := specials[csSlotEntitlements]; ok {
+		probeSlots = append(probeSlots, slotBlob{slot: csSlotEntitlements, data: b})
+	}
+	if b, ok := specials[csSlotEntitlementsDR]; ok {
+		probeSlots = append(probeSlots, slotBlob{slot: csSlotEntitlementsDR, data: b})
+	}
+	probeSlots = append(probeSlots, slotBlob{slot: csSlotAltCD0, data: probeSHA256})
 
-		newLinkeditFilesize := (sigStart - linkedit.fileOff) + uint64(sigDataLen)
-		newLinkeditVmsize := alignUp64(newLinkeditFilesize, 16384)
+	var cmsDER []byte
+	if opts.Key != nil && opts.LeafCert != nil {
+		var cmsErr error
+		cmsDER, cmsErr = buildCMSSignature(
+			opts.Key,
+			opts.LeafCert,
+			opts.CertChain,
+			probeSHA1,
+			[][]byte{probeSHA1, probeSHA256},
+			[]uint8{csHashSHA1, csHashSHA256},
+		)
+		if cmsErr != nil {
+			return nil, cmsErr
+		}
+	}
+	probeSlots = append(probeSlots, slotBlob{slot: csSlotSignature, data: wrapBlob(csMagicBlobWrapper, cmsDER)})
+	sigDataLen := len(wrapSuperBlob(csMagicEmbeddedSig, probeSlots))
 
-		out := make([]byte, sigStart+uint64(sigDataLen))
-		copy(out[:codeLimit], raw[:codeLimit])
-
-		// Patch Mach-O header ncmds/sizeofcmds
-		bo.PutUint32(out[16:20], newNcmd)
-		bo.PutUint32(out[20:24], newSizeOfCmds)
-
-		// Rewrite load commands
-		cmdCursor := hdrSize
-		for _, pc := range cmds {
-			buf := append([]byte(nil), pc.raw...)
-			switch pc.cmd {
-			case uint32(macho.LoadCmdSegment):
-				if pc.segName == "__LINKEDIT" {
-					bo.PutUint32(buf[28:32], uint32(newLinkeditVmsize))
-					bo.PutUint32(buf[36:40], uint32(newLinkeditFilesize))
-				}
-			case uint32(macho.LoadCmdSegment64):
-				if pc.segName == "__LINKEDIT" {
-					bo.PutUint64(buf[32:40], newLinkeditVmsize)
-					bo.PutUint64(buf[48:56], newLinkeditFilesize)
-				}
-			case lcCodeSignature:
-				bo.PutUint32(buf[8:12], uint32(sigStart))
-				bo.PutUint32(buf[12:16], uint32(sigDataLen))
-			}
-			copy(out[cmdCursor:], buf)
-			cmdCursor += int(pc.cmdSize)
+	newNcmd := mf.Ncmd
+	newSizeOfCmds := mf.Cmdsz
+	if !hasCodeSig {
+		newNcmd++
+		newSizeOfCmds += 16
+		if uint64(hdrSize)+uint64(newSizeOfCmds) > minSectionFileOff {
+			return nil, errors.New("signing: insufficient header padding for LC_CODE_SIGNATURE")
 		}
-		if !hasCodeSig {
-			var lc [16]byte
-			bo.PutUint32(lc[0:4], lcCodeSignature)
-			bo.PutUint32(lc[4:8], 16)
-			bo.PutUint32(lc[8:12], uint32(sigStart))
-			bo.PutUint32(lc[12:16], uint32(sigDataLen))
-			copy(out[cmdCursor:], lc[:])
-		}
-		_ = padLen
-
-		cdSHA1 := buildCodeDirectory(cdParams{
-			ident:        opts.Identifier,
-			teamID:       opts.TeamID,
-			flags:        flags,
-			codeLimit:    sigStart,
-			execSegBase:  textBase,
-			execSegLimit: textLimit,
-			execSegFlags: execFlags,
-			platform:     0,
-			digestType:   csHashSHA1,
-			specialSlots: specials,
-			codeBytes:    out[:sigStart],
-		})
-		cdSHA256 := buildCodeDirectory(cdParams{
-			ident:        opts.Identifier,
-			teamID:       opts.TeamID,
-			flags:        flags,
-			codeLimit:    sigStart,
-			execSegBase:  textBase,
-			execSegLimit: textLimit,
-			execSegFlags: execFlags,
-			platform:     0,
-			digestType:   csHashSHA256,
-			specialSlots: specials,
-			codeBytes:    out[:sigStart],
-		})
-
-		slots := make([]slotBlob, 0, 6)
-		slots = append(slots, slotBlob{slot: csSlotCodeDirectory, data: cdSHA1})
-		if b, ok := specials[csSlotRequirements]; ok {
-			slots = append(slots, slotBlob{slot: csSlotRequirements, data: b})
-		}
-		if b, ok := specials[csSlotEntitlements]; ok {
-			slots = append(slots, slotBlob{slot: csSlotEntitlements, data: b})
-		}
-		if b, ok := specials[csSlotEntitlementsDR]; ok {
-			slots = append(slots, slotBlob{slot: csSlotEntitlementsDR, data: b})
-		}
-		slots = append(slots, slotBlob{slot: csSlotAltCD0, data: cdSHA256})
-
-		var cmsDER []byte
-		if opts.Key != nil && opts.LeafCert != nil {
-			var cmsErr error
-			cmsDER, cmsErr = buildCMSSignature(
-				opts.Key,
-				opts.LeafCert,
-				opts.CertChain,
-				cdSHA1,
-				[][]byte{cdSHA1, cdSHA256},
-				[]uint8{csHashSHA1, csHashSHA256},
-			)
-			if cmsErr != nil {
-				return nil, cmsErr
-			}
-		}
-		slots = append(slots, slotBlob{slot: csSlotSignature, data: wrapBlob(csMagicBlobWrapper, cmsDER)})
-
-		superBlob := wrapSuperBlob(csMagicEmbeddedSig, slots)
-		if sigDataLen == 0 {
-			return make([]byte, len(superBlob)), nil
-		}
-		if len(superBlob) != sigDataLen {
-			return nil, fmt.Errorf("signing: superblob length mismatch (%d != %d)", len(superBlob), sigDataLen)
-		}
-		copy(out[sigStart:], superBlob)
-		return out, nil
 	}
 
-	probe, err := buildAll(0)
-	if err != nil {
-		return nil, err
+	newLinkeditFilesize := (sigStart - linkedit.fileOff) + uint64(sigDataLen)
+	newLinkeditVmsize := alignUp64(newLinkeditFilesize, 16384)
+
+	out := make([]byte, sigStart+uint64(sigDataLen))
+	copy(out[:codeLimit], raw[:codeLimit])
+
+	// Patch Mach-O header ncmds/sizeofcmds
+	bo.PutUint32(out[16:20], newNcmd)
+	bo.PutUint32(out[20:24], newSizeOfCmds)
+
+	// Rewrite load commands
+	cmdCursor := hdrSize
+	for _, pc := range cmds {
+		buf := append([]byte(nil), pc.raw...)
+		switch pc.cmd {
+		case uint32(macho.LoadCmdSegment):
+			if pc.segName == "__LINKEDIT" {
+				bo.PutUint32(buf[28:32], uint32(newLinkeditVmsize))
+				bo.PutUint32(buf[36:40], uint32(newLinkeditFilesize))
+			}
+		case uint32(macho.LoadCmdSegment64):
+			if pc.segName == "__LINKEDIT" {
+				bo.PutUint64(buf[32:40], newLinkeditVmsize)
+				bo.PutUint64(buf[48:56], newLinkeditFilesize)
+			}
+		case lcCodeSignature:
+			bo.PutUint32(buf[8:12], uint32(sigStart))
+			bo.PutUint32(buf[12:16], uint32(sigDataLen))
+		}
+		copy(out[cmdCursor:], buf)
+		cmdCursor += int(pc.cmdSize)
 	}
-	return buildAll(len(probe))
+	if !hasCodeSig {
+		var lc [16]byte
+		bo.PutUint32(lc[0:4], lcCodeSignature)
+		bo.PutUint32(lc[4:8], 16)
+		bo.PutUint32(lc[8:12], uint32(sigStart))
+		bo.PutUint32(lc[12:16], uint32(sigDataLen))
+		copy(out[cmdCursor:], lc[:])
+	}
+
+	cdP.codeBytes = out[:sigStart]
+	cdSHA1, cdSHA256 := buildCodeDirectories(cdP, true)
+
+	slots := make([]slotBlob, 0, 6)
+	slots = append(slots, slotBlob{slot: csSlotCodeDirectory, data: cdSHA1})
+	if b, ok := specials[csSlotRequirements]; ok {
+		slots = append(slots, slotBlob{slot: csSlotRequirements, data: b})
+	}
+	if b, ok := specials[csSlotEntitlements]; ok {
+		slots = append(slots, slotBlob{slot: csSlotEntitlements, data: b})
+	}
+	if b, ok := specials[csSlotEntitlementsDR]; ok {
+		slots = append(slots, slotBlob{slot: csSlotEntitlementsDR, data: b})
+	}
+	slots = append(slots, slotBlob{slot: csSlotAltCD0, data: cdSHA256})
+
+	if opts.Key != nil && opts.LeafCert != nil {
+		var cmsErr error
+		cmsDER, cmsErr = buildCMSSignature(
+			opts.Key,
+			opts.LeafCert,
+			opts.CertChain,
+			cdSHA1,
+			[][]byte{cdSHA1, cdSHA256},
+			[]uint8{csHashSHA1, csHashSHA256},
+		)
+		if cmsErr != nil {
+			return nil, cmsErr
+		}
+	}
+	slots = append(slots, slotBlob{slot: csSlotSignature, data: wrapBlob(csMagicBlobWrapper, cmsDER)})
+
+	superBlob := wrapSuperBlob(csMagicEmbeddedSig, slots)
+	if len(superBlob) != sigDataLen {
+		return nil, fmt.Errorf("signing: superblob length mismatch (%d != %d)", len(superBlob), sigDataLen)
+	}
+	copy(out[sigStart:], superBlob)
+	return out, nil
 }
 func cString(b []byte) string {
 	for i, c := range b {
