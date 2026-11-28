@@ -492,3 +492,48 @@ func readServerWSFrame(r *bufio.Reader) ([]byte, error) {
 	}
 	return p, nil
 }
+
+func TestGrandSlamPlistRequestSurfacesStructuredErrorOn503(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/x-xml-plist")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		doc := map[string]any{
+			"Response": map[string]any{
+				"Status": map[string]any{
+					"ec": int64(-20101),
+					"em": "Your Apple ID or password was entered incorrectly.",
+				},
+			},
+		}
+		raw, _ := plist.Marshal(doc, plist.XMLFormat)
+		_, _ = w.Write(raw)
+	}))
+	defer srv.Close()
+
+	client := NewGrandSlamClientWithHTTP(srv.Client(), DefaultMacClientInfo, srv.URL)
+	_, err := client.PlistRequest(context.Background(), srv.URL, map[string]any{"test": true}, nil)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	var authErr *AuthError
+	if !errors.As(err, &authErr) || authErr.Code != -20101 {
+		t.Fatalf("expected *AuthError with code -20101, got %v (%T)", err, err)
+	}
+}
+
+func TestGrandSlamPlistRequestIncludesPreviewOnRawHTMLError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte("<html><head><title>502 Bad Gateway</title></head><body><h1>502 Bad Gateway</h1></body></html>"))
+	}))
+	defer srv.Close()
+
+	client := NewGrandSlamClientWithHTTP(srv.Client(), DefaultMacClientInfo, srv.URL)
+	_, err := client.PlistRequest(context.Background(), srv.URL, map[string]any{"test": true}, nil)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "502") || !strings.Contains(err.Error(), "502 Bad Gateway") {
+		t.Fatalf("expected error containing 502 and html preview, got %v", err)
+	}
+}

@@ -185,6 +185,7 @@ func (g *GrandSlamClient) PlistRequest(ctx context.Context, targetURL string, pa
 	}
 
 	var lastStatus int
+	var lastBody []byte
 	var lastErr error
 	for attempt := 0; attempt < 4; attempt++ {
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, targetURL, bytes.NewReader(raw))
@@ -221,6 +222,22 @@ func (g *GrandSlamClient) PlistRequest(ctx context.Context, targetURL string, pa
 			return nil, readErr
 		}
 		lastStatus = resp.StatusCode
+		lastBody = body
+
+		var root map[string]any
+		if _, err := plist.Unmarshal(body, &root); err == nil {
+			if respDict, _ := root["Response"].(map[string]any); respDict != nil {
+				if status, _ := respDict["Status"].(map[string]any); status != nil {
+					if statusErr := checkGrandSlamStatus(respDict); statusErr != nil {
+						return nil, statusErr
+					}
+					if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+						return respDict, nil
+					}
+				}
+			}
+		}
+
 		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
 			select {
 			case <-ctx.Done():
@@ -230,12 +247,13 @@ func (g *GrandSlamClient) PlistRequest(ctx context.Context, targetURL string, pa
 			}
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			return nil, fmt.Errorf("appleauth: GrandSlam HTTP %d", resp.StatusCode)
+			return nil, formatGrandSlamHTTPError(resp.StatusCode, body, false)
 		}
 
-		var root map[string]any
-		if _, err := plist.Unmarshal(body, &root); err != nil {
-			return nil, fmt.Errorf("appleauth: invalid GrandSlam response plist: %w", err)
+		if root == nil {
+			if _, err := plist.Unmarshal(body, &root); err != nil {
+				return nil, fmt.Errorf("appleauth: invalid GrandSlam response plist: %w", err)
+			}
 		}
 		respDict, _ := root["Response"].(map[string]any)
 		if respDict == nil {
@@ -246,7 +264,22 @@ func (g *GrandSlamClient) PlistRequest(ctx context.Context, targetURL string, pa
 	if lastErr != nil {
 		return nil, fmt.Errorf("appleauth: GrandSlam request failed after retries: %w", lastErr)
 	}
-	return nil, fmt.Errorf("appleauth: GrandSlam HTTP %d after retries", lastStatus)
+	return nil, formatGrandSlamHTTPError(lastStatus, lastBody, true)
+}
+
+func formatGrandSlamHTTPError(statusCode int, body []byte, afterRetries bool) error {
+	preview := strings.TrimSpace(string(body))
+	if len(preview) > 200 {
+		preview = preview[:200]
+	}
+	suffix := ""
+	if afterRetries {
+		suffix = " after retries"
+	}
+	if preview != "" {
+		return fmt.Errorf("appleauth: GrandSlam HTTP %d%s: %s", statusCode, suffix, preview)
+	}
+	return fmt.Errorf("appleauth: GrandSlam HTTP %d%s", statusCode, suffix)
 }
 
 func checkGrandSlamStatus(resp map[string]any) error {
