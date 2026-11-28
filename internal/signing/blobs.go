@@ -41,10 +41,10 @@ const (
 	csHashSHA1   uint8 = 1
 	csHashSHA256 uint8 = 2
 
-	csVersionScatter  uint32 = 0x20100
-	csVersionTeamID   uint32 = 0x20200
-	csVersionLimit64  uint32 = 0x20300
-	csVersionExecSeg  uint32 = 0x20400
+	csVersionScatter uint32 = 0x20100
+	csVersionTeamID  uint32 = 0x20200
+	csVersionLimit64 uint32 = 0x20300
+	csVersionExecSeg uint32 = 0x20400
 
 	csFlagAdhoc uint32 = 0x0002
 
@@ -278,17 +278,17 @@ func entitlementsToExecSegFlags(ent map[string]any, isMain bool) uint64 {
 }
 
 type cdParams struct {
-	ident         string
-	teamID        string
-	flags         uint32
-	codeLimit     uint64
-	execSegBase   uint64
-	execSegLimit  uint64
-	execSegFlags  uint64
-	platform      uint8
-	digestType    uint8
-	specialSlots  map[uint32][]byte
-	codeBytes     []byte
+	ident        string
+	teamID       string
+	flags        uint32
+	codeLimit    uint64
+	execSegBase  uint64
+	execSegLimit uint64
+	execSegFlags uint64
+	platform     uint8
+	digestType   uint8
+	specialSlots map[uint32][]byte
+	codeBytes    []byte
 }
 
 func buildCodeDirectories(p cdParams, computeCodeHashes bool) (cdSHA1, cdSHA256 []byte) {

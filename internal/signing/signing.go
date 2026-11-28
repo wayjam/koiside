@@ -40,6 +40,7 @@ type Result struct {
 	IDs           map[string]string // relative bundle path -> registered bundle ID
 	Special       SpecialApp
 }
+
 // Service signs an archive.
 type Service interface {
 	Sign(ctx context.Context, req Request) (Result, error)
@@ -342,6 +343,7 @@ func SignIPAWithPortal(ctx context.Context, opts PortalSignOptions) (Result, err
 		Special:       special,
 	}, nil
 }
+
 // BundleSignConfig configures pure-Go code signing of an extracted .app bundle.
 type BundleSignConfig struct {
 	TeamID      string
