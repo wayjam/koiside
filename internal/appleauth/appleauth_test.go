@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"io"
 	"math/big"
 	"net/http"
@@ -273,7 +274,7 @@ func TestLoginWithAnisetteResync2FAAndAppToken(t *testing.T) {
 					raw, _ := plist.Marshal(map[string]any{
 						"Response": map[string]any{
 							"Status": map[string]any{
-								"hsc":              int64(434),
+								"hsc":               int64(434),
 								"X-Apple-I-MD-DATA": []byte("sim"),
 							},
 						},
