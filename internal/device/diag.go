@@ -8,13 +8,27 @@ import (
 	"howett.net/plist"
 )
 
+// LCContainer is one data container a LiveContainer guest can run in.
+type LCContainer struct {
+	FolderName      string `json:"folder_name"`
+	Name            string `json:"name,omitempty"`
+	IsolateAppGroup bool   `json:"isolate_app_group,omitempty"`
+}
+
 // LiveContainerApp describes an IPA installed inside LiveContainer (/Documents/Applications/*.app).
+// The settings fields come from LCAppInfo.plist; older LiveContainer builds lack it.
 type LiveContainerApp struct {
 	Folder   string `json:"folder"`
 	Name     string `json:"name"`
 	BundleID string `json:"bundle_id"`
 	Version  string `json:"version"`
 	Build    string `json:"build,omitempty"`
+
+	InfoKnown  bool          `json:"info_known"`
+	Shared     bool          `json:"shared"`
+	Multitask  int           `json:"multitask"` // -1 unknown, 0 default, 1 no, 2 yes
+	DataUUID   string        `json:"data_uuid,omitempty"`
+	Containers []LCContainer `json:"containers,omitempty"`
 }
 
 // SideStoreLogSummary summarizes the latest SideStore ConsoleLog entry found on device.
@@ -46,12 +60,66 @@ func parseLiveContainerAppPlist(folder string, raw []byte) (LiveContainerApp, bo
 		name = stringValue(m["CFBundleName"])
 	}
 	return LiveContainerApp{
-		Folder:   folder,
-		Name:     name,
-		BundleID: bundleID,
-		Version:  stringValue(m["CFBundleShortVersionString"]),
-		Build:    stringValue(m["CFBundleVersion"]),
+		Folder:    folder,
+		Name:      name,
+		BundleID:  bundleID,
+		Version:   stringValue(m["CFBundleShortVersionString"]),
+		Build:     stringValue(m["CFBundleVersion"]),
+		Multitask: -1,
 	}, true
+}
+
+// parseLCAppInfo fills the settings a LiveContainer guest keeps in LCAppInfo.plist.
+func parseLCAppInfo(app *LiveContainerApp, raw []byte) {
+	if app == nil || len(raw) == 0 {
+		return
+	}
+	var m map[string]any
+	if _, err := plist.Unmarshal(raw, &m); err != nil {
+		return
+	}
+	app.InfoKnown = true
+	app.Shared = boolValue(m["isShared"])
+	app.Multitask = intValueOr(m["MultitaskSpecified"], 0)
+	app.DataUUID = stringValue(m["LCDataUUID"])
+	for _, rawItem := range anySlice(m["LCContainers"]) {
+		item, ok := rawItem.(map[string]any)
+		if !ok {
+			continue
+		}
+		folder := stringValue(item["folderName"])
+		if folder == "" {
+			continue
+		}
+		app.Containers = append(app.Containers, LCContainer{
+			FolderName:      folder,
+			Name:            stringValue(item["name"]),
+			IsolateAppGroup: boolValue(item["isolateAppGroup"]),
+		})
+	}
+}
+
+func anySlice(v any) []any {
+	x, _ := v.([]any)
+	return x
+}
+
+func boolValue(v any) bool {
+	b, _ := v.(bool)
+	return b
+}
+
+func intValueOr(v any, fallback int) int {
+	switch x := v.(type) {
+	case int64:
+		return int(x)
+	case int:
+		return x
+	case uint64:
+		return int(x)
+	default:
+		return fallback
+	}
 }
 
 func readLiveContainerApps(afc *AFC) []LiveContainerApp {
@@ -68,13 +136,19 @@ func readLiveContainerApps(afc *AFC) []LiveContainerApp {
 		if !strings.HasSuffix(strings.ToLower(entry), ".app") {
 			continue
 		}
-		raw, err := afc.ReadFile(path.Join("/Documents/Applications", entry, "Info.plist"))
+		base := path.Join("/Documents/Applications", entry)
+		raw, err := afc.ReadFile(path.Join(base, "Info.plist"))
 		if err != nil {
 			continue
 		}
-		if app, ok := parseLiveContainerAppPlist(entry, raw); ok {
-			out = append(out, app)
+		app, ok := parseLiveContainerAppPlist(entry, raw)
+		if !ok {
+			continue
 		}
+		if infoRaw, err := afc.ReadFile(path.Join(base, "LCAppInfo.plist")); err == nil {
+			parseLCAppInfo(&app, infoRaw)
+		}
+		out = append(out, app)
 	}
 	return out
 }

@@ -5466,14 +5466,104 @@ func (msgs Messages) LcAdvancedMultiTitle() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedMultiTitle", nil)
 }
 
-// LcAdvancedMultiDesc says "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App…"
+// LcAdvancedMultiDesc says "在 LiveContainer 中长按 App 卡片 → Settings：先点 Convert to Shared App，再把 Multitask 设为 Yes…"
 // in the language the app shows.
 func LcAdvancedMultiDesc() string { return In(i18n.Locale()).LcAdvancedMultiDesc() }
 
-// LcAdvancedMultiDesc says "在 LiveContainer 中长按或点开对应 App 卡片 → 进入 Settings → 点击 Convert to Shared App…"
+// LcAdvancedMultiDesc says "在 LiveContainer 中长按 App 卡片 → Settings：先点 Convert to Shared App，再把 Multitask 设为 Yes…"
 // in the language of msgs.
 func (msgs Messages) LcAdvancedMultiDesc() string {
 	return Catalog.Format(msgs.locale, "lcAdvancedMultiDesc", nil)
+}
+
+// LcGuestShared says "已共享"
+// in the language the app shows.
+func LcGuestShared() string { return In(i18n.Locale()).LcGuestShared() }
+
+// LcGuestShared says "已共享"
+// in the language of msgs.
+func (msgs Messages) LcGuestShared() string {
+	return Catalog.Format(msgs.locale, "lcGuestShared", nil)
+}
+
+// LcGuestNotShared says "未共享"
+// in the language the app shows.
+func LcGuestNotShared() string { return In(i18n.Locale()).LcGuestNotShared() }
+
+// LcGuestNotShared says "未共享"
+// in the language of msgs.
+func (msgs Messages) LcGuestNotShared() string {
+	return Catalog.Format(msgs.locale, "lcGuestNotShared", nil)
+}
+
+// LcGuestMultitaskOn says "多任务：开"
+// in the language the app shows.
+func LcGuestMultitaskOn() string { return In(i18n.Locale()).LcGuestMultitaskOn() }
+
+// LcGuestMultitaskOn says "多任务：开"
+// in the language of msgs.
+func (msgs Messages) LcGuestMultitaskOn() string {
+	return Catalog.Format(msgs.locale, "lcGuestMultitaskOn", nil)
+}
+
+// LcGuestMultitaskOff says "多任务：关"
+// in the language the app shows.
+func LcGuestMultitaskOff() string { return In(i18n.Locale()).LcGuestMultitaskOff() }
+
+// LcGuestMultitaskOff says "多任务：关"
+// in the language of msgs.
+func (msgs Messages) LcGuestMultitaskOff() string {
+	return Catalog.Format(msgs.locale, "lcGuestMultitaskOff", nil)
+}
+
+// LcGuestMultitaskDefault says "多任务：默认"
+// in the language the app shows.
+func LcGuestMultitaskDefault() string { return In(i18n.Locale()).LcGuestMultitaskDefault() }
+
+// LcGuestMultitaskDefault says "多任务：默认"
+// in the language of msgs.
+func (msgs Messages) LcGuestMultitaskDefault() string {
+	return Catalog.Format(msgs.locale, "lcGuestMultitaskDefault", nil)
+}
+
+// LcGuestInfoUnknown says "未读取到 LiveContainer 设置"
+// in the language the app shows.
+func LcGuestInfoUnknown() string { return In(i18n.Locale()).LcGuestInfoUnknown() }
+
+// LcGuestInfoUnknown says "未读取到 LiveContainer 设置"
+// in the language of msgs.
+func (msgs Messages) LcGuestInfoUnknown() string {
+	return Catalog.Format(msgs.locale, "lcGuestInfoUnknown", nil)
+}
+
+// LcGuestContainer says "数据容器"
+// in the language the app shows.
+func LcGuestContainer() string { return In(i18n.Locale()).LcGuestContainer() }
+
+// LcGuestContainer says "数据容器"
+// in the language of msgs.
+func (msgs Messages) LcGuestContainer() string {
+	return Catalog.Format(msgs.locale, "lcGuestContainer", nil)
+}
+
+// LcToolKeepExtensions says "保留启动扩展（多任务与桌面捷径需要）"
+// in the language the app shows.
+func LcToolKeepExtensions() string { return In(i18n.Locale()).LcToolKeepExtensions() }
+
+// LcToolKeepExtensions says "保留启动扩展（多任务与桌面捷径需要）"
+// in the language of msgs.
+func (msgs Messages) LcToolKeepExtensions() string {
+	return Catalog.Format(msgs.locale, "lcToolKeepExtensions", nil)
+}
+
+// LcToolKeepExtensionsDesc says "每个扩展占一个 App ID。取消后，多任务和桌面启动捷径会失效。"
+// in the language the app shows.
+func LcToolKeepExtensionsDesc() string { return In(i18n.Locale()).LcToolKeepExtensionsDesc() }
+
+// LcToolKeepExtensionsDesc says "每个扩展占一个 App ID。取消后，多任务和桌面启动捷径会失效。"
+// in the language of msgs.
+func (msgs Messages) LcToolKeepExtensionsDesc() string {
+	return Catalog.Format(msgs.locale, "lcToolKeepExtensionsDesc", nil)
 }
 
 // ShortcutsTitle says "iPhone 快捷指令"

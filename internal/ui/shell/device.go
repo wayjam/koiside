@@ -1581,6 +1581,7 @@ func (m *Model) triggerDeveloperMode() {
 func (m *Model) confirmToolInstall(target installer.ToolTarget) {
 	m.mu.Lock()
 	m.pendingToolInstall = target
+	m.skipToolExtensions = false
 	m.mu.Unlock()
 }
 
@@ -1626,6 +1627,16 @@ func (m *Model) toolInstallConfirmModal(c *ui.Context, msg locales.Messages) {
 					Background(t.SurfaceHover).Border(1, ui.Hex("#F59E0B")).AlignItems(ui.Start).Children(func() {
 					ui.Icon(c, phWarningFill).Width(16).Height(16).TextColor(ui.Hex("#F59E0B"))
 					ui.Text(c, conflict).FontSize(11).Grow(1)
+				})
+			}
+			if target == installer.TargetLiveContainerLCSS || target == installer.TargetLiveContainerOnly {
+				keep := !m.skipToolExtensions
+				ui.Column(c).FillWidth().Gap(2).Children(func() {
+					if ui.Checkbox(c.Key("tool-keep-extensions"), &keep, msg.LcToolKeepExtensions()).
+						Cursor(ui.CursorPointer).Changed() {
+						m.skipToolExtensions = !keep
+					}
+					ui.Text(c, msg.LcToolKeepExtensionsDesc()).FontSize(11).TextColor(t.TextMuted)
 				})
 			}
 			ui.Row(c).FillWidth().Gap(8).Justify(ui.End).Children(func() {
@@ -1683,6 +1694,7 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundle
 	}
 	dev := m.devices[0]
 	info := m.deviceInfo
+	skipExtensions := m.skipToolExtensions
 	m.toolInstalling = true
 	m.toolInstallPct = 5
 	m.toolInstallMsg = string(target)
@@ -1698,6 +1710,7 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundle
 		res, err := installer.InstallDirect(context.Background(), installer.InstallRequest{
 			Target:           target,
 			RecoveryBundleID: recoveryBundleID,
+			SkipExtensions:   skipExtensions,
 			CacheDir:         filepath.Join(localDataDir(), "downloads"),
 			Device:           dev,
 			DeviceInfo:       info,

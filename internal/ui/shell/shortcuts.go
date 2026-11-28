@@ -141,6 +141,9 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 	m.mu.Lock()
 	guests, busy := m.lcApps, m.shortcutExporting != ""
 	m.mu.Unlock()
+	if m.lcContainerPick == nil {
+		m.lcContainerPick = map[string]string{}
+	}
 	if len(guests) > 0 {
 		ui.Text(c, msg.HelpGuideChooseApp()).FontSize(13)
 		for _, app := range guests {
@@ -153,13 +156,43 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 				ui.Box(c).Size(28, 28).Radius(8).Background(c.Theme().Selection).Center().Children(func() {
 					ui.Icon(c, phCubeFill).Size(16, 16).TextColor(accentInk(c.Theme())).AccessHidden(true)
 				})
-				ui.Column(c).Grow(1).MinWidth(0).Gap(2).Children(func() {
+				ui.Column(c).Grow(1).MinWidth(0).Gap(3).Children(func() {
 					ui.Text(c, name).Bold().FontSize(13)
 					monoText(c, app.Folder).FontSize(11).TextColor(c.Theme().TextMuted)
+					if app.InfoKnown {
+						ui.Row(c).Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
+							sharedColor := ui.Hex("#F59E0B")
+							if app.Shared {
+								sharedColor = successInk(c.Theme())
+							}
+							ui.Text(c.Key("lc-shared-"+app.Folder), lcSharedLabel(msg, app.Shared)).
+								FontSize(10).Bold().TextColor(sharedColor)
+							ui.Text(c.Key("lc-multi-"+app.Folder), lcMultitaskLabel(msg, app.Multitask)).
+								FontSize(10).Bold().TextColor(lcMultitaskColor(c.Theme(), app.Multitask))
+						})
+					} else {
+						ui.Text(c.Key("lc-info-"+app.Folder), msg.LcGuestInfoUnknown()).
+							FontSize(10).TextColor(c.Theme().TextMuted)
+					}
+					if len(app.Containers) > 1 {
+						labels := make([]string, len(app.Containers))
+						for i, container := range app.Containers {
+							labels[i] = container.Name
+							if labels[i] == "" {
+								labels[i] = container.FolderName
+							}
+						}
+						pick := m.lcContainerIndex(app)
+						seg := ui.Segmented(c.Key("lc-container-"+app.Folder), &pick, labels...).
+							Cursor(ui.CursorPointer).Label(msg.LcGuestContainer())
+						if seg.Changed() {
+							m.lcContainerPick[app.Folder] = app.Containers[pick].FolderName
+						}
+					}
 				})
 				key := "shortcut-launch-" + app.Folder
 				if m.shortcutExportButton(c, msg, helpShortcutLaunch, key, msg.ShortcutsExport(), busy).Clicked() {
-					m.exportLaunchShortcut(key, name, shortcuts.LaunchURL(app.Folder))
+					m.exportLaunchShortcut(key, name, shortcuts.LaunchURL(m.lcLaunchTarget(app)))
 				}
 			})
 		}
@@ -191,6 +224,56 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 			}
 		}
 	})
+}
+
+func (m *Model) lcLaunchTarget(app device.LiveContainerApp) shortcuts.LaunchTarget {
+	target := shortcuts.LaunchTarget{Folder: app.Folder}
+	if picked := m.lcContainerPick[app.Folder]; picked != "" && picked != app.DataUUID {
+		target.ContainerFolder = picked
+	}
+	return target
+}
+
+func (m *Model) lcContainerIndex(app device.LiveContainerApp) int {
+	picked := m.lcContainerPick[app.Folder]
+	if picked == "" {
+		picked = app.DataUUID
+	}
+	for i, container := range app.Containers {
+		if container.FolderName == picked {
+			return i
+		}
+	}
+	return 0
+}
+
+func lcSharedLabel(msg locales.Messages, shared bool) string {
+	if shared {
+		return msg.LcGuestShared()
+	}
+	return msg.LcGuestNotShared()
+}
+
+func lcMultitaskLabel(msg locales.Messages, state int) string {
+	switch state {
+	case 2:
+		return msg.LcGuestMultitaskOn()
+	case 1:
+		return msg.LcGuestMultitaskOff()
+	default:
+		return msg.LcGuestMultitaskDefault()
+	}
+}
+
+func lcMultitaskColor(t *ui.Theme, state int) ui.Color {
+	switch state {
+	case 2:
+		return successInk(t)
+	case 1:
+		return ui.Hex("#F59E0B")
+	default:
+		return t.TextMuted
+	}
 }
 
 func (m *Model) helpFileActions(c *ui.Context, msg locales.Messages, path, key string) {

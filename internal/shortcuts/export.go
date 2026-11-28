@@ -15,12 +15,29 @@ import (
 
 const launchHost = "livecontainer-launch"
 
-// LaunchURL addresses a guest by its folder on the primary LiveContainer.
-func LaunchURL(folder string) string {
+// LaunchTarget addresses one guest in one LiveContainer instance.
+// Instance 0 or 1 means the primary LiveContainer; 2 and up mean
+// livecontainer2, livecontainer3, and so on.
+type LaunchTarget struct {
+	Folder          string
+	ContainerFolder string
+	Instance        int
+}
+
+// LaunchURL addresses a guest by its folder on the chosen LiveContainer.
+func LaunchURL(target LaunchTarget) string {
+	scheme := "livecontainer"
+	if target.Instance > 1 {
+		scheme = fmt.Sprintf("livecontainer%d", target.Instance)
+	}
+	query := url.Values{"bundle-name": {target.Folder}}
+	if container := strings.TrimSpace(target.ContainerFolder); container != "" {
+		query.Set("container-folder-name", container)
+	}
 	return (&url.URL{
-		Scheme:   "livecontainer",
+		Scheme:   scheme,
 		Host:     launchHost,
-		RawQuery: encodeQuery(url.Values{"bundle-name": {folder}}),
+		RawQuery: encodeQuery(query),
 	}).String()
 }
 
@@ -42,6 +59,9 @@ func parseLaunchURL(raw string) (*url.URL, error) {
 	query, err := url.ParseQuery(strings.ReplaceAll(u.RawQuery, "+", "%2B"))
 	if err != nil || len(query["bundle-name"]) != 1 || strings.TrimSpace(query.Get("bundle-name")) == "" {
 		return nil, fmt.Errorf("LiveContainer launch URL must identify one app")
+	}
+	if containers := query["container-folder-name"]; len(containers) > 1 || (len(containers) == 1 && strings.TrimSpace(containers[0]) == "") {
+		return nil, fmt.Errorf("LiveContainer launch URL names an invalid container")
 	}
 	if number == "1" {
 		u.Scheme = "livecontainer"

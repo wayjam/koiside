@@ -24,6 +24,32 @@ func TestParseLiveContainerAppPlist(t *testing.T) {
 		t.Fatalf("unexpected parsed app: %+v", app)
 	}
 }
+func TestParseLCAppInfoExtractsSharedAndMultitask(t *testing.T) {
+	app := LiveContainerApp{
+		Folder:   "PiliPlus.app",
+		Name:     "PiliPlus",
+		BundleID: "com.example.piliplus",
+	}
+	raw, err := plist.Marshal(map[string]any{
+		"isShared":           true,
+		"MultitaskSpecified": int64(2),
+		"LCDataUUID":         "DATA-PRIMARY",
+		"LCContainers": []map[string]any{
+			{"folderName": "DATA-PRIMARY", "name": "Default"},
+			{"folderName": "DATA-SECONDARY", "name": "Work", "isolateAppGroup": true},
+		},
+	}, plist.XMLFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parseLCAppInfo(&app, raw)
+	if !app.InfoKnown || !app.Shared || app.Multitask != 2 || app.DataUUID != "DATA-PRIMARY" {
+		t.Fatalf("unexpected parsed info: %+v", app)
+	}
+	if len(app.Containers) != 2 || app.Containers[1].Name != "Work" || !app.Containers[1].IsolateAppGroup {
+		t.Fatalf("unexpected containers: %+v", app.Containers)
+	}
+}
 
 func TestParseSideStoreLogExtractsOperationAndError(t *testing.T) {
 	logText := `

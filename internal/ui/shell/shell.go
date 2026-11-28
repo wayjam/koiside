@@ -175,6 +175,8 @@ type Model struct {
 	directErr          string
 	directDoneMsg      string
 	skipExtensionsFor  string
+	lcContainerPick    map[string]string
+	skipToolExtensions bool
 
 	storeLoginEmail    string
 	storeLoginPass     string

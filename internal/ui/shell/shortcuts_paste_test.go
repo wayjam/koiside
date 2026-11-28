@@ -37,6 +37,39 @@ func TestShortcutPasteUniversalClipboard(t *testing.T) {
 		t.Fatal("paste button did not restore its action label")
 	}
 }
+func TestShortcutLaunchExportRendersLCSharedAndContainerOptions(t *testing.T) {
+	m, tt := newTest(t, false)
+	msg := m.msg(nil)
+	m.lcApp = &device.InstalledApp{BundleID: "com.kdt.livecontainer", TeamID: "TEAM"}
+	m.lcApps = []device.LiveContainerApp{
+		{
+			Folder:    "PiliPlus.app",
+			Name:      "PiliPlus",
+			BundleID:  "com.example.piliplus",
+			Version:   "2.2.1",
+			InfoKnown: true,
+			Shared:    true,
+			Multitask: 2,
+			DataUUID:  "DATA-1",
+			Containers: []device.LCContainer{
+				{FolderName: "DATA-1", Name: "主数据"},
+				{FolderName: "DATA-2", Name: "分身数据"},
+			},
+		},
+	}
+	for _, label := range []string{"侧载帮助", msg.HelpGuideLaunchShortcut()} {
+		if err := tt.Click(label); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tt.Frame()
+	if !tt.HasText("PiliPlus") || !tt.HasText("已共享") || !tt.HasText("多任务：开") {
+		t.Fatalf("expected guest card with shared and multitask status, got %q", tt.Texts())
+	}
+	if !tt.HasText("主数据") || !tt.HasText("分身数据") {
+		t.Fatalf("expected container choices visible for guest with 2 containers, got %q", tt.Texts())
+	}
+}
 
 func TestRefreshShortcutConfirmationAndDisclosure(t *testing.T) {
 	m, tt := newTest(t, false)
