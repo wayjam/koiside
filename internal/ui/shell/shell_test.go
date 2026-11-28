@@ -16,6 +16,7 @@ import (
 	"koiside/internal/appstore"
 	"koiside/internal/device"
 	"koiside/internal/devportal"
+	"koiside/internal/installer"
 	"koiside/internal/ipa"
 	"koiside/locales"
 )
@@ -1692,5 +1693,43 @@ func TestHandoffCountsEveryExtensionItRegisters(t *testing.T) {
 	tt.Frame()
 	if tt.HasText(note) || tt.HasText(toggle) {
 		t.Fatalf("extension controls must disappear without extensions, got %q", tt.Texts())
+	}
+}
+func TestDeviceAppsTabRendersManagedExpiryAndRenewButton(t *testing.T) {
+	m, tt := newTest(t, false)
+	store := m.recordStore()
+	_ = store.Upsert(installer.Record{
+		InstalledID:   "com.SideStore.SideStore.8K49",
+		OriginalID:    "com.SideStore.SideStore",
+		Name:          "SideStore",
+		TeamID:        "8K49",
+		CertSerial:    "42",
+		ProfileExpiry: time.Now().Add(5*24*time.Hour + 2*time.Hour).UTC(),
+	})
+	m.SetSnapshot(device.Snapshot{
+		Device: device.Device{ID: 1, UDID: "UDID-1", ConnectionType: "USB"},
+		Info:   device.Info{Name: "iPhone", Version: "27.0"},
+		Apps: []device.InstalledApp{
+			{BundleID: "com.SideStore.SideStore.8K49", Name: "SideStore", Version: "0.7.0", TeamID: "8K49", Signer: "iPhone Developer: test"},
+			{BundleID: "com.tencent.xin", Name: "WeChat", Version: "8.0.50"},
+		},
+		SideStore:   &device.InstalledApp{BundleID: "com.SideStore.SideStore.8K49", Name: "SideStore", Version: "0.7.0", TeamID: "8K49"},
+		USBVerified: true,
+	}, nil)
+
+	if err := tt.Click("设备"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("已安装应用"); err != nil {
+		t.Fatal(err)
+	}
+	if !tt.HasText("SideStore") || !tt.HasText("剩余 5 天") {
+		t.Fatalf("expected managed SideStore with 5 days left, got %q", tt.Texts())
+	}
+	if !tt.HasText("KoiSide 托管 (1)") {
+		t.Fatalf("expected managed count in filter, got %q", tt.Texts())
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, "一键续签"); !ok {
+		t.Fatal("expected one-click renew button for managed app")
 	}
 }

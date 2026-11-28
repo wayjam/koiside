@@ -46,6 +46,19 @@ func (m *Model) sideloadedApps() []device.InstalledApp {
 	return out
 }
 
+func (m *Model) managedRecordsMap() map[string]installer.Record {
+	store := m.recordStore()
+	if store == nil {
+		return nil
+	}
+	records := store.List()
+	out := make(map[string]installer.Record, len(records))
+	for _, r := range records {
+		out[r.InstalledID] = r
+	}
+	return out
+}
+
 func (m *Model) findInstalledConflict(bundleID string) (device.InstalledApp, bool) {
 	id := strings.TrimSpace(bundleID)
 	if id == "" {
@@ -426,8 +439,18 @@ func (m *Model) filteredDeviceApps() []device.InstalledApp {
 	q := strings.ToLower(strings.TrimSpace(m.appQuery))
 	m.mu.Unlock()
 
+	managedMap := m.managedRecordsMap()
 	source := all
-	if filter == 1 {
+	switch filter {
+	case 2:
+		var managed []device.InstalledApp
+		for _, a := range sideloaded {
+			if _, ok := managedMap[a.BundleID]; ok {
+				managed = append(managed, a)
+			}
+		}
+		source = managed
+	case 1:
 		source = sideloaded
 	}
 	if q == "" {
@@ -863,9 +886,17 @@ func (m *Model) renderDeviceApps(c *ui.Context, msg locales.Messages) {
 							Placeholder(msg.DeviceAppsSearchPlaceholder()).
 							FillWidth().Label(msg.DeviceAppsSearchPlaceholder())
 					})
+					managedMap := m.managedRecordsMap()
+					managedCount := 0
+					for _, a := range sideloaded {
+						if _, ok := managedMap[a.BundleID]; ok {
+							managedCount++
+						}
+					}
 					ui.Segmented(c.Key("device-app-filter"), &m.appFilter,
 						msg.DeviceAppsFilterAll(len(m.deviceApps)),
 						msg.DeviceAppsFilterSideloaded(len(sideloaded)),
+						msg.DeviceAppsFilterManaged(managedCount),
 					).Cursor(ui.CursorPointer).Label(msg.DeviceInstalledAppsTitle())
 				})
 			}
@@ -883,6 +914,8 @@ func (m *Model) renderDeviceApps(c *ui.Context, msg locales.Messages) {
 						if idx > 0 {
 							ui.Divider(c)
 						}
+						managedMap := m.managedRecordsMap()
+						rec, isManaged := managedMap[a.BundleID]
 						ui.Row(c.Key(fmt.Sprintf("app-row-%d-%s", idx, a.BundleID))).FillWidth().Padding(10, 18).AlignItems(ui.Center).Gap(10).Children(func() {
 							ui.Column(c).Width(156).Gap(1).Children(func() {
 								ui.Text(c, valueOrUnknown(msg, a.Name)).Bold().FontSize(12).SingleLine()
@@ -891,7 +924,31 @@ func (m *Model) renderDeviceApps(c *ui.Context, msg locales.Messages) {
 								}
 							})
 							monoText(c, a.BundleID).FontSize(11).TextColor(t.TextMuted).Grow(1)
-							monoText(c, valueOrUnknown(msg, a.Version)).FontSize(11).TextColor(t.TextMuted)
+							if isManaged && !rec.ProfileExpiry.IsZero() {
+								now := time.Now().UTC()
+								if rec.ProfileExpiry.Before(now) {
+									ui.Text(c, msg.DeviceAppsExpired()).FontSize(11).Bold().TextColor(ui.Hex("#EF4444"))
+								} else {
+									rem := rec.ProfileExpiry.Sub(now)
+									days := int(rem.Hours() / 24)
+									hours := int(rem.Hours()) % 24
+									text := msg.DeviceAppsDaysLeft(days)
+									if days == 0 {
+										text = msg.DeviceAppsHoursLeft(hours)
+									}
+									col := successInk(t)
+									if days <= 1 {
+										col = ui.Hex("#F59E0B")
+									}
+									ui.Text(c, text).FontSize(11).Bold().TextColor(col)
+								}
+								renewBtn := uiBtn(c, fmt.Sprintf("renew-btn-%s", a.BundleID), msg.DeviceAppsRenewBtn())
+								if renewBtn.Clicked() {
+									m.renewAppProfile(rec)
+								}
+							} else {
+								monoText(c, valueOrUnknown(msg, a.Version)).FontSize(11).TextColor(t.TextMuted)
+							}
 						})
 					}
 				})
@@ -1683,6 +1740,49 @@ func (m *Model) installEcosystemTool(target installer.ToolTarget, recoveryBundle
 			m.addLog("tool install succeeded: " + res.BundleID)
 			m.detectDevices()
 		}
+		if m.win != nil {
+			mygo.RunOnMain(func() { m.win.Invalidate() })
+		}
+	}()
+}
+
+func (m *Model) renewAppProfile(rec installer.Record) {
+	if len(m.devices) == 0 || m.deviceErr != "" {
+		return
+	}
+	dev := m.devices[0]
+	m.mu.Lock()
+	m.toolInstallPct = 10
+	m.toolInstallMsg = "certificate"
+	m.toolInstalling = true
+	m.toolInstallErr = ""
+	m.toolInstallDone = false
+	m.mu.Unlock()
+	if m.win != nil {
+		m.win.Invalidate()
+	}
+
+	go func() {
+		res, err := installer.RefreshProfiles(context.Background(), dev, nil, m.services.Accounts, rec, m.recordStore(), func(pct int, stage string) {
+			m.mu.Lock()
+			m.toolInstallPct = pct
+			m.toolInstallMsg = stage
+			m.mu.Unlock()
+			if m.win != nil {
+				mygo.RunOnMain(func() { m.win.Invalidate() })
+			}
+		})
+		curMsg := m.msg(nil)
+		m.mu.Lock()
+		m.toolInstalling = false
+		if err != nil {
+			m.toolInstallErr = err.Error()
+		} else {
+			m.toolInstallPct = 100
+			m.toolInstallDone = true
+			m.toolInstallMsg = curMsg.ToolInstallSucceeded(res.InstalledID)
+		}
+		m.mu.Unlock()
 		if m.win != nil {
 			mygo.RunOnMain(func() { m.win.Invalidate() })
 		}

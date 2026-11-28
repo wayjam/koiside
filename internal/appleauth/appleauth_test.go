@@ -495,7 +495,7 @@ func readServerWSFrame(r *bufio.Reader) ([]byte, error) {
 }
 
 func TestGrandSlamPlistRequestSurfacesStructuredErrorOn503(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/x-xml-plist")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		doc := map[string]any{
@@ -523,7 +523,7 @@ func TestGrandSlamPlistRequestSurfacesStructuredErrorOn503(t *testing.T) {
 }
 
 func TestGrandSlamPlistRequestIncludesPreviewOnRawHTMLError(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		_, _ = w.Write([]byte("<html><head><title>502 Bad Gateway</title></head><body><h1>502 Bad Gateway</h1></body></html>"))
 	}))

@@ -529,6 +529,16 @@
   "@transferErrorDetail": {
     "placeholders": { "err": { "type": "String" } }
   },
+  "deviceAppsRenewBtn": "一键续签",
+  "deviceAppsRenewing": "正在续签…",
+  "deviceAppsDaysLeft": "剩余 {days} 天",
+  "@deviceAppsDaysLeft": { "placeholders": { "days": { "type": "int" } } },
+  "deviceAppsHoursLeft": "剩余 {hours} 小时",
+  "@deviceAppsHoursLeft": { "placeholders": { "hours": { "type": "int" } } },
+  "deviceAppsExpired": "已过期",
+  "deviceAppsCertDiff": "与当前证书不一致",
+  "deviceAppsFilterManaged": "KoiSide 托管 ({count})",
+  "@deviceAppsFilterManaged": { "placeholders": { "count": { "type": "int" } } },
   "transferLiveContainerNote": "你选择了 LiveContainer 路线：可选择将 IPA 写入容器文稿并在容器内启动，或改为装在容器外面的独立应用。",
   "maintainTargetApp": "当前维护：{name}",
   "@maintainTargetApp": {

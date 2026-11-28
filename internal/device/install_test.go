@@ -185,7 +185,7 @@ func TestInstallProvisioningProfileHandlesRefusal(t *testing.T) {
 		}),
 	}
 	sess := &Session{
-		startService: func(name string) (io.ReadWriteCloser, error) {
+		startService: func(_ string) (io.ReadWriteCloser, error) {
 			return conn, nil
 		},
 	}
