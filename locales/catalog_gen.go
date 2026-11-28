@@ -3842,6 +3842,78 @@ func (msgs Messages) TransferErrorDetail(err string) string {
 	return Catalog.Format(msgs.locale, "transferErrorDetail", map[string]any{"err": err})
 }
 
+// DeviceAppsRenewBtn says "一键续签"
+// in the language the app shows.
+func DeviceAppsRenewBtn() string { return In(i18n.Locale()).DeviceAppsRenewBtn() }
+
+// DeviceAppsRenewBtn says "一键续签"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsRenewBtn() string {
+	return Catalog.Format(msgs.locale, "deviceAppsRenewBtn", nil)
+}
+
+// DeviceAppsRenewing says "正在续签…"
+// in the language the app shows.
+func DeviceAppsRenewing() string { return In(i18n.Locale()).DeviceAppsRenewing() }
+
+// DeviceAppsRenewing says "正在续签…"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsRenewing() string {
+	return Catalog.Format(msgs.locale, "deviceAppsRenewing", nil)
+}
+
+// DeviceAppsDaysLeft says "剩余 {days} 天"
+// in the language the app shows.
+func DeviceAppsDaysLeft(days int) string { return In(i18n.Locale()).DeviceAppsDaysLeft(days) }
+
+// DeviceAppsDaysLeft says "剩余 {days} 天"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsDaysLeft(days int) string {
+	return Catalog.Format(msgs.locale, "deviceAppsDaysLeft", map[string]any{"days": days})
+}
+
+// DeviceAppsHoursLeft says "剩余 {hours} 小时"
+// in the language the app shows.
+func DeviceAppsHoursLeft(hours int) string { return In(i18n.Locale()).DeviceAppsHoursLeft(hours) }
+
+// DeviceAppsHoursLeft says "剩余 {hours} 小时"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsHoursLeft(hours int) string {
+	return Catalog.Format(msgs.locale, "deviceAppsHoursLeft", map[string]any{"hours": hours})
+}
+
+// DeviceAppsExpired says "已过期"
+// in the language the app shows.
+func DeviceAppsExpired() string { return In(i18n.Locale()).DeviceAppsExpired() }
+
+// DeviceAppsExpired says "已过期"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsExpired() string {
+	return Catalog.Format(msgs.locale, "deviceAppsExpired", nil)
+}
+
+// DeviceAppsCertDiff says "与当前证书不一致"
+// in the language the app shows.
+func DeviceAppsCertDiff() string { return In(i18n.Locale()).DeviceAppsCertDiff() }
+
+// DeviceAppsCertDiff says "与当前证书不一致"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsCertDiff() string {
+	return Catalog.Format(msgs.locale, "deviceAppsCertDiff", nil)
+}
+
+// DeviceAppsFilterManaged says "KoiSide 托管 ({count})"
+// in the language the app shows.
+func DeviceAppsFilterManaged(count int) string {
+	return In(i18n.Locale()).DeviceAppsFilterManaged(count)
+}
+
+// DeviceAppsFilterManaged says "KoiSide 托管 ({count})"
+// in the language of msgs.
+func (msgs Messages) DeviceAppsFilterManaged(count int) string {
+	return Catalog.Format(msgs.locale, "deviceAppsFilterManaged", map[string]any{"count": count})
+}
+
 // TransferLiveContainerNote says "你选择了 LiveContainer 路线：可选择将 IPA …"
 // in the language the app shows.
 func TransferLiveContainerNote() string { return In(i18n.Locale()).TransferLiveContainerNote() }
