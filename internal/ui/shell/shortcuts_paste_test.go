@@ -105,3 +105,23 @@ func TestRefreshShortcutConfirmationAndDisclosure(t *testing.T) {
 		t.Fatal("expanded disclosure did not reveal the automation steps")
 	}
 }
+
+func TestLCLaunchTargetUsesPickedContainer(t *testing.T) {
+	m, _ := newTest(t, false)
+	app := device.LiveContainerApp{
+		Folder:   "PiliPlus.app",
+		DataUUID: "DATA-1",
+		Containers: []device.LCContainer{
+			{FolderName: "DATA-1", Name: "Default"},
+			{FolderName: "DATA-2", Name: "Second"},
+		},
+	}
+	if got := shortcuts.LaunchURL(m.lcLaunchTarget(app)); strings.Contains(got, "container-folder-name") {
+		t.Fatalf("the default container must not be addressed explicitly, got %q", got)
+	}
+	m.lcContainerPick = map[string]string{"PiliPlus.app": "DATA-2"}
+	got := shortcuts.LaunchURL(m.lcLaunchTarget(app))
+	if !strings.Contains(got, "container-folder-name=DATA-2") {
+		t.Fatalf("picked container missing from %q", got)
+	}
+}
