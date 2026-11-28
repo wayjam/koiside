@@ -21,8 +21,10 @@ const (
 )
 
 type shortcutResult struct {
-	path string
-	err  string
+	path           string
+	err            string
+	button         string
+	confirmedUntil time.Time
 }
 
 func isShortcutGuide(topic string) bool {
@@ -52,7 +54,7 @@ func (m *Model) shortcutsPanel(c *ui.Context, msg locales.Messages) {
 				ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
 					ui.Icon(c, item.icon).Size(19, 19).TextColor(accentInk(c.Theme())).AccessHidden(true)
 					ui.Text(c, item.label).Grow(1).MinWidth(0).FontSize(13).Bold()
-					ui.Icon(c, phCaretRight).Size(14, 14).TextColor(c.Theme().TextMuted).AccessHidden(true)
+					rowCaret(c, row, 14)
 				})
 			})
 			if row.Clicked() {
@@ -68,15 +70,15 @@ func (m *Model) shortcutGuideSteps(c *ui.Context, msg locales.Messages, topic st
 	body := strings.Split(msg.HelpGuideTryRefresh(), "\n")
 	pick := func() { m.shortcutRefreshExport(c, msg) }
 	finish := func() {
-		ui.Collapsible(c.Key("shortcut-refresh-error"), msg.HelpGuideRefreshHelp(), &m.shortcutTroubleshooting, func() {
+		helpDisclosure(c, "shortcut-refresh-error", msg.HelpGuideRefreshHelp(), &m.shortcutTroubleshooting, func() {
 			ui.Text(c, msg.HelpGuideRefreshSession()).FontSize(13)
 			m.helpRecoveryLink(c, msg)
-		}).Cursor(ui.CursorPointer)
-		ui.Collapsible(c.Key("shortcut-automation"), msg.HelpGuideSchedule(), &m.shortcutSchedule, func() {
+		})
+		helpDisclosure(c, "shortcut-automation", msg.HelpGuideSchedule(), &m.shortcutSchedule, func() {
 			for _, action := range strings.Split(msg.HelpGuideScheduleSteps(), "\n") {
 				ui.Text(c, action).FontSize(13)
 			}
-		}).Cursor(ui.CursorPointer)
+		})
 		m.helpLink(c, "shortcut-check-profile", msg.MaintainVerifyProfile(), verifyExpiryURL)
 	}
 	if topic == helpShortcutLaunch {
@@ -110,7 +112,7 @@ func (m *Model) shortcutGuideSteps(c *ui.Context, msg locales.Messages, topic st
 }
 func (m *Model) shortcutRefreshExport(c *ui.Context, msg locales.Messages) {
 	m.mu.Lock()
-	standalone, lc, embedded, busy := m.sideStoreApp, m.lcApp, m.sideStoreEmbedded, m.shortcutBusy
+	standalone, lc, embedded, busy := m.sideStoreApp, m.lcApp, m.sideStoreEmbedded, m.shortcutExporting != ""
 	m.mu.Unlock()
 	ui.Text(c, msg.HelpGuideExportRefresh()).FontSize(13)
 	ui.Row(c).FillWidth().Wrap().Gap(8).Children(func() {
@@ -118,8 +120,8 @@ func (m *Model) shortcutRefreshExport(c *ui.Context, msg locales.Messages) {
 			if app == nil || app.TeamID == "" {
 				return
 			}
-			if uiPrimaryBtnWithTip(c, key, button, busy, "").Clicked() {
-				m.exportShortcut(helpShortcutRefresh, msg.ShortcutsRefreshTitle()+" - "+name, func(ctx context.Context, out, title string) error {
+			if m.shortcutExportButton(c, msg, helpShortcutRefresh, key, button, busy).Clicked() {
+				m.exportShortcut(helpShortcutRefresh, key, msg.ShortcutsRefreshTitle()+" - "+name, func(ctx context.Context, out, title string) error {
 					return shortcuts.ExportRefresh(ctx, out, title, name, app.BundleID, app.TeamID)
 				})
 			}
@@ -137,7 +139,7 @@ func (m *Model) shortcutRefreshExport(c *ui.Context, msg locales.Messages) {
 
 func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 	m.mu.Lock()
-	guests, busy := m.lcApps, m.shortcutBusy
+	guests, busy := m.lcApps, m.shortcutExporting != ""
 	m.mu.Unlock()
 	if len(guests) > 0 {
 		ui.Text(c, msg.HelpGuideChooseApp()).FontSize(13)
@@ -155,8 +157,9 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, name).Bold().FontSize(13)
 					monoText(c, app.Folder).FontSize(11).TextColor(c.Theme().TextMuted)
 				})
-				if uiPrimaryBtnWithTip(c, "shortcut-launch-"+app.Folder, msg.ShortcutsExport(), busy, "").Clicked() {
-					m.exportLaunchShortcut(name, shortcuts.LaunchURL(app.Folder))
+				key := "shortcut-launch-" + app.Folder
+				if m.shortcutExportButton(c, msg, helpShortcutLaunch, key, msg.ShortcutsExport(), busy).Clicked() {
+					m.exportLaunchShortcut(key, name, shortcuts.LaunchURL(app.Folder))
 				}
 			})
 		}
@@ -176,12 +179,15 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 		ui.Text(c, msg.HelpGuideInvalidLaunchURL()).Role(ui.RoleStatus).FontSize(12).TextColor(c.Theme().TextMuted)
 	}
 	ui.Row(c).FillWidth().Wrap().Gap(8).Children(func() {
-		if uiPrimaryBtnWithTip(c, "shortcut-launch-export", msg.ShortcutsExport(), busy || !valid, "").Clicked() {
-			m.exportLaunchShortcut(msg.ShortcutsLaunchTitle(), launchURL)
+		const key = "shortcut-launch-export"
+		if m.shortcutExportButton(c, msg, helpShortcutLaunch, key, msg.ShortcutsExport(), busy || !valid).Clicked() {
+			m.exportLaunchShortcut(key, msg.ShortcutsLaunchTitle(), launchURL)
 		}
-		if uiBtnWithTip(c, "shortcut-paste", msg.HelpGuidePaste(), busy, "").Clicked() {
+		paste, confirmed := shortcutActionButton(c, "shortcut-paste", msg.HelpGuidePaste(), msg.HelpGuidePasted(), phImport, false, busy, false, time.Time{})
+		if paste.Clicked() {
 			if pasted := strings.TrimSpace(c.ReadClipboard()); pasted != "" {
 				m.shortcutLaunchURL = pasted
+				confirmShortcutAction(c, confirmed, msg.HelpGuidePasted())
 			}
 		}
 	})
@@ -189,20 +195,27 @@ func (m *Model) shortcutLaunchExport(c *ui.Context, msg locales.Messages) {
 
 func (m *Model) helpFileActions(c *ui.Context, msg locales.Messages, path, key string) {
 	ui.Row(c).FillWidth().Wrap().Gap(8).Children(func() {
-		if uiPrimaryBtn(c, "help-airdrop-"+key, msg.HelpGuideAirDrop()).Clicked() {
+		airdrop, sent := shortcutActionButton(c, "help-airdrop-"+key, msg.HelpGuideAirDrop(), msg.HelpGuideAirDropOpened(), phPaperPlaneTiltDuotone, true, false, false, time.Time{})
+		if airdrop.Clicked() {
+			*sent = time.Time{}
 			m.helpFileError = ""
 			if _, err := os.Stat(path); err != nil {
 				m.helpFileError = msg.HelpGuideFileMissing()
 			} else if !openAirDrop(path) {
 				m.helpFileError = msg.HelpGuideAirDropUnavailable()
+			} else {
+				confirmShortcutAction(c, sent, msg.HelpGuideAirDropOpened())
 			}
 		}
-		if uiBtn(c, "help-finder-"+key, msg.HelpGuideFinder()).Clicked() {
+		finder, revealed := shortcutActionButton(c, "help-finder-"+key, msg.HelpGuideFinder(), msg.HelpGuideFinderOpened(), phFolderOpen, false, false, false, time.Time{})
+		if finder.Clicked() {
+			*revealed = time.Time{}
 			m.helpFileError = ""
 			if _, err := os.Stat(path); err != nil {
 				m.helpFileError = msg.HelpGuideFileMissing()
 			} else if m.win != nil {
 				mygo.Shell.ShowItemInFolder(path)
+				confirmShortcutAction(c, revealed, msg.HelpGuideFinderOpened())
 			}
 		}
 	})
@@ -220,63 +233,103 @@ func (m *Model) shortcutResultFor(topic string) shortcutResult {
 func (m *Model) shortcutCanAdvance(topic string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return !m.shortcutBusy && m.shortcutResults[topic].path != ""
+	return m.shortcutExporting == "" && m.shortcutResults[topic].path != ""
 }
 
 func (m *Model) shortcutExportStatus(c *ui.Context, msg locales.Messages, res shortcutResult) {
 	m.mu.Lock()
-	busy := m.shortcutBusy
+	busy := m.shortcutExporting != ""
 	m.mu.Unlock()
-	text := ""
-	switch {
-	case busy:
-		text = msg.ShortcutsSaving()
-	case res.err != "":
-		text = msg.ShortcutsSaveFailed(res.err)
-	case res.path != "":
-		text = msg.ShortcutsSaved(filepath.Base(res.path))
-	default:
-		text = msg.HelpGuideExportFirst()
+	if busy || res.path != "" {
+		return
 	}
-	if text != "" {
-		ui.Row(c).FillWidth().Gap(7).AlignItems(ui.Center).Children(func() {
-			var icon *ui.SVG
-			switch {
-			case busy:
-			case res.err != "":
-				icon = phXCircleFill
-			case res.path != "":
-				icon = phCheckCircleFill
-			default:
-				icon = phInfo
-			}
-			if icon != nil {
-				badge := ui.Icon(c.Key("shortcut-exported"), icon).Size(16, 16).TextColor(accentInk(c.Theme())).AccessHidden(true)
-				if !c.Preferences().ReduceMotion {
-					badge.Transition(stepCheckEnterTransition)
-				}
-			}
-			ui.Text(c.Key("shortcut-status"), text).Role(ui.RoleStatus).Grow(1).MinWidth(0).FontSize(13)
-		})
+	text, icon := msg.HelpGuideExportFirst(), phInfo
+	if res.err != "" {
+		text, icon = msg.ShortcutsSaveFailed(res.err), phXCircleFill
 	}
+	ui.Row(c).FillWidth().Gap(7).AlignItems(ui.Center).Children(func() {
+		ui.Icon(c, icon).Size(16, 16).TextColor(accentInk(c.Theme())).AccessHidden(true)
+		ui.Text(c.Key("shortcut-status"), text).Role(ui.RoleStatus).Grow(1).MinWidth(0).FontSize(13)
+	})
 }
 
-func (m *Model) exportLaunchShortcut(name, launchURL string) {
-	m.exportShortcut(helpShortcutLaunch, name, func(ctx context.Context, out, title string) error {
+func (m *Model) shortcutExportButton(c *ui.Context, msg locales.Messages, topic, key, label string, disabled bool) ui.Element {
+	m.mu.Lock()
+	result := m.shortcutResults[topic]
+	saving := m.shortcutExporting == key
+	m.mu.Unlock()
+	var until time.Time
+	if result.button == key {
+		until = result.confirmedUntil
+	}
+	if saving {
+		label = msg.ShortcutsSaving()
+	}
+	btn, lastConfirmation := shortcutActionButton(c, key, label, msg.HelpGuideExportDone(), phExport, true, disabled || saving, saving, until)
+	if until.After(*lastConfirmation) {
+		*lastConfirmation = until
+		if until.After(c.Now()) {
+			c.Announce(msg.ShortcutsSaved(filepath.Base(result.path)))
+		}
+	}
+	return btn
+}
+
+func shortcutActionButton(c *ui.Context, key, label, success string, icon *ui.SVG, primary, disabled, busy bool, until time.Time) (ui.Element, *time.Time) {
+	btn := uiBtn
+	if primary {
+		btn = uiPrimaryBtn
+	}
+	el := btn(c, key, "").Disabled(disabled).Busy(busy)
+	local := ui.Local(el, "confirmation", func() time.Time { return time.Time{} })
+	if local.After(until) {
+		until = *local
+	}
+	confirmed := !busy && until.After(c.Now())
+	if confirmed {
+		c.After(until.Sub(c.Now()))
+		label = success
+	}
+	el.Label(label).Children(func() {
+		if confirmed {
+			ui.Icon(c.Key("confirmed"), phCheckCircleFill).Size(15, 15).Transition(stepCheckEnterTransition)
+		} else if busy && !c.Preferences().ReduceMotion {
+			ui.Spinner(c).Size(15, 15).AccessHidden(true)
+		} else {
+			glyph := ui.Icon(c.Key("action"), icon).Size(15, 15)
+			if icon == phPaperPlaneTiltDuotone {
+				glyph.Transition(ui.ElementTransition{ExitDuration: 125 * time.Millisecond, Exit: &ui.Motion{X: 3, Y: -3, Rotate: -12}})
+			}
+		}
+		ui.Text(c, label).SingleLine()
+	})
+	return el, local
+}
+
+const shortcutConfirmationDuration = 1500 * time.Millisecond
+
+func confirmShortcutAction(c *ui.Context, until *time.Time, label string) {
+	*until = c.Now().Add(shortcutConfirmationDuration)
+	c.Announce(label)
+	c.Invalidate()
+}
+
+func (m *Model) exportLaunchShortcut(key, name, launchURL string) {
+	m.exportShortcut(helpShortcutLaunch, key, name, func(ctx context.Context, out, title string) error {
 		return shortcuts.ExportLaunch(ctx, out, title, launchURL)
 	})
 }
 
-func (m *Model) exportShortcut(topic, defaultName string, export func(context.Context, string, string) error) {
+func (m *Model) exportShortcut(topic, key, defaultName string, export func(context.Context, string, string) error) {
 	if m.win == nil {
 		return
 	}
 	m.mu.Lock()
-	if m.shortcutBusy {
+	if m.shortcutExporting != "" {
 		m.mu.Unlock()
 		return
 	}
-	m.shortcutBusy = true
+	m.shortcutExporting = key
 	m.mu.Unlock()
 
 	win := m.win
@@ -296,14 +349,14 @@ func (m *Model) exportShortcut(topic, defaultName string, export func(context.Co
 			cancel()
 		}
 		m.mu.Lock()
-		m.shortcutBusy = false
+		m.shortcutExporting = ""
 		if m.shortcutResults == nil {
 			m.shortcutResults = make(map[string]shortcutResult)
 		}
 		if err != nil {
 			m.shortcutResults[topic] = shortcutResult{err: err.Error()}
 		} else if out != "" {
-			m.shortcutResults[topic] = shortcutResult{path: out}
+			m.shortcutResults[topic] = shortcutResult{path: out, button: key, confirmedUntil: time.Now().Add(shortcutConfirmationDuration)}
 		}
 		m.mu.Unlock()
 		mygo.RunOnMain(func() { win.Invalidate() })

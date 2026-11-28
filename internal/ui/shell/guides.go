@@ -91,11 +91,7 @@ func (m *Model) tools(c *ui.Context, msg locales.Messages) {
 						ui.Text(c, title).Bold().FontSize(14)
 						ui.Text(c, desc).FontSize(12).TextColor(t.TextMuted)
 					})
-					pose := ui.Pose{}
-					if row.Hovered() {
-						pose = ui.Pose{X: 2}
-					}
-					ui.Icon(c, phCaretRight).Width(15).Height(15).TextColor(t.TextMuted).AnimatePose(pose, ui.Snappy)
+					rowCaret(c, row, 15)
 				})
 			})
 			if row.Clicked() {

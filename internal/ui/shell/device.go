@@ -136,12 +136,15 @@ func (m *Model) detectDevices() {
 	m.mu.Unlock()
 
 	m.addLog("device probe started")
+	if m.win != nil {
+		mygo.RunOnMain(func() { m.win.Invalidate() })
+	}
 	go func() {
 		snap, err := device.ProbeFirst(nil)
-		m.mu.Lock()
-		m.deviceProbing = false
-		m.mu.Unlock()
 		mygo.RunOnMain(func() {
+			m.mu.Lock()
+			m.deviceProbing = false
+			m.mu.Unlock()
 			m.SetSnapshot(snap, err)
 		})
 	}()
@@ -959,12 +962,20 @@ func (m *Model) renderDeviceDocs(c *ui.Context, msg locales.Messages) {
 				transferErr := m.transferErr
 				transferState := m.transferState
 				m.mu.Unlock()
-				if transferring {
-					ui.Spinner(c).Label(msg.TransferInProgress())
+				complete := !transferring && transferState == "done"
+				if transferring || complete {
+					label := msg.TransferInProgress()
+					if complete {
+						label = msg.HandoffStageBadgeTransferred()
+					}
+					deliveryProgress(c, "docs-transfer-progress", label, -1, complete).Width(48)
+				}
+				if complete {
+					ui.Text(c, msg.HandoffStageBadgeTransferred()).FontSize(11).Bold().TextColor(successInk(t))
+				} else if transferring {
+					ui.Text(c, msg.TransferInProgress()).FontSize(11).TextColor(accentInk(t))
 				} else if transferErr != "" {
 					ui.Text(c, msg.TransferErrorDetail(friendlyError(msg, transferErr))).FontSize(11).TextColor(ui.Hex("#EF4444"))
-				} else if transferState == "done" {
-					ui.Text(c, msg.HandoffStageBadgeTransferred()).FontSize(11).Bold().TextColor(ui.Hex("#10B981"))
 				}
 			})
 		})
@@ -1115,15 +1126,19 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 					} else {
 						ui.Text(c, msg.TransferUSBUnverified()).FontSize(12).TextColor(t.TextMuted)
 					}
-					ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
-						if m.transferring {
-							ui.Spinner(c).Label(msg.TransferInProgress())
+					ui.Row(c).Wrap().Gap(6).AlignItems(ui.Center).Children(func() {
+						status := m.transferStatusText(msg)
+						complete := !m.transferring && m.transferState == "done"
+						if m.transferring || complete {
+							deliveryProgress(c, "usb-transfer-progress", status, -1, complete).Width(48)
 						}
 						statusColor := accentInk(t)
-						if m.transferState == "failed" {
+						if complete {
+							statusColor = successInk(t)
+						} else if m.transferState == "failed" {
 							statusColor = ui.Hex("#EF4444")
 						}
-						ui.Text(c.Key("transfer-status-line"), m.transferStatusText(msg)).FontSize(12).TextColor(statusColor)
+						ui.Text(c.Key("transfer-status-line"), status).Role(ui.RoleStatus).FontSize(12).TextColor(statusColor)
 					})
 				})
 				handoffBtn := m.deviceBtn(c, msg, "transfer-handoff-btn", usbBtnLabel, primary && !readyToConfirm, m.transferring)
@@ -1146,16 +1161,20 @@ func (m *Model) transferView(c *ui.Context, msg locales.Messages, compact bool) 
 					dErr := m.directErr
 					dDone := m.directDoneMsg
 					m.mu.Unlock()
-					if dOn {
-						ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-							smoothProgress(c, "direct-install-progress", float64(dPct)/100.0, dStage).Width(160)
-							ui.Text(c, msg.ToolInstallRunning(dStage, dPct)).FontSize(11).TextColor(accentInk(t))
+					if dOn || dDone != "" {
+						ui.Row(c).Wrap().Gap(8).AlignItems(ui.Center).Children(func() {
+							stage := progressStageLabel(msg, dStage)
+							if dOn {
+								deliveryProgress(c, "direct-install-progress", stage, float64(dPct)/100, false).Width(160)
+								ui.Text(c, msg.ToolInstallRunning(stage, dPct)).FontSize(11).TextColor(accentInk(t))
+								return
+							}
+							deliveryProgress(c, "direct-install-progress", dDone, 1, true).Width(160)
+							ui.Text(c.Key("direct-install-done"), dDone).Role(ui.RoleStatus).FontSize(11).TextColor(successInk(t)).
+								Transition(feedbackBannerTransition)
 						})
 					} else if dErr != "" {
 						ui.Text(c.Key("direct-install-err"), msg.ToolInstallFailed(friendlyError(msg, dErr))).FontSize(11).TextColor(ui.Hex("#EF4444")).
-							Transition(feedbackBannerTransition)
-					} else if dDone != "" {
-						ui.Text(c.Key("direct-install-done"), dDone).FontSize(11).TextColor(ui.Hex("#10B981")).
 							Transition(feedbackBannerTransition)
 					}
 				})
@@ -1415,17 +1434,17 @@ func (m *Model) toolInstallStatusRow(c *ui.Context, msg locales.Messages) {
 	}
 	ui.Divider(c)
 	ui.Column(c).FillWidth().Padding(10, 18).Gap(6).Children(func() {
+		localizedStage := progressStageLabel(msg, stage)
+		if busy || done {
+			deliveryProgress(c, "tool-install-progress", localizedStage, float64(pct)/100, done).FillWidth()
+		}
 		if busy {
-			ui.Row(c).FillWidth().Gap(10).AlignItems(ui.Center).Children(func() {
-				localizedStage := progressStageLabel(msg, stage)
-				smoothProgress(c, "tool-install-progress", float64(pct)/100.0, localizedStage).Width(180)
-				ui.Text(c, msg.ToolInstallRunning(localizedStage, pct)).FontSize(12).TextColor(accentInk(t)).Grow(1)
-			})
+			ui.Text(c, msg.ToolInstallRunning(localizedStage, pct)).FontSize(12).TextColor(accentInk(t))
 		} else if errMsg != "" {
 			ui.Text(c.Key("tool-install-err"), msg.ToolInstallFailed(friendlyError(msg, errMsg))).FontSize(12).TextColor(ui.Hex("#EF4444")).
 				Transition(feedbackBannerTransition)
 		} else if stage != "" {
-			ui.Text(c.Key("tool-install-done"), progressStageLabel(msg, stage)).FontSize(12).Bold().TextColor(ui.Hex("#10B981")).
+			ui.Text(c.Key("tool-install-done"), localizedStage).Role(ui.RoleStatus).FontSize(12).Bold().TextColor(successInk(t)).
 				Transition(feedbackBannerTransition)
 			if done {
 				ui.Column(c).FillWidth().Padding(10, 12).Gap(4).Radius(8).Background(t.Selection).Children(func() {

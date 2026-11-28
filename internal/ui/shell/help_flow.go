@@ -43,7 +43,19 @@ func (m *Model) helpGuideModal(c *ui.Context, msg locales.Messages) {
 	canAdvance := step != 0 || !isShortcutGuide(topic) || m.shortcutCanAdvance(topic)
 	open := true
 	ui.Modal(c.Key("help-guide-modal"), &open, func() {
-		ui.Column(c).Width(panelWidth).Gap(14).Children(func() {
+		panel := ui.Column(c.Key(topic)).Width(panelWidth).Gap(14)
+		type stepMotion struct {
+			step int
+			dx   float32
+		}
+		motion := ui.Local(panel, "step-motion", func() stepMotion { return stepMotion{step: step} })
+		if step > motion.step {
+			motion.dx = 8
+		} else if step < motion.step {
+			motion.dx = -8
+		}
+		motion.step = step
+		panel.Children(func() {
 			ui.Row(c).FillWidth().Gap(12).AlignItems(ui.Center).Children(func() {
 				ui.Box(c).Size(42, 42).Shrink(0).Radius(12).Background(t.Selection).Center().Children(func() {
 					ui.Icon(c, helpGuideIcon(topic)).Size(23, 23).TextColor(accentInk(t)).AccessHidden(true)
@@ -59,7 +71,16 @@ func (m *Model) helpGuideModal(c *ui.Context, msg locales.Messages) {
 				})
 			})
 			helpProgress(c, step, steps)
-			ui.Scroll(c.Key("help-guide-step-" + strconv.Itoa(step))).FillWidth().MaxHeight(bodyHeight).Children(func() {
+			body := ui.Scroll(c.Key("help-guide-step-" + strconv.Itoa(step))).FillWidth().MaxHeight(bodyHeight)
+			if !c.Preferences().ReduceMotion {
+				transition := helpStepTransition
+				if motion.dx != 0 {
+					transition.Enter = &ui.Motion{X: motion.dx, Opacity: 0.8}
+					panel.ChildExit(ui.Motion{X: -motion.dx, Opacity: 0})
+				}
+				body.Transition(transition)
+			}
+			body.Children(func() {
 				ui.Column(c).FillWidth().MinHeight(min(134, bodyHeight)).Padding(2, 3, 4, 0).Gap(10).Children(func() {
 					if len(steps[step].body) > 0 {
 						ui.Column(c).FillWidth().Padding(10, 12).Gap(8).Radius(10).
@@ -113,7 +134,7 @@ func helpProgress(c *ui.Context, step int, steps []helpGuideStep) {
 			chipBg, chipFg := t.Surface, t.TextMuted
 			if i < step {
 				bg, ink = t.Selection, accentInk(t)
-				chipBg, chipFg = t.Selection, accentInk(t)
+				chipBg, chipFg = t.Surface, successInk(t)
 			} else if i == step {
 				bg, ink, marker = t.Selection, t.Text, t.Accent
 				chipBg, chipFg = t.Accent, t.AccentText
@@ -133,8 +154,42 @@ func helpProgress(c *ui.Context, step int, steps []helpGuideStep) {
 				ui.Text(c, item.label).Grow(1).MinWidth(0).Bold().FontSize(12).TextColor(ink)
 			})
 			if i+1 < len(steps) {
-				ui.Icon(c, phCaretRight).Size(12, 12).Shrink(0).TextColor(t.TextMuted).AccessHidden(true)
+				line := ui.Box(c.Key("help-step-link-"+strconv.Itoa(i))).Size(16, 2).Shrink(0).
+					Radius(1).Background(t.Border).AccessHidden(true)
+				target := float32(0)
+				if i < step {
+					target = 1
+				}
+				fill := line.AnimateTo("fill", target, motionFeedbackAnim)
+				line.Children(func() {
+					ui.Box(c).Width(16 * fill).Height(2).Radius(1).Background(accentInk(t))
+				})
 			}
+		}
+	})
+}
+
+func helpDisclosure(c *ui.Context, key, label string, open *bool, content func()) {
+	t := c.Theme()
+	ui.Column(c.Key(key)).Shrink(0).Children(func() {
+		disclosure := ui.CollapsibleBase(c.Key("toggle"), open)
+		trigger := disclosure.Trigger.Label(label).AlignSelf(ui.Start).AlignItems(ui.Center).
+			Padding(4, 8).Gap(6).Radius(t.Radius).Cursor(ui.CursorPointer).Transition(colorTransition)
+		if trigger.Hovered() {
+			trigger.Background(t.SurfaceHover)
+		}
+		trigger.Children(func() {
+			pose := ui.Pose{}
+			if *open {
+				pose.Rotate = 90
+			}
+			ui.Icon(c, phCaretRight).Size(14, 14).TextColor(t.TextMuted).AnimatePose(pose, ui.Snappy)
+			ui.Text(c, label).FontSize(13)
+		})
+		panel := disclosure.Panel(content)
+		if panel != (ui.Element{}) {
+			progress := disclosure.Progress()
+			panel.Padding(4, 0).PaddingStart(28).Gap(8).Opacity(progress).Translate(0, -4*(1-progress))
 		}
 	})
 }

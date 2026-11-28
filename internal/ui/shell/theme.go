@@ -61,6 +61,12 @@ var (
 		Enter:        &ui.Motion{Opacity: 0, Y: 4, Scale: 0.985},
 		Exit:         &ui.Motion{Opacity: 0},
 	}
+	helpStepTransition = ui.ElementTransition{
+		Duration:     160 * time.Millisecond,
+		Ease:         ui.EaseOut,
+		ExitDuration: 90 * time.Millisecond,
+		Exit:         &ui.Motion{Opacity: 0},
+	}
 	rowInsertTransition = ui.ElementTransition{
 		Position:     true,
 		Colors:       true,
@@ -70,9 +76,8 @@ var (
 		Exit:         &ui.Motion{Collapse: true},
 	}
 	stepCheckEnterTransition = ui.ElementTransition{
-		Duration: 140 * time.Millisecond,
-		Ease:     ui.EaseOut,
-		Enter:    &ui.Motion{Scale: 0.65, Opacity: 0},
+		Animation: &ui.Snappy,
+		Enter:     &ui.Motion{Scale: 0.7, Opacity: 0},
 	}
 
 	errorShakeFrames = []ui.Keyframe{
@@ -83,13 +88,12 @@ var (
 		{At: 180 * time.Millisecond, Value: 0, Ease: ui.EaseOut},
 	}
 	connectPulseFrames = []ui.Keyframe{
-		{At: 0, Value: 1},
-		{At: 100 * time.Millisecond, Value: 1.36, Ease: ui.EaseOut},
-		{At: 260 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
+		{At: 0, Value: 0},
+		{At: 240 * time.Millisecond, Value: 1, Ease: ui.EaseOut},
 	}
-	waitBreathFrames = []ui.Keyframe{
-		{At: 0, Value: 0.52},
-		{At: 1100 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
+	probingBreathFrames = []ui.Keyframe{
+		{At: 0, Value: 0.35},
+		{At: 600 * time.Millisecond, Value: 1, Ease: ui.EaseInOut},
 	}
 )
 
@@ -174,37 +178,112 @@ func smoothProgress(c *ui.Context, key string, value float64, label string) ui.E
 	return wrap
 }
 
-// statusDot renders a connection indicator with Oklab color morphing, a connect confirmation pulse,
-// and a restrained waiting breath when idle/disconnected.
-func statusDot(c *ui.Context, key string, size float32, target ui.Color, connected, hasErr bool) ui.Element {
-	dot := ui.Row(c.Key(key)).Width(size).Height(size).Radius(size / 2)
-	dot.Background(dot.AnimateColor("dot-color", target, motionStatusColorAnim))
+var progressSheen = ui.LinearGradient{Angle: 90, Stops: []ui.GradientStop{
+	{Color: ui.Transparent, At: 0},
+	{Color: ui.Hex("#FFFFFF").Alpha(0.22), At: 0.5},
+	{Color: ui.Transparent, At: 1},
+}}
 
+func deliveryProgress(c *ui.Context, key, label string, value float64, complete bool) ui.Element {
+	wrap := ui.Box(c.Key(key)).MinWidth(0).Shrink(1)
+	still := c.Preferences().ReduceMotion
+	if complete {
+		value = 1
+	}
+	value = min(value, 1)
+	fill, completion := float32(max(value, 0)), float32(1)
+	if !still {
+		fill = wrap.AnimateTo("progress-val", fill, motionProgressAnim)
+		target := float32(0)
+		if complete {
+			target = 1
+		}
+		completion = wrap.AnimateTo("completion", target, motionFeedbackAnim)
+	}
+	wrap.Children(func() {
+		if value < 0 {
+			if still {
+				ui.Progress(c, 0).FillWidth().Range(0, 1, -1).Label(label).Busy(true)
+			} else {
+				ui.Progress(c, -1).FillWidth().Label(label).Busy(true)
+			}
+			return
+		}
+		bar := ui.Progress(c, float64(fill)).FillWidth().Label(label).Range(0, 1, value)
+		if complete {
+			bar.TextColor(successInk(c.Theme()))
+		}
+		if still {
+			return
+		}
+		if fill <= 0 || complete && completion == 1 {
+			return
+		}
+		rtl := c.Direction() == ui.RightToLeft
+		bar.DrawOver(func(p *ui.Painter, r ui.Rect) {
+			filled := ui.Rect{X: r.X, Y: r.Y, W: r.W * fill, H: r.H}
+			if rtl {
+				filled.X += r.W - filled.W
+			}
+			if complete {
+				flash := 0.44 * min(completion, 1-completion)
+				p.Fill(filled, ui.Hex("#FFFFFF").Alpha(flash), r.H/2)
+				return
+			}
+			p.AnimationFrameRate(30)
+			band := min(44, r.W*0.35)
+			phase := float32(p.Now().UnixMilli()%2000) / 2000
+			if rtl {
+				phase = 1 - phase
+			}
+			x := filled.X - band + (filled.W+band)*phase
+			p.Clip(filled, r.H/2, func() {
+				p.FillGradient(ui.Rect{X: x, Y: r.Y, W: band, H: r.H}, progressSheen, 0)
+			})
+		})
+	})
+	return wrap
+}
+
+func successInk(t *ui.Theme) ui.Color {
+	if t.Dark {
+		return ui.Hex("#6EE7B7")
+	}
+	return ui.Hex("#047857")
+}
+
+func rowCaret(c *ui.Context, row ui.Element, size float32) {
+	pose := ui.Pose{}
+	if row.Hovered() {
+		pose.X = 2
+	}
+	ui.Icon(c, phCaretRight).Size(size, size).TextColor(c.Theme().TextMuted).AccessHidden(true).AnimatePose(pose, ui.Snappy)
+}
+
+func statusDot(c *ui.Context, key string, size float32, target ui.Color, connected, probing bool) ui.Element {
+	dot := ui.Box(c.Key(key)).Size(size, size).Shrink(0).Radius(size / 2).AccessHidden(true)
+	dot.Background(dot.AnimateColor("dot-color", target, motionStatusColorAnim))
 	type dotState struct {
 		wasConnected bool
 		pulseRun     uint64
 	}
-	st := ui.Local(dot, "dot-pulse-state", func() dotState {
-		return dotState{wasConnected: connected}
-	})
+	st := ui.Local(dot, "dot-pulse-state", func() dotState { return dotState{wasConnected: connected} })
 	if connected && !st.wasConnected {
 		st.pulseRun++
 	}
 	st.wasConnected = connected
-
-	if st.pulseRun > 0 {
-		scale := dot.Keyframes("dot-pulse", connectPulseFrames, ui.KeyframeOptions{Run: st.pulseRun})
-		if scale != 1 {
-			dot.Scale(scale, scale)
+	if connected && st.pulseRun > 0 {
+		phase := dot.Keyframes("dot-pulse", connectPulseFrames, ui.KeyframeOptions{Run: st.pulseRun})
+		if phase < 1 {
+			dot.DrawOver(func(p *ui.Painter, r ui.Rect) {
+				outset := size * 0.6 * phase
+				ring := ui.Rect{X: r.X - outset, Y: r.Y - outset, W: r.W + 2*outset, H: r.H + 2*outset}
+				p.Stroke(ring, target.Alpha(0.7*(1-phase)), ring.W/2, 1)
+			})
 		}
 	}
-	if !connected && !hasErr {
-		op := dot.Keyframes("dot-breath", waitBreathFrames, ui.KeyframeOptions{
-			Repeat:    ui.RepeatForever,
-			Alternate: true,
-			NonMotion: true,
-		})
-		dot.Opacity(op)
+	if probing && !c.Preferences().ReduceMotion {
+		dot.Opacity(dot.Keyframes("dot-probe", probingBreathFrames, ui.KeyframeOptions{Repeat: ui.RepeatForever, Alternate: true}))
 	}
 	return dot
 }

@@ -6520,6 +6520,46 @@ func (msgs Messages) HelpGuidePaste() string {
 	return Catalog.Format(msgs.locale, "helpGuidePaste", nil)
 }
 
+// HelpGuidePasted says "已粘贴"
+// in the language the app shows.
+func HelpGuidePasted() string { return In(i18n.Locale()).HelpGuidePasted() }
+
+// HelpGuidePasted says "已粘贴"
+// in the language of msgs.
+func (msgs Messages) HelpGuidePasted() string {
+	return Catalog.Format(msgs.locale, "helpGuidePasted", nil)
+}
+
+// HelpGuideAirDropOpened says "已呼出隔空投送"
+// in the language the app shows.
+func HelpGuideAirDropOpened() string { return In(i18n.Locale()).HelpGuideAirDropOpened() }
+
+// HelpGuideAirDropOpened says "已呼出隔空投送"
+// in the language of msgs.
+func (msgs Messages) HelpGuideAirDropOpened() string {
+	return Catalog.Format(msgs.locale, "helpGuideAirDropOpened", nil)
+}
+
+// HelpGuideFinderOpened says "已在 Finder 中定位"
+// in the language the app shows.
+func HelpGuideFinderOpened() string { return In(i18n.Locale()).HelpGuideFinderOpened() }
+
+// HelpGuideFinderOpened says "已在 Finder 中定位"
+// in the language of msgs.
+func (msgs Messages) HelpGuideFinderOpened() string {
+	return Catalog.Format(msgs.locale, "helpGuideFinderOpened", nil)
+}
+
+// HelpGuideExportDone says "已导出"
+// in the language the app shows.
+func HelpGuideExportDone() string { return In(i18n.Locale()).HelpGuideExportDone() }
+
+// HelpGuideExportDone says "已导出"
+// in the language of msgs.
+func (msgs Messages) HelpGuideExportDone() string {
+	return Catalog.Format(msgs.locale, "helpGuideExportDone", nil)
+}
+
 // HelpGuideRefreshHelp says "续签失败怎么办"
 // in the language the app shows.
 func HelpGuideRefreshHelp() string { return In(i18n.Locale()).HelpGuideRefreshHelp() }

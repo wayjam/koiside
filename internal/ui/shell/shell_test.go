@@ -1478,6 +1478,18 @@ func TestMotionTransitionsAndReduceMotionRespect(t *testing.T) {
 	m.mu.Unlock()
 	m.section = "设备"
 	tt.Frame()
+	if bar, ok := tt.AccessByRole(ui.RoleProgress, "upload_ipa"); !ok || bar.Now != 0.65 {
+		t.Fatalf("install in progress should expose 65%%, got %+v (found %v)", bar, ok)
+	}
+	m.mu.Lock()
+	m.toolInstalling = false
+	m.toolInstallDone = true
+	m.toolInstallMsg = "安装完成：com.example.demo"
+	m.mu.Unlock()
+	tt.Frame()
+	if bar, ok := tt.AccessByRole(ui.RoleProgress, m.toolInstallMsg); !ok || bar.Now != 1 {
+		t.Fatalf("successful install should expose 100%%, got %+v (found %v)", bar, ok)
+	}
 	if err := tt.Click("首页"); err != nil {
 		t.Fatal(err)
 	}

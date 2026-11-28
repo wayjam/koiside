@@ -164,7 +164,7 @@ type Model struct {
 	toolInstallMsg     string
 	toolInstallErr     string
 	toolInstallDone    bool
-	shortcutBusy       bool
+	shortcutExporting  string
 	shortcutResults    map[string]shortcutResult
 	pairingBusy        bool
 	pairingMsg         string
@@ -698,6 +698,9 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			pinText := msg.SidebarDeviceSingle()
 			connected := m.hasConnectedDevice()
 			hasErr := m.deviceErr != ""
+			m.mu.Lock()
+			probing := m.deviceProbing
+			m.mu.Unlock()
 			dotColor := t.TextMuted
 			if connected {
 				devName := msg.DeviceCardTitle()
@@ -713,12 +716,16 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 			} else if hasErr {
 				dotColor = ui.Hex("#EF4444")
 			}
+			if probing {
+				pinText = msg.HelpGuideScanning()
+				dotColor = accentInk(t)
+			}
 			if m.sidebarCollapsed {
 				pinBtn := ui.ButtonBase(c.Key("sidebar-device-pin")).Width(42).Height(34).Radius(8).
 					Center().Label(pinText).Background(t.Selection).Cursor(ui.CursorPointer).Transition(colorTransition)
 				applyPressPose(pinBtn, 0.96)
 				pinBtn.Children(func() {
-					statusDot(c, "sidebar-dev-dot-collapsed", 8, dotColor, connected, hasErr)
+					statusDot(c, "sidebar-dev-dot-collapsed", 8, dotColor, connected, probing)
 				})
 				if pinBtn.Clicked() {
 					m.section = "设备"
@@ -729,7 +736,7 @@ func (m *Model) sidebarView(c *ui.Context, msg locales.Messages) {
 				applyPressPose(pinBtn, 0.985)
 				pinBtn.Children(func() {
 					ui.Row(c).FillWidth().Gap(8).AlignItems(ui.Center).Children(func() {
-						statusDot(c, "sidebar-dev-dot", 7, dotColor, connected, hasErr)
+						statusDot(c, "sidebar-dev-dot", 7, dotColor, connected, probing)
 						ui.Text(c, pinText).FontSize(12).Bold().TextColor(t.Text).SingleLine().Grow(1)
 					})
 				})
@@ -909,6 +916,9 @@ func (m *Model) currentStageSummary(msg locales.Messages) string {
 func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
 	connected := m.hasConnectedDevice()
+	m.mu.Lock()
+	probing := m.deviceProbing
+	m.mu.Unlock()
 	targetDot := t.TextMuted
 	if connected {
 		targetDot = ui.Hex("#10B981")
@@ -943,7 +953,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 						title = m.deviceInfo.Name
 					}
 					ui.Text(c, title).Bold().FontSize(16)
-					statusDot(c, "home-dev-dot", 8, targetDot, connected, m.deviceErr != "")
+					statusDot(c, "home-dev-dot", 8, targetDot, connected, probing)
 				})
 				ui.Row(c).FillWidth().Wrap().Gap(6).AlignItems(ui.Center).Children(func() {
 					ui.Text(c.Key("device"), m.deviceStatusText(msg)).FontSize(13).TextColor(t.TextMuted)
@@ -951,11 +961,7 @@ func (m *Model) deviceCard(c *ui.Context, msg locales.Messages) {
 					ui.Text(c, m.sideStoreSummaryText(msg)).FontSize(12).TextColor(t.TextMuted)
 				})
 			})
-			pose := ui.Pose{}
-			if card.Hovered() {
-				pose = ui.Pose{X: 2}
-			}
-			ui.Icon(c, phCaretRight).Width(16).Height(16).TextColor(t.TextMuted).AnimatePose(pose, ui.Snappy)
+			rowCaret(c, card, 16)
 		})
 	})
 	if card.Clicked() {

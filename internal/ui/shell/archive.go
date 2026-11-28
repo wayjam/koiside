@@ -591,8 +591,14 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 				dErr := m.directErr
 				dMsg := m.directDoneMsg
 				m.mu.Unlock()
+				if busy || dMsg != "" {
+					label := progressStageLabel(msg, stage)
+					if !busy {
+						label = dMsg
+					}
+					deliveryProgress(c, "store-sinf-install-progress", label, float64(pct)/100, !busy).FillWidth()
+				}
 				if busy {
-					smoothProgress(c, "store-sinf-install-progress", float64(pct)/100.0, stage).FillWidth()
 					ui.Text(c, fmt.Sprintf("%d%% · %s", pct, progressStageLabel(msg, stage))).FontSize(12).TextColor(accentInk(t))
 				}
 				if dErr != "" {
@@ -600,7 +606,7 @@ func (m *Model) archiveSummary(c *ui.Context, msg locales.Messages) {
 						Transition(feedbackBannerTransition)
 				}
 				if dMsg != "" {
-					ui.Text(c.Key("store-sinf-done"), dMsg).FontSize(12).TextColor(ui.Hex("#10B981")).
+					ui.Text(c.Key("store-sinf-done"), dMsg).Role(ui.RoleStatus).FontSize(12).TextColor(successInk(t)).
 						Transition(feedbackBannerTransition)
 				}
 				ui.Row(c).Gap(10).Children(func() {
