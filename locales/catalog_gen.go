@@ -4628,6 +4628,26 @@ func (msgs Messages) TransferDirectInstallDesc() string {
 	return Catalog.Format(msgs.locale, "transferDirectInstallDesc", nil)
 }
 
+// TransferExtensionsNote says "此 IPA 含 {count} 个扩展。每个扩展会单独注册一个 App ID。"
+// in the language the app shows.
+func TransferExtensionsNote(count int) string { return In(i18n.Locale()).TransferExtensionsNote(count) }
+
+// TransferExtensionsNote says "此 IPA 含 {count} 个扩展。每个扩展会单独注册一个 App ID。"
+// in the language of msgs.
+func (msgs Messages) TransferExtensionsNote(count int) string {
+	return Catalog.Format(msgs.locale, "transferExtensionsNote", map[string]any{"count": count})
+}
+
+// TransferSkipExtensions says "仅安装主程序，跳过扩展"
+// in the language the app shows.
+func TransferSkipExtensions() string { return In(i18n.Locale()).TransferSkipExtensions() }
+
+// TransferSkipExtensions says "仅安装主程序，跳过扩展"
+// in the language of msgs.
+func (msgs Messages) TransferSkipExtensions() string {
+	return Catalog.Format(msgs.locale, "transferSkipExtensions", nil)
+}
+
 // TransferDirectInstallBtn says "桌面签名并安装"
 // in the language the app shows.
 func TransferDirectInstallBtn() string { return In(i18n.Locale()).TransferDirectInstallBtn() }
