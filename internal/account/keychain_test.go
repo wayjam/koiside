@@ -2,19 +2,33 @@ package account
 
 import (
 	"bytes"
-	"fmt"
+	"context"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
 
 func TestKeychainStorageRoundTrip(t *testing.T) {
-	service := fmt.Sprintf("me.koiside.test.%d", time.Now().UnixNano())
-	store := &KeychainStorage{service: service}
+	if runtime.GOOS != "darwin" {
+		t.Skip("requires macOS Keychain")
+	}
+	path := filepath.Join(t.TempDir(), "test.keychain-db")
+	runSecurity := func(args ...string) {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if out, err := exec.CommandContext(ctx, "/usr/bin/security", args...).CombinedOutput(); err != nil {
+			t.Fatalf("security %s: %v: %s", args[0], err, out)
+		}
+	}
+	const password = "temporary-test-keychain"
+	runSecurity("create-keychain", "-p", password, path)
+	t.Cleanup(func() { runSecurity("delete-keychain", path) })
+	runSecurity("unlock-keychain", "-p", password, path)
+	store := &KeychainStorage{service: "me.koiside.test", keychainPath: path}
 	key := "test_large_key"
-
-	t.Cleanup(func() {
-		_ = store.DeleteKey(key)
-	})
 
 	// 1. Initial get should fail
 	if _, err := store.Get(key); err == nil {

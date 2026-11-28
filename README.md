@@ -107,6 +107,8 @@ go vet -tags e2e ./...
 go test -count=1 ./...
 ```
 
+The macOS Keychain round-trip test uses a temporary keychain and deletes it during cleanup.
+
 ## Acknowledgments
 
 - [mygo](https://github.com/egoist/mygo) provides the native GPU-rendered Go UI framework.
