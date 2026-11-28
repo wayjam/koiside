@@ -82,17 +82,26 @@ func (a *AFC) UploadDir(localDir, remoteDir string, onProgress func(uploaded, to
 		if d.IsDir() {
 			return a.Mkdir(remotePath)
 		}
-		data, err := os.ReadFile(p)
+		f, err := os.Open(p)
 		if err != nil {
 			return err
 		}
-		if err := a.writeFile(remotePath, data); err != nil {
+		fi, err := f.Stat()
+		if err != nil {
+			_ = f.Close()
 			return err
 		}
-		uploaded += int64(len(data))
-		if onProgress != nil {
-			onProgress(uploaded, total)
+		fileSize := fi.Size()
+		writeErr := a.WriteReader(remotePath, f, fileSize, func(fileUploaded, _ int64) {
+			if onProgress != nil {
+				onProgress(uploaded+fileUploaded, total)
+			}
+		})
+		_ = f.Close()
+		if writeErr != nil {
+			return writeErr
 		}
+		uploaded += fileSize
 		return nil
 	})
 }

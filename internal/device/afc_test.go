@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -172,4 +174,46 @@ func statusBody(code uint64) []byte {
 	body := make([]byte, 8)
 	binary.LittleEndian.PutUint64(body, code)
 	return body
+}
+
+func TestUploadDirStreamsFilesWithoutBuffering(t *testing.T) {
+	tmp := t.TempDir()
+	sub := filepath.Join(tmp, "sub")
+	if err := os.MkdirAll(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	f1Data := bytes.Repeat([]byte("A"), 600*1024)
+	f2Data := bytes.Repeat([]byte("B"), 100*1024)
+	if err := os.WriteFile(filepath.Join(tmp, "file1.bin"), f1Data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(sub, "file2.bin"), f2Data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	conn := &afcConn{}
+	afc := NewAFC(conn)
+	var lastSeen int64
+	err := afc.UploadDir(tmp, "PublicStaging/app.app", func(up, tot int64) {
+		lastSeen = up
+		if tot != int64(len(f1Data)+len(f2Data)) {
+			t.Fatalf("unexpected total size: %d", tot)
+		}
+	})
+	if err != nil {
+		t.Fatalf("UploadDir failed: %v", err)
+	}
+	if lastSeen != int64(len(f1Data)+len(f2Data)) {
+		t.Fatalf("expected uploaded bytes %d, got %d", len(f1Data)+len(f2Data), lastSeen)
+	}
+	// Verify that write operations were performed
+	writeOps := 0
+	for _, op := range conn.ops {
+		if op == afcOpFileWrite {
+			writeOps++
+		}
+	}
+	if writeOps < 2 {
+		t.Fatalf("expected multiple write ops, got %d", writeOps)
+	}
 }
