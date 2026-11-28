@@ -76,9 +76,9 @@ func TestSignAppBundleProducesValidCMSSignatureVerifiedByCodesign(t *testing.T) 
 
 	// Build a minimal CMS-wrapped mobileprovision blob
 	profPlist, _ := plist.Marshal(map[string]any{
-		"UUID":           "11111111-2222-3333-4444-555555555555",
-		"AppIDName":      "Sample",
-		"TeamIdentifier": []string{"TEAM123"},
+		"UUID":                  "11111111-2222-3333-4444-555555555555",
+		"AppIDName":             "Sample",
+		"TeamIdentifier":        []string{"TEAM123"},
 		"DeveloperCertificates": [][]byte{leafDER},
 		"Entitlements": map[string]any{
 			"application-identifier": "TEAM123.com.example.sample.TEAM123",
@@ -187,11 +187,11 @@ func TestSignIPAWithPortalChecksRecoveryBundleIDBeforeProvisioning(t *testing.T)
 		t.Run(tc.name, func(t *testing.T) {
 			certificateRequested := false
 			_, err := SignIPAWithPortal(context.Background(), PortalSignOptions{
-				InputPath:         appDir,
-				DeviceUDID:        "device-udid",
-				Team:              devportal.Team{TeamID: "TEAM1"},
-				Portal:            &devportal.Session{},
-				RecoveryBundleID:  tc.bundleID,
+				InputPath:        appDir,
+				DeviceUDID:       "device-udid",
+				Team:             devportal.Team{TeamID: "TEAM1"},
+				Portal:           &devportal.Session{},
+				RecoveryBundleID: tc.bundleID,
 				EnsureCertificate: func(context.Context) (*devportal.CertificateIdentity, error) {
 					certificateRequested = true
 					return nil, errCertificate

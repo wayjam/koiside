@@ -474,7 +474,7 @@ func (m *Model) docTreeView(c *ui.Context, msg locales.Messages, entries []devic
 			if row.Clicked() {
 				m.docTreeOpen[entry.Path] = !open
 			}
-			ui.Column(c.Key("doc-branch-"+entry.Path)).FillWidth().Clip().Transition(heightTransition).Children(func() {
+			ui.Column(c.Key("doc-branch-" + entry.Path)).FillWidth().Clip().Transition(heightTransition).Children(func() {
 				if open {
 					if len(entry.Children) == 0 {
 						ui.Row(c).FillWidth().Padding(6, 18, 6, indent+22).Children(func() {
@@ -601,7 +601,6 @@ func (m *Model) pickIPAToDevice() {
 		}
 	}()
 }
-
 
 func (m *Model) deviceView(c *ui.Context, msg locales.Messages) {
 	t := c.Theme()
