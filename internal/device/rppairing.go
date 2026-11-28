@@ -549,13 +549,13 @@ func (c *rpClient) pairSetup(rpf *RpPairingFile) error {
 	sig := ed25519.Sign(priv, signBuf.Bytes())
 
 	devInfo := map[string]any{
-		"altIRK":                     []byte("\xe9\xe8-\xc0jIykVoT\x00\x19\xb1\xc7{"),
-		"btAddr":                     "11:22:33:44:55:66",
-		"mac":                        []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66},
+		"altIRK":                      []byte("\xe9\xe8-\xc0jIykVoT\x00\x19\xb1\xc7{"),
+		"btAddr":                      "11:22:33:44:55:66",
+		"mac":                         []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66},
 		"remotepairing_serial_number": "AAAAAAAAAAAA",
-		"accountID":                  rpf.Identifier,
-		"model":                      "computer-model",
-		"name":                       c.sendingHost,
+		"accountID":                   rpf.Identifier,
+		"model":                       "computer-model",
+		"name":                        c.sendingHost,
 	}
 	infoOpack := encodeOpackDict(devInfo)
 

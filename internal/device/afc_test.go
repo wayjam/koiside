@@ -108,9 +108,9 @@ func TestReadDirAndStat(t *testing.T) {
 }
 
 type afcConn struct {
-	written    []byte
-	reply      []byte
-	read       int
+	written      []byte
+	reply        []byte
+	read         int
 	corrupt      bool
 	failRename   bool
 	ops          []uint64
