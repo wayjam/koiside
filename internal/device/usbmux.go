@@ -44,7 +44,6 @@ func New(conn io.ReadWriteCloser) *Client { return &Client{conn: conn} }
 // Close closes the muxer connection.
 func (c *Client) Close() error { return c.conn.Close() }
 
-
 // NewDialerConn opens the raw usbmuxd unix socket connection.
 func NewDialerConn() (io.ReadWriteCloser, error) {
 	return net.Dial("unix", socketPath)

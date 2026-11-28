@@ -11,13 +11,13 @@ import (
 // Snapshot is a read-only summary of one connected device and its detected tools.
 // Nil or empty fields remain unknown and are never assumed.
 type Snapshot struct {
-	Device        Device
-	Info          Info
-	Apps          []InstalledApp
-	SideStore         *InstalledApp
-	SideStoreEmbedded bool
-	LocalDevVPN       *InstalledApp
-	LiveContainer     *InstalledApp
+	Device               Device
+	Info                 Info
+	Apps                 []InstalledApp
+	SideStore            *InstalledApp
+	SideStoreEmbedded    bool
+	LocalDevVPN          *InstalledApp
+	LiveContainer        *InstalledApp
 	SideStoreDocs        []string
 	SideStoreTree        []DocEntry
 	DocsBundleID         string
@@ -28,6 +28,7 @@ type Snapshot struct {
 	DeveloperModeEnabled bool
 	SessionErr           error
 }
+
 // ProbeFirst discovers the first attached device via usbmuxd and performs
 // read-only lockdown, installation_proxy, and house_arrest checks.
 // It never writes pairing files, installs apps, or modifies files on the device.

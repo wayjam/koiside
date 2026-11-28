@@ -111,9 +111,10 @@ type afcConn struct {
 	written    []byte
 	reply      []byte
 	read       int
-	corrupt    bool
-	failRename bool
-	ops        []uint64
+	corrupt      bool
+	failRename   bool
+	ops          []uint64
+	lastFileData []byte
 }
 
 func (c *afcConn) Write(p []byte) (int, error) {
@@ -124,12 +125,20 @@ func (c *afcConn) Write(p []byte) (int, error) {
 	op := binary.LittleEndian.Uint64(p[32:40])
 	c.ops = append(c.ops, op)
 	switch op {
+	case afcOpFileWrite:
+		if len(p) > afcHeaderSize+8 {
+			c.lastFileData = append(c.lastFileData, p[afcHeaderSize+8:]...)
+		}
+		c.reply = append(c.reply, afcPacket(afcOpStatus, statusBody(afcSuccess))...)
 	case afcOpFileOpen:
 		res := make([]byte, 8)
 		binary.LittleEndian.PutUint64(res, 1)
 		c.reply = append(c.reply, afcPacket(afcOpFileOpenRes, res)...)
 	case afcOpFileRead:
 		body := []byte("ipa")
+		if len(c.lastFileData) > 0 {
+			body = c.lastFileData
+		}
 		if c.corrupt {
 			body = []byte("bad")
 		}

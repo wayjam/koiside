@@ -131,10 +131,21 @@ func TestRpPairingFileAndOpackAndDetectTargets(t *testing.T) {
 	targets := DetectPairingTargets([]InstalledApp{
 		{BundleID: "com.SideStore.SideStore.8K49", Name: "SideStore"},
 		{BundleID: "com.kdt.livecontainer.8K49", Name: "LiveContainer"},
+		{BundleID: "com.rileytestut.AltStore", Name: "AltStore"},
 		{BundleID: "com.tencent.xin", Name: "微信"},
 	})
-	if len(targets) != 2 || targets[0].Name != "SideStore" || targets[1].Name != "LiveContainer" {
+	if len(targets) != 3 || targets[0].Name != "SideStore" || targets[1].Name != "LiveContainer" || targets[2].Name != "AltStore" {
 		t.Fatalf("unexpected pairing targets: %+v", targets)
+	}
+	altFound := false
+	for _, p := range targets[2].Paths {
+		if p == "ALTPairingFile.plist" {
+			altFound = true
+			break
+		}
+	}
+	if !altFound {
+		t.Fatalf("AltStore missing ALTPairingFile.plist in targets: %+v", targets[2])
 	}
 }
 func TestInstallProvisioningProfileSendsMisagentPayload(t *testing.T) {
@@ -180,5 +191,18 @@ func TestInstallProvisioningProfileHandlesRefusal(t *testing.T) {
 	}
 	if err := sess.InstallProvisioningProfile([]byte("sample")); err == nil {
 		t.Fatal("expected error on status != 0, got nil")
+	}
+}
+
+func TestSetSideStorePairingPreferences(t *testing.T) {
+	conn := &afcConn{}
+	afc := NewAFC(conn)
+	prefsPath := "/Documents/SideStore/Library/Preferences/com.SideStore.SideStore.plist"
+	if err := SetSideStorePairingPreferences(afc, prefsPath); err != nil {
+		t.Fatalf("SetSideStorePairingPreferences failed: %v", err)
+	}
+	// Verify written bytes contain isPairingReset and rppairing
+	if !bytes.Contains(conn.written, []byte("isPairingReset")) || !bytes.Contains(conn.written, []byte("rppairing")) {
+		t.Fatalf("expected written preferences to contain isPairingReset and rppairing, got: %s", string(conn.written))
 	}
 }

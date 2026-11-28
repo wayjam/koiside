@@ -147,6 +147,7 @@ var knownPairingTargets = []struct {
 	paths    []string
 }{
 	{name: "SideStore", matchIDs: []string{"com.sidestore.sidestore"}, paths: []string{"ALTPairingFile.mobiledevicepairing", "PairingFile_RemoteRP.plist", "PairingFile_Lockdown.plist"}},
+	{name: "AltStore", matchIDs: []string{"com.rileytestut.altstore"}, paths: []string{"ALTPairingFile.plist", "ALTPairingFile.mobiledevicepairing", "PairingFile_RemoteRP.plist"}},
 	{name: "LiveContainer", matchIDs: []string{"com.kdt.livecontainer"}, paths: []string{"SideStore/Documents/ALTPairingFile.mobiledevicepairing", "SideStore/Documents/PairingFile_RemoteRP.plist"}},
 	{name: "Feather", matchIDs: []string{"kh.crysalis.feather"}, paths: []string{"pairingFile.plist"}},
 	{name: "StikDebug", matchIDs: []string{"com.stik.stikdebug", "stikdebug"}, paths: []string{"pairingFile.plist"}},
@@ -220,7 +221,38 @@ func PlacePairingFiles(dial Dialer, deviceID int, udid, bundleID string, targetP
 			return fmt.Errorf("device: write pairing %s: %w", remotePath, err)
 		}
 	}
+	lowID := strings.ToLower(bundleID)
+	if strings.Contains(lowID, "com.sidestore.sidestore") {
+		if containerAFC, err := sess.VendContainer(bundleID); err == nil {
+			defer containerAFC.Close()
+			_ = SetSideStorePairingPreferences(containerAFC, fmt.Sprintf("/Library/Preferences/%s.plist", bundleID))
+		}
+	} else if strings.Contains(lowID, "com.kdt.livecontainer") {
+		_ = SetSideStorePairingPreferences(afcConn, "/Documents/SideStore/Library/Preferences/com.SideStore.SideStore.plist")
+	}
 	return nil
+}
+
+// SetSideStorePairingPreferences updates SideStore's preferences plist to enable RemoteRP pairing without manual user reset.
+func SetSideStorePairingPreferences(afc *AFC, prefsPath string) error {
+	var dict map[string]any
+	if raw, err := afc.ReadFile(prefsPath); err == nil && len(raw) > 0 {
+		_, _ = plist.Unmarshal(raw, &dict)
+	}
+	if dict == nil {
+		dict = map[string]any{}
+	}
+	dict["isPairingReset"] = false
+	dict["activePairingProtocol"] = "rppairing"
+	raw, err := plist.Marshal(dict, plist.XMLFormat)
+	if err != nil {
+		return err
+	}
+	if dir := path.Dir(prefsPath); dir != "." && dir != "/" {
+		_ = afc.Mkdir(dir)
+	}
+	_, err = afc.WriteAtomic(prefsPath, raw)
+	return err
 }
 
 type rpClient struct {
